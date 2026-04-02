@@ -1,0 +1,42 @@
+/* Footer Styles */
+.footer {
+  background: #49a4ff;
+  color: white;
+  padding: 60px 0 20px;
+}
+
+.footer h5 {
+  color: #ffffff;
+  margin-bottom: 20px;
+}
+
+.footer a {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer a:hover {
+  color: #f1f6fa;
+}
+
+.footer .social-icons a {
+  font-size: 1.5em;
+  margin-right: 15px;
+}
+
+.footer .logo {
+  display: flex;
+  align-items: center;
+}
+
+.footer .logo .emoji {
+  font-size: 2em;
+  margin-right: 10px;
+}
+
+.footer .logo .text {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #ffffff;
+}
