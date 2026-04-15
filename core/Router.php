@@ -4,84 +4,84 @@ namespace App\Core;
 
 class Router
 {
-    private $routes = [
-        'GET' => [],
-        'POST' => []
-    ];
+    private array $routes = [];
 
-    public function get($uri, $action)
+    public function add(string $method, string $uri, $action): void
     {
-        $this->routes['GET'][$uri] = $action;
-        //$this->routes['GET']['/'] = 'HomeController@index';
+        // Chuyển đổi các parameter dạng :id sang regex (vd: /api/users/:id -> /api/users/([a-zA-Z0-9_-]+))
+        $pattern = preg_replace('/\:([a-zA-Z0-9_]+)/', '([a-zA-Z0-9_-]+)', $uri);
+        $pattern = '#^' . $pattern . '$#';
+
+        $this->routes[] = [
+            'method' => strtoupper($method),
+            'uri' => $uri,
+            'pattern' => $pattern,
+            'action' => $action
+        ];
     }
 
-    public function post($uri, $action)
+    public function get(string $uri, $action): void
     {
-        $this->routes['POST'][$uri] = $action;
+        $this->add('GET', $uri, $action);
     }
 
-    public function run()
+    public function post(string $uri, $action): void
     {
-        $method = $_SERVER['REQUEST_METHOD'];
-        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $this->add('POST', $uri, $action);
+    }
 
-        // Nếu chạy trong thư mục public/
-        $uri = str_replace('/public', '', $uri); // bỏ public
+    public function put(string $uri, $action): void
+    {
+        $this->add('PUT', $uri, $action);
+    }
 
-        if (!isset($this->routes[$method][$uri])) {
-            echo "404 Not Found: $uri";
-            return;
+    public function delete(string $uri, $action): void
+    {
+        $this->add('DELETE', $uri, $action);
+    }
+
+    public function dispatch(Request $request, Response $response)
+    {
+        $uri = $request->getUri();
+        $method = $request->getMethod();
+
+        // Xử lý Preflight request cho CORS
+        if ($method === 'OPTIONS') {
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE');
+            header('Access-Control-Allow-Headers: Authorization, Content-Type');
+            exit(0);
         }
 
-        // ===== KIỂM TRA AUTHENTICATION =====
-        // Danh sách routes công khai (không cần đăng nhập)
-        $publicRoutes = ['/', '/about', '/login', '/register', '/logout'];
-        
-        // Nếu không phải route công khai và chưa đăng nhập
-        if (!in_array($uri, $publicRoutes)) {
-            if (!isset($_SESSION['user_id']) || !isset($_SESSION['username'])) {
-                // Lưu URL để redirect sau khi login
-                $_SESSION['redirect_after_login'] = $uri;
+        foreach ($this->routes as $route) {
+            if ($route['method'] === $method && preg_match($route['pattern'], $uri, $matches)) {
                 
-                // Redirect về login
-                header('Location: /login');
-                exit;
+                array_shift($matches); // Loại bỏ phần tử match toàn bộ chuỗi
+                
+                $action = $route['action'];
+
+                // Hỗ trợ Middleware tại đây trong tương lai
+
+                if (is_callable($action)) {
+                    return call_user_func_array($action, array_merge([$request, $response], $matches));
+                }
+
+                if (is_array($action) && count($action) == 2) {
+                    $controller = new $action[0]();
+                    $methodToCall = $action[1];
+                    return call_user_func_array([$controller, $methodToCall], array_merge([$request, $response], $matches));
+                }
+
+                if (is_string($action)) {
+                    list($controllerClass, $methodToCall) = explode('@', $action);
+                    $fullController = "App\\Controllers\\" . $controllerClass;
+                    $controller = new $fullController();
+                    
+                    return call_user_func_array([$controller, $methodToCall], array_merge([$request, $response], $matches));
+                }
             }
         }
 
-        // Kiểm tra admin routes
-        $adminRoutes = ['/management', '/admin'];
-        $isAdminRoute = false;
-        foreach ($adminRoutes as $adminRoute) {
-            if (strpos($uri, $adminRoute) === 0) { // Kiểm tra xem URI có bắt đầu bằng admin route không
-                $isAdminRoute = true;
-                break;
-            }
-        }
-        // 0 → tìm thấy ngay đầu chuỗi
-        // > 0 → tìm thấy nhưng không ở đầu
-        // false → không tìm thấy
-
-        if ($isAdminRoute) {
-            if ((int)($_SESSION['is_admin'] ?? 0) !== 1) {
-                header('Location: /');
-                exit;
-            }
-        }
-
-        $action = $this->routes[$method][$uri];
-        // $action = 'ChatController@chatWithFriend';
-        list($controllerName, $methodCall) = explode('@', $action);
-        //$controllerName = "ChatController";
-        //$methodCall = "chatWithFriend";
-
-        // FULL namespace controller
-        $fullController = "App\\Controllers\\$controllerName";
-
-        // Khởi tạo controller nhờ Composer autoload
-        $controllerObj = new $fullController();
-
-        return $controllerObj->$methodCall();
-        // $controllerObj->chatWithFriend();
+        return $response->error('404 Not Found - Endpoint does not exist', 404);
     }
 }

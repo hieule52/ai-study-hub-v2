@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Khóa Học - AI Study Hub</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+    <nav class="navbar" style="z-index: 100;">
+        <div class="container navbar-container">
+            <a href="/" class="nav-brand">AI <span class="text-gradient">Teacher Panel</span></a>
+            <div id="user-menu" class="flex items-center gap-4"></div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="/teacher/dashboard.html" class="sidebar-link">📊 Quản lý khóa học</a></li>
+                <li><a href="/teacher/create-course.html" class="sidebar-link active">📝 Tạo khóa học mới</a></li>
+                <li><a href="#" class="sidebar-link">👥 Học viên của tôi</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 style="font-size: 2rem;">Thêm Mới Khóa Học</h1>
+                    <p class="text-secondary mt-2">Điền thông tin form bên dưới để tạo trang Course.</p>
+                </div>
+            </div>
+
+            <div class="card glass-panel" style="padding: 2rem; max-width: 800px;">
+                <form id="createCourseForm">
+                    <div class="form-group">
+                        <label class="form-label">Tên khóa học</label>
+                        <input type="text" id="title" class="form-control" placeholder="Ví dụ: AI Masterclass 2026" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mô tả (Description)</label>
+                        <textarea id="description" class="form-control" rows="5" placeholder="Mô tả nội dung học..." required></textarea>
+                    </div>
+
+                    <div class="grid-cols-2">
+                        <div class="form-group">
+                            <label class="form-label">Giá bán (VNĐ)</label>
+                            <input type="number" id="price" class="form-control" placeholder="500000" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Gắn mác Khóa học Premium?</label>
+                            <select id="is_premium" class="form-control">
+                                <option value="1">Có (Yêu cầu VIP / Mua đứt gốc)</option>
+                                <option value="0">Không (Khóa miễn phí)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 2rem 0;">
+
+                    <button type="submit" class="btn btn-primary" style="padding: 1rem 2rem;">Lưu Khóa Học Lên Hệ Thống</button>
+                    <button type="button" class="btn btn-outline" style="padding: 1rem 2rem; margin-left: 1rem;">Lưu Nháp</button>
+                </form>
+            </div>
+            
+        </main>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            App.requireAuth(['teacher']);
+
+            document.getElementById('createCourseForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                try {
+                    const title = document.getElementById('title').value;
+                    const desc = document.getElementById('description').value;
+                    const price = document.getElementById('price').value;
+                    const premium = document.getElementById('is_premium').value;
+
+                    const res = await window.api.post('/courses', {
+                        title: title,
+                        description: desc,
+                        price: price,
+                        is_premium: premium
+                    });
+
+                    App.showToast('Khóa học đã được tạo thành công!', 'success');
+                    setTimeout(() => window.location.href='/teacher/dashboard.html', 1500);
+                } catch(err) {
+                    App.showToast(err.message, 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

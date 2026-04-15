@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Khóa Học - AI Study Hub</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="/" class="nav-brand">AI <span class="text-gradient">Study Hub</span></a>
+            <div id="user-menu" class="flex items-center gap-4"></div>
+        </div>
+    </nav>
+
+    <div class="container mt-8" style="padding-top: 100px;">
+        <div class="grid-cols-2" style="grid-template-columns: 2fr 1fr; align-items: start;">
+            
+            <!-- Context -->
+            <div>
+                <a href="/" class="btn btn-outline mb-4" style="padding: 0.5rem 1rem;">&larr; Về trang chủ</a>
+                <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Lập Trình Web PHP từ Z đến A (Có Tích Hợp AI)</h1>
+                <p class="text-secondary" style="font-size: 1.1rem; line-height: 1.8;">
+                    Khóa học đỉnh cao đào tạo Fullstack PHP tích hợp AI Groq, bảo mật JWT và Socket Realtime. Toàn bộ thiết kế theo chuẩn Enterprise Architecture.
+                </p>
+
+                <h3 class="mt-8 mb-4">Bạn sẽ học được gì?</h3>
+                <ul style="list-style: none; color: var(--text-secondary); line-height: 2;">
+                    <li>✅ Hiểu sâu về mô hình MVC chuẩn hóa.</li>
+                    <li>✅ Kết nối Single Page App với Backend qua REST API.</li>
+                    <li>✅ Hệ thống Chat WebSockets mượt mà.</li>
+                    <li>✅ Tạo trợ giảng cá nhân AI cho từng sinh viên.</li>
+                </ul>
+            </div>
+
+            <!-- Pricing Box -->
+            <div class="card glass-panel" style="padding: 2rem; position: sticky; top: 100px;">
+                <div class="card-img-placeholder mb-4" style="border-radius: var(--radius-md);">
+                    Cơ Bản & Nâng Cao
+                </div>
+                
+                <h2 style="color: var(--warning); margin-bottom: 1rem; font-size: 2.5rem;">500.000 đ <span style="font-size: 1rem; text-decoration: line-through; color: var(--text-muted);">1.500.000 đ</span></h2>
+                
+                <div class="flex flex-column gap-4">
+                    <button class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 1rem;" onclick="App.requireAuth()">Thêm Vào Giỏ Hàng</button>
+                    <button class="btn btn-outline" style="width: 100%; padding: 1rem;">Học thử Miễn Phí (2 Bài)</button>
+                </div>
+
+                <div class="mt-4 text-center text-muted" style="font-size: 0.875rem;">
+                    Cam kết hoàn tiền trong 30 ngày.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/app.js"></script>
+</body>
+</html>

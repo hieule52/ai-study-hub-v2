@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang Học - AI Study Hub</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        .learning-layout {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background: #000;
+        }
+        .main-player {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .video-container {
+            width: 100%;
+            background: #000;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            background: var(--bg-main);
+            color: var(--text-primary);
+        }
+        .curriculum-sidebar {
+            width: 350px;
+            background: var(--bg-surface);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+        .ai-chat-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 380px; 
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            box-shadow: 0 4px 20px rgba(79, 70, 229, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        .ai-chat-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .chapter-title {
+            padding: 1rem 1.5rem;
+            background: rgba(255,255,255,0.02);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .lesson-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .lesson-item:hover, .lesson-item.playing {
+            background: rgba(79, 70, 229, 0.1);
+        }
+        .lesson-item.playing {
+            border-left: 4px solid var(--primary);
+        }
+
+        /* AI Mở popup */
+        .ai-popup {
+            position: fixed;
+            bottom: 100px;
+            right: 380px;
+            width: 350px;
+            height: 500px;
+            background: var(--bg-surface);
+            border: 1px solid var(--primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-glow);
+            display: none;
+            flex-direction: column;
+            z-index: 999;
+            overflow: hidden;
+        }
+        .ai-popup.open {
+            display: flex;
+        }
+        .ai-header {
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+        .ai-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .msg {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+        }
+        .msg.user {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+        .msg.bot {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .ai-input {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="learning-layout">
+        
+        <!-- Left: Video Area -->
+        <div class="main-player">
+            <!-- Go Back nav -->
+            <div style="padding: 1rem; background: var(--bg-main); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                <a href="/student/dashboard.html" class="btn btn-outline" style="padding: 0.5rem 1rem;">&larr; Về trang chính</a>
+                <span class="text-secondary" id="course_title_span">Tên Khóa Học...</span>
+            </div>
+
+            <div class="video-container">
+                <h2 class="text-secondary">Trình phát Video sẽ mô phỏng ở đây.</h2>
+            </div>
+            
+            <div class="content-area">
+                <div class="flex justify-between items-center mb-4">
+                    <h1 id="lesson_title">Tên bài học...</h1>
+                    <button class="btn btn-primary" onclick="markComplete()">Đánh dấu Hoàn Thành</button>
+                </div>
+                <div class="card p-4 text-secondary" id="lesson_content">
+                    Bấm vào một bài giảng ở bên phải để bắt đầu nạp nội dung nhé.
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Curriculum -->
+        <div class="curriculum-sidebar">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                <h3>Nội dung khóa học</h3>
+                <div class="flex items-center gap-2 mt-4 text-muted" style="font-size: 0.875rem;">
+                    <span>Hoàn thành 0/12 bài học</span>
+                </div>
+            </div>
+            
+            <div style="flex: 1; overflow-y: auto;" id="curriculumList">
+                <div class="chapter-title">Phần 1: Giới thiệu</div>
+                <div class="lesson-item playing">
+                    <span style="color: var(--primary);">▶</span> Bài 1: Mở đầu
+                </div>
+                <div class="lesson-item">
+                    <span>📺</span> Bài 2: Cài đặt công cụ
+                </div>
+                <!-- Logic loop từ JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- AI Chat Popup & Button -->
+    <button class="ai-chat-btn" onclick="toggleAIChat()">🤖</button>
+    <div class="ai-popup" id="aiPopup">
+        <div class="ai-header flex justify-between items-center">
+            <span>Trợ lý Groq AI 🧠</span>
+            <span style="font-size: 0.75rem; color: var(--warning); border: 1px solid var(--warning); padding: 0.1rem 0.5rem; border-radius: 10px;">PRO VIP</span>
+        </div>
+        <div class="ai-messages" id="chatBox">
+             <div class="msg bot">Chào bạn! Tôi là Trợ Lý AI. Chỗ đoạn video bài giảng này bạn có thắc mắc gì không? Tôi sẽ giải thích tường tận cho bạn.</div>
+        </div>
+        <form class="ai-input" id="chatForm">
+            <input type="text" id="chatInput" class="form-control" style="background: rgba(0,0,0,0.2);" placeholder="Gửi câu hỏi..." required>
+            <button type="submit" class="btn btn-primary" style="padding: 0 1rem;">➤</button>
+        </form>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/app.js"></script>
+    <script>
+        App.requireAuth();
+
+        function toggleAIChat() {
+            document.getElementById('aiPopup').classList.toggle('open');
+        }
+
+        function markComplete() {
+            App.showToast('Đã lưu tiến độ hoàn thành', 'success');
+        }
+
+        // Logic Chat AI 
+        document.getElementById('chatForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const chatBox = document.getElementById('chatBox');
+            
+            const message = input.value.trim();
+            if(!message) return;
+
+            // Render User msg
+            chatBox.innerHTML += `<div class="msg user">${message}</div>`;
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Placeholder AI
+            const thinkingId = 'think_' + Date.now();
+            chatBox.innerHTML += `<div class="msg bot text-secondary" id="${thinkingId}">AI đang phân tích...</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // Call API 
+                const res = await window.api.post('/ai/chat', { message });
+                document.getElementById(thinkingId).innerText = res.data.ai_response;
+            } catch (err) {
+                document.getElementById(thinkingId).innerText = "Lỗi kết nối tới Groq AI: " + err.message;
+                document.getElementById(thinkingId).style.color = 'var(--danger)';
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+    </script>
+</body>
+</html>

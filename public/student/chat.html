@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phòng Chat - AI Study Hub</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        .chat-layout { display: flex; height: calc(100vh - 80px); }
+        .chat-sidebar { width: 300px; border-right: 1px solid var(--border-color); background: var(--bg-surface); padding: 1rem; overflow-y: auto;}
+        .chat-main { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); }
+        .chat-header { padding: 1rem 2rem; border-bottom: 1px solid var(--border-color); background: var(--bg-surface-glass); }
+        .chat-body { flex: 1; padding: 2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+        .chat-footer { padding: 1rem 2rem; border-top: 1px solid var(--border-color); background: var(--bg-surface); }
+        
+        .bubble { max-width: 60%; padding: 1rem; border-radius: var(--radius-md); position: relative; }
+        .bubble.me { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 0; }
+        .bubble.other { background: rgba(255,255,255,0.05); color: var(--text-primary); align-self: flex-start; border-bottom-left-radius: 0; }
+        .contact-item { padding: 1rem; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; gap: 1rem; transition: var(--transition); border-bottom: 1px solid rgba(255,255,255,0.02);}
+        .contact-item:hover { background: rgba(79, 70, 229, 0.1); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar" style="z-index: 100;">
+        <div class="container navbar-container">
+            <a href="/" class="nav-brand">AI <span class="text-gradient">Study Hub</span></a>
+            <div id="user-menu" class="flex items-center gap-4"></div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="/student/dashboard.html" class="sidebar-link">📊 Tổng quan học tập</a></li>
+                <li><a href="/student/chat.html" class="sidebar-link active">💬 Cửa sổ Chat (Hội nhóm)</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content" style="padding: 0;">
+            <div class="chat-layout">
+                <!-- Danh sách bạn vè -->
+                <div class="chat-sidebar">
+                    <h3 class="mb-4">Liên Hệ</h3>
+                    <div class="contact-item">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: bold;">T</div>
+                        <div>
+                            <div style="font-weight: 500;">Thầy Ba Code</div>
+                            <div style="font-size: 0.75rem; color: var(--success);">Online</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Web Socket Box -->
+                <div class="chat-main">
+                    <div class="chat-header">
+                        <h3 style="font-size: 1.25rem;">Thầy Ba Code</h3>
+                        <p class="text-secondary" style="font-size: 0.875rem;">Teacher - AI Study Hub</p>
+                    </div>
+                    
+                    <div class="chat-body" id="chatWindow">
+                        <div class="bubble other">
+                            Chào bạn, bài học vừa rồi bạn có thắc mắc gì không?
+                        </div>
+                    </div>
+
+                    <div class="chat-footer">
+                        <form id="wsChatForm" class="flex gap-2">
+                            <input type="text" id="wsInput" class="form-control" placeholder="Nhập tin nhắn socket gửi qua Ratchet (Port 8080)..." autocomplete="off" required>
+                            <button type="submit" class="btn btn-primary">Gửi</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            App.requireAuth();
+
+            // Web Socket Connection Integration
+            const token = window.api.getToken();
+            let socket;
+
+            if (token) {
+                // Kết nối tới Ratchet WS PHP Backend Server chúng ta vừa tạo
+                socket = new WebSocket(`ws://localhost:8080?token=${token}`);
+
+                socket.onopen = function(e) {
+                    console.log("Đã kết nối Socket Server!");
+                };
+
+                socket.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    if(data.error) {
+                        App.showToast(data.error, 'error');
+                        return;
+                    }
+                    const chatWin = document.getElementById('chatWindow');
+                    chatWin.innerHTML += `<div class="bubble other">${data.content}</div>`;
+                    chatWin.scrollTop = chatWin.scrollHeight;
+                };
+
+                socket.onerror = function(error) {
+                    App.showToast("Không thể kết nối đến Phòng Chat. Chắc chắn bạn đã chạy lệnh php server.php", 'warning');
+                };
+
+                const form = document.getElementById('wsChatForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const input = document.getElementById('wsInput');
+                    const msg = input.value;
+                    if(!msg) return;
+
+                    // Giả lập ID người nhận (receiver_id) do giao diện tĩnh
+                    const payload = { receiver_id: 2, content: msg };
+                    socket.send(JSON.stringify(payload));
+
+                    // Hiện Message lên màn hình User
+                    const chatWin = document.getElementById('chatWindow');
+                    chatWin.innerHTML += `<div class="bubble me">${msg}</div>`;
+                    input.value = '';
+                    chatWin.scrollTop = chatWin.scrollHeight;
+                });
+            }
+        });
+    </script>
+</body>
+</html>

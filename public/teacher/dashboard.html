@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Panel - AI Study Hub</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .table th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
+        .status-draft { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar" style="z-index: 100;">
+        <div class="container navbar-container">
+            <a href="/" class="nav-brand">AI <span class="text-gradient">Teacher Panel</span></a>
+            <div id="user-menu" class="flex items-center gap-4"></div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="/teacher/dashboard.html" class="sidebar-link active">📊 Quản lý khóa học</a></li>
+                <li><a href="#" class="sidebar-link">📝 Tạo khóa học mới</a></li>
+                <li><a href="#" class="sidebar-link">👥 Học viên của tôi</a></li>
+                <li><a href="#" class="sidebar-link">💬 Hộp thư Web Socket</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 style="font-size: 2rem;">Khóa học giảng dạy</h1>
+                    <p class="text-secondary mt-2">Đăng tải và quản lý các video/bài trắc nghiệm của bạn.</p>
+                </div>
+                <button class="btn btn-primary">+ Tạo Khóa Học</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid-cols-3 mb-8">
+                <div class="card p-4">
+                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Khóa Học</p>
+                    <h2 style="font-size: 2rem; color: var(--text-primary);">3</h2>
+                </div>
+                <div class="card p-4">
+                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Học Viên</p>
+                    <h2 style="font-size: 2rem; color: var(--text-primary);">128</h2>
+                </div>
+                <div class="card p-4">
+                    <p class="text-secondary" style="font-size: 0.875rem;">Đánh giá trung bình</p>
+                    <h2 style="font-size: 2rem; color: var(--success);">4.8 <span style="font-size: 1rem;">⭐</span></h2>
+                </div>
+            </div>
+
+            <div class="card glass-panel" style="padding: 1.5rem;">
+                <h3 class="mb-4">Danh sách khóa học</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>TÊN KHÓA HỌC</th>
+                            <th>GIÁ BÁN</th>
+                            <th>HỌC VIÊN</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="course-table">
+                        <tr>
+                            <td style="font-weight: 500;">Khóa Học ReactJS Thực Chiến</td>
+                            <td>Miễn phí</td>
+                            <td>45</td>
+                            <td><span class="status-badge status-active">Đang hiển thị</span></td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.5rem;">Sửa</button>
+                                <button class="btn btn-outline" style="padding: 0.5rem; color: var(--danger); border-color: var(--danger);">Xóa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 500;">Master PHP Backend Pro</td>
+                            <td>500,000đ (VIP)</td>
+                            <td>12</td>
+                            <td><span class="status-badge status-draft">Bản nháp</span></td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.5rem;">Sửa</button>
+                                <button class="btn btn-outline" style="padding: 0.5rem; color: var(--danger); border-color: var(--danger);">Xóa</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+        </main>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Require explicit teacher or admin role
+            App.requireAuth(['teacher']);
+        });
+    </script>
+</body>
+</html>

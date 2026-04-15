@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AI Study Hub</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .table th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; }
+        .badge-role { padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .role-admin { background: rgba(236, 72, 153, 0.1); color: var(--secondary); border: 1px solid var(--secondary); }
+        .role-teacher { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); }
+        .role-student { background: rgba(79, 70, 229, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar" style="z-index: 100; border-bottom: 1px solid var(--secondary);">
+        <div class="container navbar-container">
+            <a href="/" class="nav-brand">Hệ Thống <span class="text-gradient">Quản Trị</span></a>
+            <div id="user-menu" class="flex items-center gap-4"></div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="/admin/dashboard.html" class="sidebar-link active">📈 Thống kê & Tổng quan</a></li>
+                <li><a href="#users" class="sidebar-link">👥 Quản lý Users</a></li>
+                <li><a href="#courses" class="sidebar-link">📚 Kiểm duyệt khóa học</a></li>
+                <li><a href="#vip" class="sidebar-link">💎 Giao dịch VIP</a></li>
+                <li><a href="#logs" class="sidebar-link">📋 Audit Logs</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 style="font-size: 2rem;">Bảng Điều Khiển Trung Tâm</h1>
+                    <p class="text-secondary mt-2">Dữ liệu theo dõi thời gian thực của toàn bộ hệ thống (REST API v2).</p>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid-cols-4 mb-8">
+                <div class="card p-4">
+                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Danh Thu (Tháng)</p>
+                    <h2 style="font-size: 1.75rem; color: var(--warning); margin-top: 0.5rem;">45,500,000đ</h2>
+                </div>
+                <div class="card p-4">
+                    <p class="text-secondary" style="font-size: 0.875rem;">Tài khoản VIP</p>
+                    <h2 style="font-size: 1.75rem; color: var(--primary); margin-top: 0.5rem;">91</h2>
+                </div>
+                <div class="card p-4">
+                    <p class="text-secondary" style="font-size: 0.875rem;">Học viên</p>
+                    <h2 style="font-size: 1.75rem; color: var(--text-primary); margin-top: 0.5rem;">1,204</h2>
+                </div>
+                <div class="card p-4">
+                    <p class="text-secondary" style="font-size: 0.875rem;">Khóa học chờ duyệt</p>
+                    <h2 style="font-size: 1.75rem; color: var(--danger); margin-top: 0.5rem;">7</h2>
+                </div>
+            </div>
+
+            <div class="card glass-panel" style="padding: 1.5rem;" id="users">
+                <div class="flex justify-between items-center mb-4">
+                    <h3>Quản lý Users (Cơ sở dữ liệu)</h3>
+                    <input type="text" class="form-control" style="width: 250px; padding: 0.5rem;" placeholder="Tìm email user...">
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>EMAIL / TÀI KHOẢN</th>
+                            <th>PHÂN QUYỀN</th>
+                            <th>TRẠNG THÁI TÀI KHOẢN</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table">
+                        <tr>
+                            <td>#001</td>
+                            <td style="font-weight: 500;">hieule.admin@aistudyhub.com</td>
+                            <td><span class="badge-role role-admin">Admin</span></td>
+                            <td><span style="color: var(--success)">• Hoạt động</span></td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem;">Chỉnh sửa</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#102</td>
+                            <td style="font-weight: 500;">thayba.code@gmail.com</td>
+                            <td><span class="badge-role role-teacher">Teacher</span></td>
+                            <td><span style="color: var(--success)">• Hoạt động</span></td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem;">Chỉnh sửa</button>
+                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem; border-color: var(--danger); color: var(--danger);">Ban</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>#103</td>
+                            <td style="font-weight: 500;">nguyenvana123@gmail.com</td>
+                            <td><span class="badge-role role-student">Student</span> <span style="font-size: 0.75rem; color: var(--warning)">[VIP]</span></td>
+                            <td><span style="color: var(--success)">• Hoạt động</span></td>
+                            <td>
+                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem;">Chỉnh sửa</button>
+                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem; border-color: var(--danger); color: var(--danger);">Ban</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+        </main>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Require explicit admin role
+            App.requireAuth(['admin']);
+        });
+    </script>
+</body>
+</html>

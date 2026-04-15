@@ -1,29 +1,27 @@
 <?php
 
-// 1️⃣ Bắt buộc require autoload trước
-require __DIR__ . "/vendor/autoload.php";
-
-use Dotenv\Dotenv;
-use Ratchet\Http\HttpServer;
 use Ratchet\Server\IoServer;
+use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
-use App\WebSocket\ChatSocket;
+use App\WebSocket\Chat;
+use App\Core\Env;
 
-// 2️⃣ Load .env
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+require dirname(__DIR__) . '/vendor/autoload.php';
 
-// 3️⃣ Tạo server WebSocket
-$port = $_ENV['WEBSOCKET_PORT'] ?? 9090;
+// Load biến môi trường cho Database
+Env::load(__DIR__ . '/.env');
+
+$port = $_ENV['WS_PORT'] ?? 8080;
 
 $server = IoServer::factory(
     new HttpServer(
         new WsServer(
-            new ChatSocket()
+            new Chat()
         )
     ),
     $port
 );
 
-echo "WebSocket server running on port {$port}...\n";
+echo "AI Study Hub WebSocket Live Chat đang chạy ở cổng {$port}...\n";
+
 $server->run();
