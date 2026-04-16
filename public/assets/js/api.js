@@ -74,7 +74,9 @@ class ApiClient {
                 this.clearSession();
                 window.location.href = '/login.html';
             }
-            throw new Error(data.message || 'Something went wrong with the server.');
+            
+            const errMsg = data.message || 'Something went wrong with the server.';
+            throw new Error(window.I18n ? window.I18n.get(errMsg) : errMsg);
         }
 
         return data;

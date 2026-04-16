@@ -21,6 +21,10 @@ $router->post('/api/auth/login', 'Api\AuthController@login');
 $router->get('/api/courses', 'Api\CourseController@index');
 $router->post('/api/courses', 'Api\CourseController@store');
 $router->get('/api/courses/:id', 'Api\CourseController@show');
+$router->post('/api/courses/:id/enroll', 'Api\StudentController@enrollCourse');
+
+// Student Dashboard Routes
+$router->get('/api/student/courses', 'Api\StudentController@getEnrolledCourses');
 
 // Lesson Routes
 $router->get('/api/courses/:id/curriculum', 'Api\LessonController@curriculum');

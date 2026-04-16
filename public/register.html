@@ -1,47 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng ký - AI Study Hub</title>
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
+
 <body>
 
     <div class="auth-wrapper">
+        <div
+            style="position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; background: rgba(255,255,255,0.05); padding: 5px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+            <button class="lang-switch-btn" data-lang="vi" onclick="I18n.setLocale('vi')"
+                style="background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 0.875rem;">VI</button>
+            <span style="color: var(--text-secondary); font-size: 0.875rem;">|</span>
+            <button class="lang-switch-btn" data-lang="en" onclick="I18n.setLocale('en')"
+                style="background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 0.875rem;">EN</button>
+        </div>
         <div class="card glass-panel auth-card">
             <div class="text-center mb-8">
-                <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Đăng Ký Học Viên</h2>
-                <p class="text-secondary">AI Study Hub LMS Platform</p>
+                <h2 data-i18n="title_register" style="font-size: 2rem; margin-bottom: 0.5rem;">Đăng Ký Học Viên</h2>
+                <p data-i18n="subtitle_platform" class="text-secondary">AI Study Hub LMS Platform</p>
             </div>
 
             <form id="registerForm">
                 <div class="form-group">
-                    <label class="form-label">Tên hiển thị</label>
-                    <input type="text" id="username" class="form-control" placeholder="Nguyen Van A" required minlength="3">
+                    <label data-i18n="label_display_name" class="form-label">Tên hiển thị</label>
+                    <input type="text" id="username" class="form-control" data-i18n="placeholder_username"
+                        placeholder="Nguyen Van A" required minlength="3">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Email</label>
+                    <label data-i18n="label_email" class="form-label">Email</label>
                     <input type="email" id="email" class="form-control" placeholder="nguyenvana@gmail.com" required>
                 </div>
 
                 <div class="form-group mb-8">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" id="password" class="form-control" placeholder="Ít nhất 6 ký tự" required minlength="6">
+                    <label data-i18n="label_password" class="form-label">Mật khẩu</label>
+                    <input type="password" id="password" class="form-control" data-i18n="placeholder_password"
+                        placeholder="Ít nhất 6 ký tự" required minlength="6">
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 1rem;">
-                    Tạo Tài Khoản Đi Lên VIP
+                <button type="submit" class="btn btn-primary" data-i18n="btn_create_account"
+                    style="width: 100%; font-size: 1.1rem; padding: 1rem;">
+                    Tạo Tài Khoản
                 </button>
             </form>
 
             <div class="text-center mt-8">
-                <p class="text-secondary">Đã có tài khoản? <a href="/login.html" class="text-gradient" style="font-weight: 600; text-decoration: none;">Đăng nhập ngay</a></p>
+                <p class="text-secondary"><span data-i18n="text_already_have_account">Đã có tài khoản?</span> <a
+                        href="/login.html" class="text-gradient" style="font-weight: 600; text-decoration: none;"
+                        data-i18n="link_login_now">Đăng nhập ngay</a></p>
             </div>
         </div>
     </div>
 
+    <script src="/assets/js/i18n.js"></script>
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/app.js"></script>
     <script>
@@ -49,7 +65,7 @@
             e.preventDefault();
             const btn = e.target.querySelector('button');
             const originalText = btn.innerHTML;
-            btn.innerHTML = 'Hệ thống đang lưu...';
+            btn.innerHTML = I18n.get('btn_loading');
             btn.disabled = true;
 
             const username = document.getElementById('username').value;
@@ -58,15 +74,15 @@
 
             try {
                 // Route '/auth/register' created earlier in the PHP Core
-                const res = await window.api.post('/auth/register', { 
-                    username, email, password, role: 'student' 
+                const res = await window.api.post('/auth/register', {
+                    username, email, password, role: 'student'
                 });
-                
-                App.showToast('Tạo tài khoản thành công! Đang tự đăng nhập...', 'success');
-                
+
+                App.showToast(I18n.get('toast_register_success'), 'success');
+
                 // Trực tiếp Login lấy Token
                 const loginRes = await window.api.post('/auth/login', { email, password });
-                window.api.setToken(loginRes.data.access_token, loginRes.data.user);
+                window.api.setToken(loginRes.data.token, loginRes.data.user);
 
                 setTimeout(() => {
                     window.location.href = '/student/dashboard.html';
@@ -80,4 +96,5 @@
         });
     </script>
 </body>
+
 </html>

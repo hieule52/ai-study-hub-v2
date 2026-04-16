@@ -144,6 +144,34 @@
             display: flex;
             gap: 0.5rem;
         }
+
+        /* Quiz UI */
+        .quiz-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: var(--radius-md);
+        }
+        .question-block {
+            margin-bottom: 1.5rem;
+        }
+        .answer-option {
+            display: block;
+            margin-bottom: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .answer-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .answer-option input {
+            margin-right: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -158,18 +186,21 @@
                 <span class="text-secondary" id="course_title_span">Tên Khóa Học...</span>
             </div>
 
-            <div class="video-container">
-                <h2 class="text-secondary">Trình phát Video sẽ mô phỏng ở đây.</h2>
+            <div class="video-container" id="video_wrapper">
+                <h2 class="text-secondary" id="video_placeholder">Trình phát Video sẽ mô phỏng ở đây.</h2>
             </div>
             
             <div class="content-area">
                 <div class="flex justify-between items-center mb-4">
                     <h1 id="lesson_title">Tên bài học...</h1>
-                    <button class="btn btn-primary" onclick="markComplete()">Đánh dấu Hoàn Thành</button>
+                    <button class="btn btn-primary" id="btn_mark_complete" style="display:none;" onclick="markComplete()">Đánh dấu Hoàn Thành</button>
                 </div>
-                <div class="card p-4 text-secondary" id="lesson_content">
+                <div class="card p-4 text-secondary mb-4" id="lesson_content">
                     Bấm vào một bài giảng ở bên phải để bắt đầu nạp nội dung nhé.
                 </div>
+                
+                <!-- Khu vực Quiz -->
+                <div id="quiz_area"></div>
             </div>
         </div>
 
@@ -183,14 +214,7 @@
             </div>
             
             <div style="flex: 1; overflow-y: auto;" id="curriculumList">
-                <div class="chapter-title">Phần 1: Giới thiệu</div>
-                <div class="lesson-item playing">
-                    <span style="color: var(--primary);">▶</span> Bài 1: Mở đầu
-                </div>
-                <div class="lesson-item">
-                    <span>📺</span> Bài 2: Cài đặt công cụ
-                </div>
-                <!-- Logic loop từ JS -->
+                <div class="p-4 text-center text-secondary">Đang tải giáo trình...</div>
             </div>
         </div>
 
@@ -215,14 +239,161 @@
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/app.js"></script>
     <script>
-        App.requireAuth();
+        const user = App.requireAuth();
+
+        // Lấy Course ID từ Query Params
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('course_id');
+        let currentLessonId = null;
+        let currentQuizId = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!courseId) {
+                App.showToast('Không tìm thấy khóa học', 'error');
+                return;
+            }
+            await loadCurriculum();
+        });
+
+        async function loadCurriculum() {
+            try {
+                // Fetch course info
+                const courseRes = await window.api.get(`/courses/${courseId}`);
+                document.getElementById('course_title_span').innerText = courseRes.data.title;
+
+                // Lấy Cấu trúc giáo trình
+                const res = await window.api.get(`/courses/${courseId}/curriculum`);
+                const chapters = res.data;
+                const sidebar = document.getElementById('curriculumList');
+                sidebar.innerHTML = '';
+
+                if (chapters.length === 0) {
+                    sidebar.innerHTML = '<div class="p-4 text-secondary text-center">Khóa học này chưa có nội dung.</div>';
+                    return;
+                }
+
+                chapters.forEach(chap => {
+                    const chDiv = document.createElement('div');
+                    chDiv.className = 'chapter-title';
+                    chDiv.innerText = chap.title;
+                    sidebar.appendChild(chDiv);
+
+                    if (chap.lessons && chap.lessons.length > 0) {
+                        chap.lessons.forEach(lesson => {
+                            const lesDiv = document.createElement('div');
+                            lesDiv.className = 'lesson-item';
+                            lesDiv.id = `nav-lesson-${lesson.id}`;
+                            lesDiv.innerHTML = `<span>📺</span> ${lesson.title}`;
+                            lesDiv.onclick = () => loadLesson(lesson.id);
+                            sidebar.appendChild(lesDiv);
+                        });
+                    }
+                });
+            } catch (err) {
+                App.showToast(err.message, 'error');
+            }
+        }
+
+        async function loadLesson(lessonId) {
+            currentLessonId = lessonId;
+            currentQuizId = null;
+            document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('playing'));
+            const activeEl = document.getElementById(`nav-lesson-${lessonId}`);
+            if(activeEl) {
+                activeEl.classList.add('playing');
+                activeEl.querySelector('span').innerText = '▶';
+                activeEl.querySelector('span').style.color = 'var(--primary)';
+            }
+
+            try {
+                const res = await window.api.get(`/lessons/${lessonId}`);
+                const lesson = res.data;
+                
+                document.getElementById('lesson_title').innerText = lesson.title;
+                document.getElementById('lesson_content').innerHTML = lesson.content || 'Không có mô tả chi tiết.';
+                document.getElementById('btn_mark_complete').style.display = 'block';
+
+                if (lesson.video_url) {
+                    document.getElementById('video_wrapper').innerHTML = `<iframe src="${lesson.video_url}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`;
+                } else {
+                    document.getElementById('video_wrapper').innerHTML = '<h2 class="text-secondary">Bài học này không có Video.</h2>';
+                }
+
+                // Kiểm tra xem bài có Quiz không
+                loadQuizData(lessonId);
+
+            } catch (err) {
+                App.showToast(err.message, 'error');
+            }
+        }
+
+        async function loadQuizData(lessonId) {
+            const quizArea = document.getElementById('quiz_area');
+            quizArea.innerHTML = '';
+            try {
+                // Sẽ trả về 404 nếu không có Quiz, nên mình bọc catch nhẹ lại
+                const res = await window.api.get(`/lessons/${lessonId}/quiz`);
+                if(res.data && res.data.id) {
+                    currentQuizId = res.data.id;
+                    const quiz = res.data;
+                    
+                    let html = `<div class="quiz-container">
+                        <h3>📝 Bài Tập Kiểm Tra: ${quiz.title}</h3>
+                        <form id="quizForm" class="mt-4">`;
+                        
+                    if(quiz.questions) {
+                        quiz.questions.forEach((q, qIndex) => {
+                            html += `<div class="question-block">
+                                <p style="font-weight: 500; margin-bottom: 0.5rem;">Câu ${qIndex + 1}: ${q.question}</p>`;
+                            q.answers.forEach(ans => {
+                                html += `<label class="answer-option">
+                                    <input type="radio" name="q_${q.id}" value="${ans.id}" required>
+                                    ${ans.answer_text}
+                                </label>`;
+                            });
+                            html += `</div>`;
+                        });
+                    }
+
+                    html += `<button type="submit" class="btn btn-primary" style="width:100%;">Nộp Bài / Hoàn Thành</button>
+                    </form></div>`;
+                    
+                    quizArea.innerHTML = html;
+
+                    document.getElementById('quizForm').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const formData = new FormData(e.target);
+                        const answers = [];
+                        for (let [key, value] of formData.entries()) {
+                            answers.push(parseInt(value));
+                        }
+                        
+                        try {
+                            const submitRes = await window.api.post(`/quizzes/${currentQuizId}/submit`, { answers });
+                            App.showToast(`Bạn đạt được số điểm: ${submitRes.data.score}`, 'success');
+                            markComplete();
+                        } catch (err) {
+                            App.showToast(err.message, 'error');
+                        }
+                    });
+                }
+            } catch (error) {
+                // Không có quiz. Bỏ qua
+            }
+        }
+
+        async function markComplete() {
+            if(!currentLessonId) return;
+            try {
+                await window.api.post(`/lessons/${currentLessonId}/complete`, {});
+                App.showToast('Đã lưu tiến độ hoàn thành bài học', 'success');
+            } catch(e) {
+                App.showToast(e.message, 'error');
+            }
+        }
 
         function toggleAIChat() {
             document.getElementById('aiPopup').classList.toggle('open');
-        }
-
-        function markComplete() {
-            App.showToast('Đã lưu tiến độ hoàn thành', 'success');
         }
 
         // Logic Chat AI 
@@ -234,20 +405,18 @@
             const message = input.value.trim();
             if(!message) return;
 
-            // Render User msg
             chatBox.innerHTML += `<div class="msg user">${message}</div>`;
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Placeholder AI
             const thinkingId = 'think_' + Date.now();
             chatBox.innerHTML += `<div class="msg bot text-secondary" id="${thinkingId}">AI đang phân tích...</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                // Call API 
                 const res = await window.api.post('/ai/chat', { message });
                 document.getElementById(thinkingId).innerText = res.data.ai_response;
+                document.getElementById(thinkingId).classList.remove('text-secondary');
             } catch (err) {
                 document.getElementById(thinkingId).innerText = "Lỗi kết nối tới Groq AI: " + err.message;
                 document.getElementById(thinkingId).style.color = 'var(--danger)';
