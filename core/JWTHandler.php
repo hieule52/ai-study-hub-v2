@@ -24,11 +24,10 @@ class JWTHandler
         return JWT::encode($payload, self::getSecret(), 'HS256');
     }
 
-    public static function decode(string $token): ?array
+    public static function decode(string $token): ?object
     {
         try {
-            $decoded = JWT::decode($token, new Key(self::getSecret(), 'HS256'));
-            return (array) $decoded;
+            return JWT::decode($token, new Key(self::getSecret(), 'HS256'));
         } catch (Exception $e) {
             return null; // Token không hợp lệ hoặc hết hạn
         }

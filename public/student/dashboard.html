@@ -16,25 +16,9 @@
         </div>
     </nav>
 
-    <div class="dashboard-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="/student/dashboard.html" class="sidebar-link active">📊 Tổng quan học tập</a></li>
-                <li><a href="/student/dashboard.html#my-courses" class="sidebar-link">📚 Khóa học của tôi</a></li>
-                <li><a href="#messages" class="sidebar-link">💬 Cửa sổ Chat (Hội nhóm)</a></li>
-                <li><a href="#profile" class="sidebar-link">👤 Hồ sơ cá nhân</a></li>
-            </ul>
-            
-            <div id="vip-promo-box" style="margin-top: 5rem; padding: 1rem; border-radius: var(--radius-md); background: rgba(79, 70, 229, 0.1); border: 1px solid var(--primary-glow); display: none;">
-                <p style="font-size: 0.875rem; font-weight: 600;">Bạn chưa nâng cấp VIP?</p>
-                <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Hãy để AI là người thầy của riêng bạn.</p>
-                <button id="btn-upgrade-vip" class="btn btn-primary" style="width: 100%; padding: 0.5rem; font-size: 0.875rem;">Nâng cấp ngay</button>
-            </div>
-        </aside>
-
+    <div class="dashboard-layout" style="display: block; width: 100%; max-width: 1200px; margin: 0 auto; padding-top: 2rem;">
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" style="padding-left: 2rem;">
             <div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 style="font-size: 2rem;">Chào mừng quay lại, <span id="student-name" class="text-gradient">...</span> 👋</h1>
@@ -75,8 +59,9 @@
             if (user) {
                 document.getElementById('student-name').innerText = user.username || user.email.split('@')[0];
                 
-                if (user.is_vip == 0 || !user.is_vip) {
-                    document.getElementById('vip-promo-box').style.display = 'block';
+                const promoBox = document.getElementById('vip-promo-box');
+                if (promoBox && (user.is_vip == 0 || !user.is_vip)) {
+                    promoBox.style.display = 'block';
                 }
                 
                 await loadDashboardData();

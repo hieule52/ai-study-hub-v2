@@ -22,6 +22,7 @@ $router->get('/api/courses', 'Api\CourseController@index');
 $router->post('/api/courses', 'Api\CourseController@store');
 $router->get('/api/courses/:id', 'Api\CourseController@show');
 $router->post('/api/courses/:id/enroll', 'Api\StudentController@enrollCourse');
+$router->post('/api/courses/:id/verify-purchase', 'Api\StudentController@verifyPurchase');
 
 // Student Dashboard Routes
 $router->get('/api/student/courses', 'Api\StudentController@getEnrolledCourses');

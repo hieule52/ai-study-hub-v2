@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,12 +13,14 @@
             overflow: hidden;
             background: #000;
         }
+
         .main-player {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
         }
+
         .video-container {
             width: 100%;
             background: #000;
@@ -28,12 +31,14 @@
             color: #fff;
             border-bottom: 1px solid var(--border-color);
         }
+
         .content-area {
             flex: 1;
             padding: 2rem;
             background: var(--bg-main);
             color: var(--text-primary);
         }
+
         .curriculum-sidebar {
             width: 350px;
             background: var(--bg-surface);
@@ -41,10 +46,11 @@
             display: flex;
             flex-direction: column;
         }
+
         .ai-chat-btn {
             position: fixed;
             bottom: 30px;
-            right: 380px; 
+            right: 380px;
             background: var(--primary);
             color: white;
             border: none;
@@ -60,29 +66,34 @@
             justify-content: center;
             transition: var(--transition);
         }
+
         .ai-chat-btn:hover {
             transform: scale(1.1);
         }
 
         .chapter-title {
             padding: 1rem 1.5rem;
-            background: rgba(255,255,255,0.02);
+            background: rgba(255, 255, 255, 0.02);
             border-bottom: 1px solid var(--border-color);
             font-weight: 600;
             color: var(--text-primary);
         }
+
         .lesson-item {
             padding: 1rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-        .lesson-item:hover, .lesson-item.playing {
+
+        .lesson-item:hover,
+        .lesson-item.playing {
             background: rgba(79, 70, 229, 0.1);
         }
+
         .lesson-item.playing {
             border-left: 4px solid var(--primary);
         }
@@ -103,15 +114,18 @@
             z-index: 999;
             overflow: hidden;
         }
+
         .ai-popup.open {
             display: flex;
         }
+
         .ai-header {
             padding: 1rem;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border-bottom: 1px solid var(--border-color);
             font-weight: 600;
         }
+
         .ai-messages {
             flex: 1;
             padding: 1rem;
@@ -120,24 +134,28 @@
             flex-direction: column;
             gap: 1rem;
         }
+
         .msg {
             max-width: 85%;
             padding: 0.75rem 1rem;
             border-radius: var(--radius-md);
             font-size: 0.875rem;
         }
+
         .msg.user {
             background: var(--primary);
             color: white;
             align-self: flex-end;
             border-bottom-right-radius: 0;
         }
+
         .msg.bot {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             color: var(--text-primary);
             align-self: flex-start;
             border-bottom-left-radius: 0;
         }
+
         .ai-input {
             padding: 1rem;
             border-top: 1px solid var(--border-color);
@@ -153,52 +171,60 @@
             border: 1px solid var(--success);
             border-radius: var(--radius-md);
         }
+
         .question-block {
             margin-bottom: 1.5rem;
         }
+
         .answer-option {
             display: block;
             margin-bottom: 0.5rem;
             padding: 0.75rem 1rem;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
             cursor: pointer;
             transition: var(--transition);
         }
+
         .answer-option:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
         }
+
         .answer-option input {
             margin-right: 0.5rem;
         }
     </style>
 </head>
+
 <body>
 
     <div class="learning-layout">
-        
+
         <!-- Left: Video Area -->
         <div class="main-player">
             <!-- Go Back nav -->
-            <div style="padding: 1rem; background: var(--bg-main); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <a href="/student/dashboard.html" class="btn btn-outline" style="padding: 0.5rem 1rem;">&larr; Về trang chính</a>
+            <div
+                style="padding: 1rem; background: var(--bg-main); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                <a href="/student/dashboard.html" class="btn btn-outline" style="padding: 0.5rem 1rem;">&larr; Về trang
+                    chính</a>
                 <span class="text-secondary" id="course_title_span">Tên Khóa Học...</span>
             </div>
 
             <div class="video-container" id="video_wrapper">
                 <h2 class="text-secondary" id="video_placeholder">Trình phát Video sẽ mô phỏng ở đây.</h2>
             </div>
-            
+
             <div class="content-area">
                 <div class="flex justify-between items-center mb-4">
                     <h1 id="lesson_title">Tên bài học...</h1>
-                    <button class="btn btn-primary" id="btn_mark_complete" style="display:none;" onclick="markComplete()">Đánh dấu Hoàn Thành</button>
+                    <button class="btn btn-primary" id="btn_mark_complete" style="display:none;"
+                        onclick="markComplete()">Đánh dấu Hoàn Thành</button>
                 </div>
                 <div class="card p-4 text-secondary mb-4" id="lesson_content">
                     Bấm vào một bài giảng ở bên phải để bắt đầu nạp nội dung nhé.
                 </div>
-                
+
                 <!-- Khu vực Quiz -->
                 <div id="quiz_area"></div>
             </div>
@@ -212,7 +238,7 @@
                     <span>Hoàn thành 0/12 bài học</span>
                 </div>
             </div>
-            
+
             <div style="flex: 1; overflow-y: auto;" id="curriculumList">
                 <div class="p-4 text-center text-secondary">Đang tải giáo trình...</div>
             </div>
@@ -225,13 +251,17 @@
     <div class="ai-popup" id="aiPopup">
         <div class="ai-header flex justify-between items-center">
             <span>Trợ lý Groq AI 🧠</span>
-            <span style="font-size: 0.75rem; color: var(--warning); border: 1px solid var(--warning); padding: 0.1rem 0.5rem; border-radius: 10px;">PRO VIP</span>
+            <span
+                style="font-size: 0.75rem; color: var(--warning); border: 1px solid var(--warning); padding: 0.1rem 0.5rem; border-radius: 10px;">PRO
+                VIP</span>
         </div>
         <div class="ai-messages" id="chatBox">
-             <div class="msg bot">Chào bạn! Tôi là Trợ Lý AI. Chỗ đoạn video bài giảng này bạn có thắc mắc gì không? Tôi sẽ giải thích tường tận cho bạn.</div>
+            <div class="msg bot">Chào bạn! Tôi là Trợ Lý AI. Chỗ đoạn video bài giảng này bạn có thắc mắc gì không? Tôi
+                sẽ giải thích tường tận cho bạn.</div>
         </div>
         <form class="ai-input" id="chatForm">
-            <input type="text" id="chatInput" class="form-control" style="background: rgba(0,0,0,0.2);" placeholder="Gửi câu hỏi..." required>
+            <input type="text" id="chatInput" class="form-control" style="background: rgba(0,0,0,0.2);"
+                placeholder="Gửi câu hỏi..." required>
             <button type="submit" class="btn btn-primary" style="padding: 0 1rem;">➤</button>
         </form>
     </div>
@@ -299,7 +329,7 @@
             currentQuizId = null;
             document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('playing'));
             const activeEl = document.getElementById(`nav-lesson-${lessonId}`);
-            if(activeEl) {
+            if (activeEl) {
                 activeEl.classList.add('playing');
                 activeEl.querySelector('span').innerText = '▶';
                 activeEl.querySelector('span').style.color = 'var(--primary)';
@@ -308,7 +338,7 @@
             try {
                 const res = await window.api.get(`/lessons/${lessonId}`);
                 const lesson = res.data;
-                
+
                 document.getElementById('lesson_title').innerText = lesson.title;
                 document.getElementById('lesson_content').innerHTML = lesson.content || 'Không có mô tả chi tiết.';
                 document.getElementById('btn_mark_complete').style.display = 'block';
@@ -333,15 +363,15 @@
             try {
                 // Sẽ trả về 404 nếu không có Quiz, nên mình bọc catch nhẹ lại
                 const res = await window.api.get(`/lessons/${lessonId}/quiz`);
-                if(res.data && res.data.id) {
+                if (res.data && res.data.id) {
                     currentQuizId = res.data.id;
                     const quiz = res.data;
-                    
+
                     let html = `<div class="quiz-container">
                         <h3>📝 Bài Tập Kiểm Tra: ${quiz.title}</h3>
                         <form id="quizForm" class="mt-4">`;
-                        
-                    if(quiz.questions) {
+
+                    if (quiz.questions) {
                         quiz.questions.forEach((q, qIndex) => {
                             html += `<div class="question-block">
                                 <p style="font-weight: 500; margin-bottom: 0.5rem;">Câu ${qIndex + 1}: ${q.question}</p>`;
@@ -357,7 +387,7 @@
 
                     html += `<button type="submit" class="btn btn-primary" style="width:100%;">Nộp Bài / Hoàn Thành</button>
                     </form></div>`;
-                    
+
                     quizArea.innerHTML = html;
 
                     document.getElementById('quizForm').addEventListener('submit', async (e) => {
@@ -367,7 +397,7 @@
                         for (let [key, value] of formData.entries()) {
                             answers.push(parseInt(value));
                         }
-                        
+
                         try {
                             const submitRes = await window.api.post(`/quizzes/${currentQuizId}/submit`, { answers });
                             App.showToast(`Bạn đạt được số điểm: ${submitRes.data.score}`, 'success');
@@ -383,11 +413,11 @@
         }
 
         async function markComplete() {
-            if(!currentLessonId) return;
+            if (!currentLessonId) return;
             try {
                 await window.api.post(`/lessons/${currentLessonId}/complete`, {});
                 App.showToast('Đã lưu tiến độ hoàn thành bài học', 'success');
-            } catch(e) {
+            } catch (e) {
                 App.showToast(e.message, 'error');
             }
         }
@@ -401,9 +431,9 @@
             e.preventDefault();
             const input = document.getElementById('chatInput');
             const chatBox = document.getElementById('chatBox');
-            
+
             const message = input.value.trim();
-            if(!message) return;
+            if (!message) return;
 
             chatBox.innerHTML += `<div class="msg user">${message}</div>`;
             input.value = '';
@@ -426,4 +456,5 @@
 
     </script>
 </body>
+
 </html>

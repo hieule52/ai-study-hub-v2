@@ -51,7 +51,7 @@
             if (u) {
                 if (u.role === 'admin') window.location.href = '/admin/dashboard.html';
                 else if (u.role === 'teacher') window.location.href = '/teacher/dashboard.html';
-                else window.location.href = '/student/dashboard.html';
+                else window.location.href = '/'; // Redirect student to new homepage
             }
         }
 
@@ -76,7 +76,7 @@
                 setTimeout(() => {
                     if (res.data.user.role === 'admin') window.location.href = '/admin/dashboard.html';
                     else if (res.data.user.role === 'teacher') window.location.href = '/teacher/dashboard.html';
-                    else window.location.href = '/student/dashboard.html';
+                    else window.location.href = '/'; // Student goes to guest-like homepage
                 }, 1000);
 
             } catch (error) {

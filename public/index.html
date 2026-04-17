@@ -68,9 +68,31 @@
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/app.js"></script>
     <script>
+        // Function to enroll and redirect
+        window.enrollAndLearn = async function(courseId) {
+            try {
+                // Ignore errors like "already enrolled"
+                await window.api.post(`/courses/${courseId}/enroll`, {});
+            } catch(e) {
+                console.log(e);
+            }
+            window.location.href = `/student/learning.html?course_id=${courseId}`;
+        };
+
         // Fetch courses for guest
         document.addEventListener('DOMContentLoaded', async () => {
             try {
+                let enrolledCourseIds = [];
+                // Nếu User đã đăng nhập, gọi thêm API lấy danh sách khóa học của họ
+                if (window.api.getToken()) {
+                    try {
+                        const enrolledRes = await window.api.get('/student/courses');
+                        enrolledCourseIds = enrolledRes.data.map(c => c.id);
+                    } catch(e) {
+                        console.warn("Không lấy được tiến độ hoặc chưa có đăng ký.");
+                    }
+                }
+
                 const res = await window.api.get('/courses');
                 const courses = res.data;
                 const container = document.getElementById('course-list');
@@ -80,10 +102,34 @@
                     return;
                 }
 
-                container.innerHTML = courses.map(c => `
+                container.innerHTML = courses.map(c => {
+                    let buttonHtml = '';
+                    const isEnrolled = enrolledCourseIds.includes(c.id);
+                    
+                    if (isEnrolled) {
+                        // Khóa này người dùng đã mua hoặc đăng ký rôi -> LUÔN MỞ
+                        buttonHtml = `<button onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="padding: 0.5rem 1rem; cursor: pointer; border: none;">Tham gia học</button>`;
+                    } else if (c.is_premium == 1 || c.price > 0) {
+                        if (window.api.getToken()) {
+                            buttonHtml = `<button onclick="window.location.href='/student/course-payment.html?course_id=${c.id}&price=${c.price}'" class="btn" style="background: var(--warning); color: #000; font-weight: bold; padding: 0.5rem 1rem; cursor: pointer; border: none;">Mua khóa học</button>`;
+                        } else {
+                            // Guest viewing premium course
+                            buttonHtml = `<button onclick="window.location.href='/login.html'" class="btn" style="background: var(--warning); color: #000; font-weight: bold; padding: 0.5rem 1rem; cursor: pointer; border: none;">Mua khóa học</button>`;
+                        }
+                    } else {
+                        if (window.api.getToken()) {
+                            buttonHtml = `<button onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="padding: 0.5rem 1rem; cursor: pointer; border: none;">Tham gia học</button>`;
+                        } else {
+                            // Guest viewing free course
+                            buttonHtml = `<button onclick="window.location.href='/login.html'" class="btn btn-primary" style="padding: 0.5rem 1rem; cursor: pointer; border: none;">Đăng nhập để Học</button>`;
+                        }
+                    }
+
+                    return `
                     <div class="card glass-panel" style="backdrop-filter: blur(4px);">
-                        <div class="card-img-placeholder">
+                        <div class="card-img-placeholder" style="position: relative;">
                             📚
+                            ${(c.is_premium == 1 || c.price > 0) ? '<span style="position: absolute; top: 10px; right: 10px; background: var(--warning); color: #000; font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 10px;">PREMIUM</span>' : ''}
                         </div>
                         <div class="card-body">
                             <h3 class="card-title">${c.title}</h3>
@@ -97,11 +143,11 @@
                                         ${c.price > 0 ? new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(c.price) : 'Miễn phí'}
                                     </span>
                                 </div>
-                                <a href="${window.api.getToken() ? '/student/learning.html?course_id=' + c.id : '/login.html'}" class="btn btn-primary" style="padding: 0.5rem 1rem;">Khám Phá</a>
+                                ${buttonHtml}
                             </div>
                         </div>
-                    </div>
-                `).join('');
+                    </div>`;
+                }).join('');
 
             } catch(e) {
                 document.getElementById('course-list').innerHTML = '<p class="text-danger">Lỗi kết nối cơ sở dữ liệu khóa học.</p>';

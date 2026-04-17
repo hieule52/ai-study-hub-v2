@@ -83,21 +83,98 @@ const App = {
         if (!userMenu) return;
 
         if (user) {
+            const username = user.username || user.email.split('@')[0];
             userMenu.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 1rem;">
-                    <span style="font-weight: 500; color: var(--text-primary)">Hi, ${user.email.split('@')[0]}</span>
-                    <button class="btn btn-outline" onclick="App.logout()" style="padding: 0.5rem 1rem;">Đăng xuất</button>
-                    ${user.role === 'admin' ? '<a href="/admin/dashboard.html" class="btn btn-primary" style="padding: 0.5rem 1rem;">Admin Panel</a>' : ''}
-                    ${user.role === 'teacher' ? '<a href="/teacher/dashboard.html" class="btn btn-primary" style="padding: 0.5rem 1rem;">Teacher Panel</a>' : ''}
-                    ${user.role === 'student' ? '<a href="/student/dashboard.html" class="btn btn-primary" style="padding: 0.5rem 1rem;">Góc học tập</a>' : ''}
+                    <span style="font-weight: 500; color: var(--text-primary)">Xin chào, ${username} 👋</span>
+                    <button class="btn btn-primary" onclick="App.toggleOffcanvasSidebar()" style="padding: 0.5rem; border-radius: 8px; font-size: 1.2rem; line-height: 1; display:flex; align-items:center;">
+                        ☰
+                    </button>
                 </div>
             `;
+            this.renderOffcanvasSidebar(user);
         } else {
             userMenu.innerHTML = `
                 <a href="/login.html" class="nav-link">Đăng nhập</a>
                 <a href="/register.html" class="btn btn-primary">Đăng ký ngay</a>
             `;
         }
+    },
+
+    toggleOffcanvasSidebar() {
+        const sidebar = document.getElementById('global-offcanvas');
+        const backdrop = document.getElementById('offcanvas-backdrop');
+        if (sidebar) sidebar.classList.toggle('open');
+        if (backdrop) backdrop.classList.toggle('show');
+    },
+
+    renderOffcanvasSidebar(user) {
+        if (document.getElementById('global-offcanvas')) return;
+
+        const sidebar = document.createElement('div');
+        sidebar.id = 'global-offcanvas';
+        sidebar.style.cssText = `
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100vh;
+            background: var(--bg-surface);
+            border-left: 1px solid var(--primary-glow);
+            z-index: 10000;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.8);
+        `;
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+            #global-offcanvas.open { right: 0 !important; }
+            #offcanvas-backdrop {
+                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            }
+            #offcanvas-backdrop.show { opacity: 1; pointer-events: all; }
+            .offcanvas-nav { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; }
+            .offcanvas-nav li a {
+                display: block; padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-primary); transition: all 0.2s; text-decoration: none; font-weight: 500;
+            }
+            .offcanvas-nav li a:hover { background: rgba(79, 70, 229, 0.15); color: var(--primary); padding-left: 2rem; }
+        `;
+        document.head.appendChild(style);
+
+        const backdrop = document.createElement('div');
+        backdrop.id = 'offcanvas-backdrop';
+        backdrop.onclick = () => this.toggleOffcanvasSidebar();
+        document.body.appendChild(backdrop);
+
+        let menuItems = '';
+        if (user.role === 'admin') {
+            menuItems = `<li><a href="/admin/dashboard.html">⚙️ Bảng Điều Khiển Admin</a></li>`;
+        } else if (user.role === 'teacher') {
+            menuItems = `<li><a href="/teacher/dashboard.html">🧑‍🏫 Quản lý Khóa học</a></li>`;
+        } else {
+            menuItems = `
+                <li><a href="/student/dashboard.html">📊 Tổng quan học tập</a></li>
+                <li><a href="/student/dashboard.html#my-courses">📚 Khóa học của tôi</a></li>
+                <li><a href="/student/chat.html">💬 Cửa sổ Chat (Hội nhóm)</a></li>
+                <li><a href="/#courses">✨ Khám phá Khóa học mới</a></li>
+            `;
+        }
+
+        sidebar.innerHTML = `
+            <div style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
+                <h3 style="margin:0;">Hub <span class="text-gradient">Menu</span></h3>
+                <button onclick="App.toggleOffcanvasSidebar()" style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
+            </div>
+            <ul class="offcanvas-nav">
+                ${menuItems}
+            </ul>
+            <div style="padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05);">
+                <button onclick="App.logout()" class="btn btn-outline" style="width: 100%;">Đăng xuất khỏi hệ thống</button>
+            </div>
+        `;
+        document.body.appendChild(sidebar);
     },
 
     logout() {

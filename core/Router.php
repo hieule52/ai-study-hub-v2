@@ -55,9 +55,9 @@ class Router
 
         foreach ($this->routes as $route) {
             if ($route['method'] === $method && preg_match($route['pattern'], $uri, $matches)) {
-                
+
                 array_shift($matches); // Loại bỏ phần tử match toàn bộ chuỗi
-                
+
                 $action = $route['action'];
 
                 // Hỗ trợ Middleware tại đây trong tương lai
@@ -76,7 +76,7 @@ class Router
                     list($controllerClass, $methodToCall) = explode('@', $action);
                     $fullController = "App\\Controllers\\" . $controllerClass;
                     $controller = new $fullController();
-                    
+
                     return call_user_func_array([$controller, $methodToCall], array_merge([$request, $response], $matches));
                 }
             }

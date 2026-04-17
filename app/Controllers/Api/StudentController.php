@@ -37,11 +37,38 @@ class StudentController
             AuthMiddleware::handle($request, $response);
             $userId = $request->user->sub;
 
+            // Secure: Check if course is premium
+            $courseRepo = new \App\Repositories\CourseRepository();
+            $course = $courseRepo->findById((int)$courseId);
+            
+            if ($course && $course->is_premium == 1) {
+                $response->error("Khóa học này là khóa học trả phí. Vui lòng thanh toán để mở khóa.", 403);
+                return;
+            }
+
             $success = $this->enrollRepo->enroll($userId, (int)$courseId);
             if ($success) {
                 $response->success("Đăng ký khóa học thành công!", null, 201);
             } else {
                 $response->error("Bạn đã tham gia khóa học này rồi.", 400);
+            }
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 500);
+        }
+    }
+
+    public function verifyPurchase(Request $request, Response $response, string $courseId)
+    {
+        // This endpoint is hit after JS successfully verifies the JSON from Apps Script
+        try {
+            AuthMiddleware::handle($request, $response);
+            $userId = $request->user->sub;
+
+            $success = $this->enrollRepo->enroll($userId, (int)$courseId);
+            if ($success) {
+                $response->success("Xác nhận giao dịch và mở khóa thành công!", null, 201);
+            } else {
+                $response->error("Khóa học này đã được kích hoạt trước đó.", 400);
             }
         } catch (Exception $e) {
             $response->error($e->getMessage(), 500);
