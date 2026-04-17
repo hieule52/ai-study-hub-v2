@@ -1,11 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Góc Học Tập - Dashboard</title>
     <link rel="stylesheet" href="/assets/css/style.css">
+    <!-- Chart.js for stats -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            background: var(--bg-surface-glass);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            margin-bottom: 2rem;
+        }
+
+        /* Scroller for enrolled courses */
+        .scroller-container {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            scroll-snap-type: x mandatory;
+        }
+
+        .scroller-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .scroller-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .scroller-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        .scroller-item {
+            min-width: 300px;
+            scroll-snap-align: start;
+        }
+
+        .dashboard-main {
+            padding: 2rem;
+            flex: 1;
+            margin-left: 280px;
+            /* Sidebar width from style.css */
+        }
+    </style>
 </head>
+
 <body>
 
     <!-- Header Overlay -->
@@ -16,145 +65,244 @@
         </div>
     </nav>
 
-    <div class="dashboard-layout" style="display: block; width: 100%; max-width: 1200px; margin: 0 auto; padding-top: 2rem;">
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="/student/dashboard.html" class="sidebar-link active">📊 Tổng quan học tập</a></li>
+                <li><a href="/student/chat.html" class="sidebar-link">💬 Cửa sổ Chat (Hội nhóm)</a></li>
+                <li><a href="/" class="sidebar-link">🚪 Về trang chủ</a></li>
+            </ul>
+        </aside>
+
         <!-- Main Content -->
-        <main class="main-content" style="padding-left: 2rem;">
+        <main class="dashboard-main">
             <div class="flex items-center justify-between mb-8">
                 <div>
-                    <h1 style="font-size: 2rem;">Chào mừng quay lại, <span id="student-name" class="text-gradient">...</span> 👋</h1>
-                    <p class="text-secondary mt-2">Hôm nay bạn muốn học thêm điều gì mới?</p>
+                    <h1 style="font-size: 2.5rem; letter-spacing: -1px;">Chào mừng quay lại, <span id="student-name"
+                            class="text-gradient">...</span> 👋</h1>
+                    <p class="text-secondary mt-2 text-lg">Hôm nay bạn muốn học thêm điều gì mới?</p>
                 </div>
             </div>
 
-            <!-- Stats -->
+            <!-- Stats & Chart Area -->
             <div class="grid-cols-3 mb-8">
-                <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Đang học</p>
-                    <h2 style="font-size: 2rem; color: var(--text-primary); margin-top: 0.5rem;" id="stat_learning">0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">khóa</span></h2>
+                <div class="card p-4 glass-panel"
+                    style="display: flex; flex-direction: column; justify-content: center;">
+                    <p class="text-secondary font-bold"
+                        style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 1px;">Đang học</p>
+                    <h2 style="font-size: 2.5rem; color: var(--text-primary); margin-top: 0.5rem;" id="stat_learning">0
+                        <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);">khóa</span></h2>
                 </div>
-                <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Hoàn thành</p>
-                    <h2 style="font-size: 2rem; color: var(--success); margin-top: 0.5rem;" id="stat_completed">0 <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">khóa</span></h2>
+                <div class="card p-4 glass-panel"
+                    style="display: flex; flex-direction: column; justify-content: center;">
+                    <p class="text-secondary font-bold"
+                        style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 1px;">Hoàn thành</p>
+                    <h2 style="font-size: 2.5rem; color: var(--success); margin-top: 0.5rem;" id="stat_completed">0
+                        <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);">khóa</span></h2>
                 </div>
-                <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Chứng chỉ</p>
-                    <h2 style="font-size: 2rem; color: var(--warning); margin-top: 0.5rem;" id="stat_certs">0</h2>
+                <div class="card p-4 glass-panel" style="position: relative; overflow: hidden;">
+                    <div
+                        style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: var(--warning); filter: blur(50px); opacity: 0.3; border-radius: 50%;">
+                    </div>
+                    <p class="text-secondary font-bold"
+                        style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 1px;">Chứng chỉ</p>
+                    <h2 style="font-size: 2.5rem; color: var(--warning); margin-top: 0.5rem;" id="stat_certs">0</h2>
                 </div>
             </div>
 
-            <!-- My Courses -->
-            <h3 class="mb-4" id="my-courses">Khóa Học Đang Tham Gia</h3>
-            <div class="grid-cols-2" id="course-container">
-                <div class="text-secondary col-span-2">Đang tải cấu trúc khóa học...</div>
+            <!-- Chart.js integration -->
+            <div class="chart-container mb-8">
+                <h3 class="mb-4">Biểu đồ tiến độ học tập trong tuần</h3>
+                <canvas id="learningChart" height="80"></canvas>
             </div>
+
+            <!-- My Courses (Enrolled) -->
+            <h2 class="mb-4 text-xl">🚀 Khóa Học Của Bạn</h2>
+            <div class="scroller-container mb-8" id="enrolled-course-container">
+                <div class="text-secondary col-span-2">Đang tải khóa học...</div>
+            </div>
+
+            <hr style="border-color: rgba(255,255,255,0.05); margin: 3rem 0;">
+
+            <!-- All Courses Advertisement (Like Guest Page) -->
+            <div class="flex items-center justify-between mb-6">
+                <h2 style="font-size: 2rem;">Khám Phá <span class="text-gradient">Khóa Học Mới</span> 🌟</h2>
+                <div style="width: 250px;">
+                    <input type="text" class="form-control" placeholder="🔍 Tìm khóa học..."
+                        style="border-radius: 20px;">
+                </div>
+            </div>
+
+            <!-- Render all courses list here -->
+            <div class="grid-cols-3" id="all-course-list">
+                <div class="card p-4 text-center col-span-3">
+                    <p>Đang lấy dữ liệu khóa học mới...</p>
+                </div>
+            </div>
+
         </main>
     </div>
 
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/app.js"></script>
     <script>
+        // Global variables for enrolled logic
+        let enrolledCourseIds = [];
+
+        window.enrollAndLearn = async function (courseId) {
+            try {
+                const btn = document.getElementById(`btn-enroll-${courseId}`);
+                if (btn) { btn.innerHTML = 'Đang xử lý...'; btn.disabled = true; }
+                await window.api.post(`/courses/${courseId}/enroll`, {});
+            } catch (e) {
+                console.log("Error or already enrolled", e.message);
+            }
+            window.location.href = `/student/learning.html?course_id=${courseId}`;
+        };
+
         document.addEventListener('DOMContentLoaded', async () => {
-            // Check bảo vệ Route
             const user = App.requireAuth(['student', 'admin', 'teacher']);
-            if (user) {
-                document.getElementById('student-name').innerText = user.username || user.email.split('@')[0];
-                
-                const promoBox = document.getElementById('vip-promo-box');
-                if (promoBox && (user.is_vip == 0 || !user.is_vip)) {
-                    promoBox.style.display = 'block';
-                }
-                
-                await loadDashboardData();
-            }
+            if (!user) return;
 
-            async function loadDashboardData() {
-                try {
-                    const res = await window.api.get('/student/courses');
-                    const courses = res.data || [];
-                    
-                    let completed = 0;
-                    let learning = 0;
-                    
-                    const container = document.getElementById('course-container');
-                    container.innerHTML = '';
-                    
-                    if (courses.length === 0) {
-                        container.innerHTML = '<div class="card p-4 col-span-2 text-center text-secondary">Bạn chưa tham gia khóa học nào. <a href="/" class="text-gradient">Khám phá ngay</a></div>';
-                    } else {
-                        courses.forEach(c => {
-                            let prog = parseInt(c.progress_percent) || 0;
-                            if (prog >= 100) completed++;
-                            else learning++;
-                            
-                            const div = document.createElement('div');
-                            div.className = 'card glass-panel';
-                            div.style.cssText = 'padding: 1.5rem; display: flex; gap: 1.5rem; align-items: center;';
-                            // Sử dụng thumbnail hoặc icon mặc định
-                            const icon = c.thumbnail ? `<img src="${c.thumbnail}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-md);">` : '🚀';
-                            div.innerHTML = `
-                                <div style="width: 120px; height: 100px; border-radius: var(--radius-md); background: #334155; display: flex; align-items: center; justify-content: center; font-size: 2rem;">${icon}</div>
-                                <div style="flex: 1;">
-                                    <h4 style="margin-bottom: 0.5rem;">${c.title}</h4>
-                                    <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-bottom: 0.5rem;">
-                                        <div style="width: ${prog}%; height: 100%; background: var(--primary); border-radius: 4px;"></div>
-                                    </div>
-                                    <p class="text-secondary" style="font-size: 0.75rem;">Đã hoàn thành ${prog}%</p>
-                                    <a href="/student/learning.html?course_id=${c.id}" class="btn btn-outline mt-4" style="padding: 0.5rem 1rem;">Tiếp tục học</a>
+            document.getElementById('student-name').innerText = user.username || user.email.split('@')[0];
+
+            try {
+                // 1. Load enrolled courses & stats
+                const enrolledRes = await window.api.get('/student/courses');
+                const enrolledCourses = enrolledRes.data || [];
+                enrolledCourseIds = enrolledCourses.map(c => c.id);
+
+                let completed = 0;
+                let learning = 0;
+
+                const enrolledContainer = document.getElementById('enrolled-course-container');
+                enrolledContainer.innerHTML = '';
+
+                if (enrolledCourses.length === 0) {
+                    enrolledContainer.innerHTML = '<div class="card p-4 text-center text-secondary w-full" style="flex: 1;">Bạn chưa tham gia khóa học nào. Hãy khám phá bên dưới nhé! 👇</div>';
+                } else {
+                    enrolledCourses.forEach(c => {
+                        let prog = parseInt(c.progress_percent) || 0;
+                        if (prog >= 100) completed++;
+                        else learning++;
+
+                        const div = document.createElement('div');
+                        div.className = 'card glass-panel scroller-item';
+                        div.style.cssText = 'padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; border-top: 3px solid var(--primary);';
+                        const icon = c.thumbnail ? `<img src="${c.thumbnail}" style="border-radius:var(--radius-sm); height: 100px; width:100%; object-fit: cover;">` : `<div style="height: 100px; display:flex; align-items:center; justify-content:center; background: rgba(0,0,0,0.2); font-size: 2.5rem; border-radius: var(--radius-sm);">🚀</div>`;
+
+                        div.innerHTML = `
+                            ${icon}
+                            <div>
+                                <h4 style="margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${c.title}">${c.title}</h4>
+                                <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-bottom: 0.5rem; overflow: hidden;">
+                                    <div style="width: ${prog}%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 4px; box-shadow: 0 0 10px var(--primary);"></div>
                                 </div>
-                            `;
-                            container.appendChild(div);
-                        });
-                    }
-                    
-                    document.getElementById('stat_learning').innerHTML = `${learning} <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">khóa</span>`;
-                    document.getElementById('stat_completed').innerHTML = `${completed} <span style="font-size: 1rem; font-weight: normal; color: var(--text-muted);">khóa</span>`;
-                    document.getElementById('stat_certs').innerText = completed;
-
-                } catch (error) {
-                    document.getElementById('course-container').innerHTML = '<div class="text-danger">Lỗi nạp dữ liệu: ' + error.message + '</div>';
+                                <p class="text-secondary flex justify-between" style="font-size: 0.75rem;">
+                                    <span>Tiến độ học</span> 
+                                    <span style="color: ${prog >= 100 ? 'var(--success)' : 'var(--text-primary)'}; font-weight: bold;">${prog}%</span>
+                                </p>
+                                <a href="/student/learning.html?course_id=${c.id}" class="btn btn-primary mt-4" style="width: 100%; padding: 0.5rem 1rem;">${prog > 0 ? 'Tiếp tục học' : 'Vào học ngay'}</a>
+                            </div>
+                        `;
+                        enrolledContainer.appendChild(div);
+                    });
                 }
-            }
 
-            document.getElementById('btn-upgrade-vip')?.addEventListener('click', async () => {
-                try {
-                    const btn = document.getElementById('btn-upgrade-vip');
-                    btn.innerHTML = 'Đang xử lý...';
-                    btn.disabled = true;
+                document.getElementById('stat_learning').innerHTML = `${learning} <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);">khóa</span>`;
+                document.getElementById('stat_completed').innerHTML = `${completed} <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);">khóa</span>`;
+                document.getElementById('stat_certs').innerText = completed;
 
-                    // 1. Tạo yêu cầu thanh toán
-                    const paymentRes = await window.api.post('/vip/create-payment', {});
-                    const txnId = paymentRes.data.transaction_id;
-
-                    App.showToast('Đang chuyển hướng thanh toán...', 'info');
-
-                    // 2. Giả lập Bank Webhook báo thành công sau 2 giây
-                    setTimeout(async () => {
-                        try {
-                            await window.api.put(`/vip/mock-success/${txnId}`, {});
-                            App.showToast('Nâng cấp VIP thành công! Xin chúc mừng.', 'success');
-                            
-                            // Cập nhật local storage cho is_vip
-                            const userData = JSON.parse(localStorage.getItem('user'));
-                            userData.is_vip = 1;
-                            localStorage.setItem('user', JSON.stringify(userData));
-
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                        } catch (err) {
-                            App.showToast(err.message, 'error');
-                            btn.innerHTML = 'Nâng cấp ngay';
-                            btn.disabled = false;
+                // INIT CHART.JS
+                const ctx = document.getElementById('learningChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                        datasets: [{
+                            label: 'Giờ học (Hours)',
+                            data: [1.2, 2.5, 0.8, 3.0, 1.5, 4.0, 2.2], // Mock data
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#ec4899',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#ec4899',
+                            borderWidth: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: '#94a3b8' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#94a3b8' }
+                            }
                         }
-                    }, 2000);
+                    }
+                });
 
-                } catch (error) {
-                    App.showToast(error.message, 'error');
-                    document.getElementById('btn-upgrade-vip').innerHTML = 'Nâng cấp ngay';
-                    document.getElementById('btn-upgrade-vip').disabled = false;
+
+                // 2. Load ALL Courses to showcase (Like Guest Page)
+                const allCoursesRes = await window.api.get('/courses');
+                const courses = allCoursesRes.data;
+                const container = document.getElementById('all-course-list');
+
+                if (courses.length === 0) {
+                    container.innerHTML = '<p class="text-muted col-span-3">Chưa có khóa học nào trên hệ thống.</p>';
+                    return;
                 }
-            });
+
+                container.innerHTML = courses.map(c => {
+                    const isEnrolled = enrolledCourseIds.includes(c.id);
+                    let buttonHtml = '';
+
+                    if (isEnrolled) {
+                        buttonHtml = `<button onclick="window.location.href='/student/learning.html?course_id=${c.id}'" class="btn btn-outline" style="width: 100%; border-color: var(--success); color: var(--success); justify-content: center; pointer-events: none;">Đã sở hữu ✅</button>`;
+                    } else if (c.is_premium == 1 || c.price > 0) {
+                        buttonHtml = `<button onclick="window.location.href='/student/course-payment.html?course_id=${c.id}&price=${c.price}'" class="btn" style="background: var(--warning); color: #000; font-weight: bold; width: 100%; justify-content: center; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">💳 Mua khóa học</button>`;
+                    } else {
+                        buttonHtml = `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width: 100%; justify-content: center;">Đăng ký Miễn Phí</button>`;
+                    }
+
+                    return `
+                    <div class="card glass-panel" style="display: flex; flex-direction: column;">
+                        <div class="card-img-placeholder" style="position: relative; height: 160px; font-size: 3rem;">
+                            📚
+                            ${(c.is_premium == 1 || c.price > 0) ? '<span style="position: absolute; top: 15px; right: 15px; background: var(--warning); color: #000; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">PREMIUM 💎</span>' : '<span style="position: absolute; top: 15px; right: 15px; background: var(--success); color: #fff; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px;">FREE</span>'}
+                        </div>
+                        <div class="card-body" style="flex: 1; display: flex; flex-direction: column;">
+                            <h3 class="card-title" style="margin-bottom: 0.5rem;">${c.title}</h3>
+                            <p class="text-secondary" style="font-size: 0.875rem; flex: 1; margin-bottom: 1.5rem;">
+                                ${c.description ? c.description.substring(0, 90) + '...' : 'Chưa có mô tả chi tiết từ giảng viên.'}
+                            </p>
+                            
+                            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem; margin-bottom: 1rem;">
+                                <span style="color: var(--text-primary); font-weight: 800; font-size: 1.5rem;">
+                                    ${c.price > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(c.price) : '0 ₫'}
+                                </span>
+                            </div>
+                            ${buttonHtml}
+                        </div>
+                    </div>`;
+                }).join('');
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('enrolled-course-container').innerHTML = '<div class="text-danger">Lỗi kết nối.</div>';
+            }
         });
     </script>
 </body>
+
 </html>

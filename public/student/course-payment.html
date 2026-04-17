@@ -1,38 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thanh Toán Khóa Học - AI Study Hub</title>
+    <title>Thanh Toán An Toàn - AI Study Hub</title>
     <link rel="stylesheet" href="/assets/css/style.css">
     <style>
-        .payment-container {
-            max-width: 800px;
+        body {
+            background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.15), transparent 50%),
+                        radial-gradient(circle at bottom left, rgba(236, 72, 153, 0.1), transparent 50%),
+                        var(--bg-main);
+            min-height: 100vh;
+        }
+
+        .payment-wrapper {
+            max-width: 900px;
             margin: 4rem auto;
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .payment-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.3), rgba(236, 72, 153, 0.3));
+            filter: blur(80px);
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        .payment-container {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 4rem;
         }
 
         .qr-section {
             text-align: center;
-            border-right: 1px solid var(--border-color);
-            padding-right: 2rem;
+            border-right: 1px dashed rgba(255, 255, 255, 0.1);
+            padding-right: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-box {
+            position: relative;
+            background: #fff;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+            margin: 2rem 0;
+            display: inline-block;
+        }
+
+        .qr-box::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--warning));
+            z-index: -1;
+            border-radius: 22px;
+            animation: gradient-spin 3s linear infinite;
+        }
+
+        @keyframes gradient-spin {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
         }
 
         .qr-image {
-            width: 100%;
-            max-width: 250px;
-            border-radius: var(--radius-md);
-            margin: 1.5rem 0;
-            border: 10px solid #fff;
-            /* White background for QR visibility */
+            width: 220px;
+            height: 220px;
+            border-radius: 10px;
+            display: block;
         }
 
         .info-section {
@@ -42,56 +93,77 @@
         }
 
         .info-row {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
         .info-label {
             color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin-bottom: 0.25rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
         }
 
         .info-value {
-            font-size: 1.25rem;
-            font-weight: bold;
+            font-size: 1.2rem;
+            font-weight: 700;
             color: var(--text-primary);
         }
 
         .highlight-text {
             color: var(--warning);
+            font-size: 1.5rem;
         }
 
         .sync-status {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: rgba(16, 185, 129, 0.1);
+            margin-top: 2rem;
+            padding: 1.25rem;
+            background: rgba(16, 185, 129, 0.05);
             border: 1px solid var(--success);
-            border-radius: var(--radius-sm);
+            border-radius: var(--radius-md);
             text-align: center;
-            font-size: 0.875rem;
+            font-size: 0.95rem;
             color: var(--success);
-            animation: pulse 2s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
         }
 
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
+        .pulse-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse-dot 1.5s infinite;
+        }
 
-            50% {
-                opacity: 0.6;
-            }
+        @keyframes pulse-dot {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
 
-            100% {
-                opacity: 1;
-            }
+        .content-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            font-family: monospace;
+            font-size: 1.4rem !important;
+            letter-spacing: 2px;
+            text-align: center;
+            color: var(--warning);
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
         }
     </style>
 </head>
-
 <body>
 
-    <nav class="navbar">
+    <nav class="navbar" style="position: sticky;">
         <div class="container navbar-container">
             <a href="/" class="nav-brand">AI <span class="text-gradient">Study Hub</span></a>
             <div id="user-menu" class="flex items-center gap-4"></div>
@@ -99,43 +171,58 @@
     </nav>
 
     <div class="container">
-        <div class="payment-container">
-            <div class="qr-section">
-                <h2>Quét mã <span class="text-gradient">VietQR</span></h2>
-                <p class="text-secondary mt-2">Mở App Ngân hàng và quét mã để thanh toán tự động.</p>
-                <img id="qr-img" class="qr-image" src="" alt="Loading QR code...">
-                <p class="text-secondary" style="font-size: 0.8rem;">Hệ thống sẽ tự động xác nhận sau khi bạn chuyển
-                    khoản thành công từ 5-10 giây.</p>
-            </div>
-            <div class="info-section">
-                <h3>Thông tin thanh toán</h3>
-                <div class="mt-6">
-                    <div class="info-row">
-                        <div class="info-label">Ngân hàng thụ hưởng</div>
-                        <div class="info-value">MB Bank (MB)</div>
+        <div class="payment-wrapper">
+            <div class="payment-glow"></div>
+            
+            <a href="javascript:history.back()" style="display:inline-block; margin-bottom: 1.5rem; color: var(--text-secondary); text-decoration: none;">&larr; Hủy giao dịch</a>
+
+            <div class="payment-container">
+                <!-- QR Part -->
+                <div class="qr-section">
+                    <h2 style="font-size: 2rem;">Thanh toán <span class="text-gradient">Tự Động</span></h2>
+                    <p class="text-secondary mt-2">Sử dụng App ngân hàng để quét mã VietQR</p>
+                    
+                    <div class="qr-box">
+                        <img id="qr-img" class="qr-image" src="" alt="Loading QR code...">
                     </div>
-                    <div class="info-row">
-                        <div class="info-label">Số tài khoản</div>
-                        <div class="info-value">0328821260</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Tên người nhận</div>
-                        <div class="info-value">LE DIEN HIEU</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Số tiền cần chuyển</div>
-                        <div class="info-value highlight-text" id="display-amount">...</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Nội dung chuyển khoản (Bắt buộc ghi chính xác)</div>
-                        <div class="info-value highlight-text" id="display-content"
-                            style="background: rgba(245, 158, 11, 0.1); padding: 0.5rem; border-radius: 4px; display: inline-block;">
-                            ...</div>
+                    
+                    <div class="flex items-center gap-2 text-secondary" style="font-size: 0.85rem;">
+                        <span style="font-size: 1.2rem;">⚡</span> Hệ thống gạch nợ tự động trong 5-10 giây.
                     </div>
                 </div>
 
-                <div class="sync-status" id="sync-status">
-                    🔄 Đang chờ thanh toán... Hệ thống đang tự động dò tìm giao dịch của bạn.
+                <!-- Detail Part -->
+                <div class="info-section">
+                    <h3 style="margin-bottom: 2rem; font-size: 1.5rem; color: var(--text-primary);">Chi tiết giao dịch</h3>
+                    
+                    <div>
+                        <div class="info-row" style="display: flex; justify-content: space-between;">
+                            <div class="info-label">Ngân hàng</div>
+                            <div class="info-value">MB Bank</div>
+                        </div>
+                        <div class="info-row" style="display: flex; justify-content: space-between;">
+                            <div class="info-label">Chủ tài khoản</div>
+                            <div class="info-value">LE DIEN HIEU</div>
+                        </div>
+                        <div class="info-row" style="display: flex; justify-content: space-between;">
+                            <div class="info-label">Số tài khoản</div>
+                            <div class="info-value">0328821260</div>
+                        </div>
+                        <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; border-bottom: none; padding-bottom: 0;">
+                            <div class="info-label">Số tiền</div>
+                            <div class="info-value highlight-text" style="font-size: 2rem;" id="display-amount">...</div>
+                        </div>
+
+                        <div style="margin-top: 1.5rem;">
+                            <div class="info-label" style="margin-bottom: 0.8rem;">Lời nhắn chuyển khoản (Ghi chính xác)</div>
+                            <div class="info-value content-box" id="display-content">...</div>
+                        </div>
+                    </div>
+
+                    <div class="sync-status" id="sync-status">
+                        <div class="pulse-dot"></div>
+                        Đang chờ thanh toán... Hệ thống đang dò tìm giao dịch.
+                    </div>
                 </div>
             </div>
         </div>
@@ -145,7 +232,7 @@
     <script src="/assets/js/app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const user = App.requireAuth();
+            const user = App.requireAuth(['student', 'admin', 'teacher']);
             if (!user) return;
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -153,19 +240,19 @@
             const price = urlParams.get('price');
 
             if (!courseId || !price) {
-                App.showToast('Thông tin thanh toán không hợp lệ.', 'error');
-                setTimeout(() => window.location.href = '/', 2000);
+                App.showToast('Thông tin hóa đơn không hợp lệ.', 'error');
+                setTimeout(() => window.location.href = '/student/dashboard.html', 2000);
                 return;
             }
 
-            // Bank details configs
-            const BANK_BIN = 'MB'; // MB Bank
+            // Configs
+            const BANK_BIN = 'MB'; 
             const ACCOUNT_NO = '0328821260';
             const ACCOUNT_NAME = 'LE DIEN HIEU';
             const AMOUNT = Math.round(parseFloat(price));
-            const TRANSFER_CONTENT = `MUA ${courseId} ${user.sub}`; // e.g., MUA 2 1
+            const TRANSFER_CONTENT = `MUA ${courseId} ${user.sub}`;
 
-            // Update UI
+            // Setup Details
             document.getElementById('display-amount').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(AMOUNT);
             document.getElementById('display-content').innerText = TRANSFER_CONTENT;
 
@@ -181,40 +268,37 @@
                     const response = await fetch(APPS_SCRIPT_URL);
                     const data = await response.json();
 
-                    // JSON from Apps Script should ideally be an array of objects: [{ "description": "...", "amount": 100000 }, ...]
-                    // Based on typical macro outputs. We check if there's any matching transaction.
-
-                    // We lowercase the strings to ensure case insensitivity
                     const targetContent = TRANSFER_CONTENT.toLowerCase().replace(/\s+/g, '');
 
                     let foundMatch = data.find(tx => {
                         if (!tx.description) return false;
                         const desc = String(tx.description).toLowerCase().replace(/\s+/g, '');
-                        // Check if description implies our content and amount is greater or equal
                         return desc.includes(targetContent) && tx.amount >= AMOUNT;
                     });
 
                     if (foundMatch) {
                         clearInterval(pollInterval);
-                        document.getElementById('sync-status').innerHTML = '✅ Thanh toán thành công! Sẽ chuyển hướng trong giây lát...';
-                        document.getElementById('sync-status').style.background = 'rgba(79, 70, 229, 0.2)';
-                        document.getElementById('sync-status').style.borderColor = 'var(--primary)';
-                        document.getElementById('sync-status').style.color = 'var(--primary)';
+                        
+                        const statusBox = document.getElementById('sync-status');
+                        statusBox.innerHTML = '✅ Lệ phí đã được thanh toán! Chuẩn bị vào lớp...';
+                        statusBox.style.background = 'rgba(79, 70, 229, 0.2)';
+                        statusBox.style.borderColor = 'var(--primary)';
+                        statusBox.style.color = 'var(--primary)';
 
                         await handleSuccess(courseId);
                     }
                 } catch (err) {
-                    console.log('Đang chờ check JSON...', err.message);
+                    console.log('Fetching bank sync...', err.message);
                 }
-            }, 5000); // Check every 5 seconds
+            }, 5000); 
 
             async function handleSuccess(cid) {
                 try {
                     await window.api.post(`/courses/${cid}/verify-purchase`, {});
-                    App.showToast('Giao dịch xác nhận thành công! Bắt đầu học nhé.', 'success');
+                    App.showToast('Giao dịch xác nhận thành công!', 'success');
                     setTimeout(() => {
                         window.location.href = `/student/learning.html?course_id=${cid}`;
-                    }, 2000);
+                    }, 2500);
                 } catch (e) {
                     App.showToast('Lỗi khi mở khóa: ' + e.message, 'error');
                 }
@@ -222,5 +306,4 @@
         });
     </script>
 </body>
-
 </html>
