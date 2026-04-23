@@ -35,7 +35,7 @@
         </p>
         
         <div class="flex justify-center gap-4">
-            <a href="/register.html" class="btn btn-primary">Bắt Đầu Học Ngay</a>
+            <a href="/register.html" class="btn btn-primary" id="btn-start-learning">Bắt Đầu Học Ngay</a>
             <a href="#courses" class="btn btn-outline">Khám Phá Khóa Học</a>
         </div>
     </section>
@@ -85,6 +85,9 @@
                 let enrolledCourseIds = [];
                 // Nếu User đã đăng nhập, gọi thêm API lấy danh sách khóa học của họ
                 if (window.api.getToken()) {
+                    const btnStart = document.getElementById('btn-start-learning');
+                    if (btnStart) btnStart.style.display = 'none';
+
                     try {
                         const enrolledRes = await window.api.get('/student/courses');
                         enrolledCourseIds = enrolledRes.data.map(c => c.id);

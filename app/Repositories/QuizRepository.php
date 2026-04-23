@@ -51,4 +51,35 @@ class QuizRepository
             'score' => $score
         ]);
     }
+
+    public function create(array $data): ?array
+    {
+        $stmt = $this->db->prepare("INSERT INTO quizzes (lesson_id, title) VALUES (:lesson_id, :title)");
+        $success = $stmt->execute([
+            'lesson_id' => $data['lesson_id'],
+            'title' => $data['title']
+        ]);
+        
+        if ($success) {
+            $stmt2 = $this->db->prepare("SELECT * FROM quizzes WHERE id = :id");
+            $stmt2->execute(['id' => $this->db->lastInsertId()]);
+            return $stmt2->fetch(PDO::FETCH_ASSOC);
+        }
+        return null;
+    }
+
+    public function update(int $id, array $data): bool
+    {
+        $stmt = $this->db->prepare("UPDATE quizzes SET title = :title WHERE id = :id");
+        return $stmt->execute([
+            'id' => $id,
+            'title' => $data['title']
+        ]);
+    }
+
+    public function delete(int $id): bool
+    {
+        $stmt = $this->db->prepare("UPDATE quizzes SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
 }

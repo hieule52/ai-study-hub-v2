@@ -27,9 +27,8 @@
         <aside class="sidebar">
             <ul class="sidebar-nav">
                 <li><a href="/teacher/dashboard.html" class="sidebar-link active">📊 Quản lý khóa học</a></li>
-                <li><a href="#" class="sidebar-link">📝 Tạo khóa học mới</a></li>
-                <li><a href="#" class="sidebar-link">👥 Học viên của tôi</a></li>
-                <li><a href="#" class="sidebar-link">💬 Hộp thư Web Socket</a></li>
+                <li><a href="/teacher/students.html" class="sidebar-link">👥 Học viên của tôi</a></li>
+                <li><a href="/teacher/chat.html" class="sidebar-link">💬 Hộp thư Web Socket</a></li>
             </ul>
         </aside>
 
@@ -39,23 +38,12 @@
                     <h1 style="font-size: 2rem;">Khóa học giảng dạy</h1>
                     <p class="text-secondary mt-2">Đăng tải và quản lý các video/bài trắc nghiệm của bạn.</p>
                 </div>
-                <button class="btn btn-primary">+ Tạo Khóa Học</button>
+                <button onclick="window.location.href='/teacher/create-course.html'" class="btn btn-primary">+ Tạo Khóa Học</button>
             </div>
 
             <!-- Stats -->
-            <div class="grid-cols-3 mb-8">
-                <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Khóa Học</p>
-                    <h2 style="font-size: 2rem; color: var(--text-primary);">3</h2>
-                </div>
-                <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Học Viên</p>
-                    <h2 style="font-size: 2rem; color: var(--text-primary);">128</h2>
-                </div>
-                <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Đánh giá trung bình</p>
-                    <h2 style="font-size: 2rem; color: var(--success);">4.8 <span style="font-size: 1rem;">⭐</span></h2>
-                </div>
+            <div class="grid-cols-3 mb-8" id="teacher-stats">
+                <div class="card p-4 text-center text-muted">Đang tải thống kê...</div>
             </div>
 
             <div class="card glass-panel" style="padding: 1.5rem;">
@@ -71,26 +59,7 @@
                         </tr>
                     </thead>
                     <tbody id="course-table">
-                        <tr>
-                            <td style="font-weight: 500;">Khóa Học ReactJS Thực Chiến</td>
-                            <td>Miễn phí</td>
-                            <td>45</td>
-                            <td><span class="status-badge status-active">Đang hiển thị</span></td>
-                            <td>
-                                <button class="btn btn-outline" style="padding: 0.5rem;">Sửa</button>
-                                <button class="btn btn-outline" style="padding: 0.5rem; color: var(--danger); border-color: var(--danger);">Xóa</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="font-weight: 500;">Master PHP Backend Pro</td>
-                            <td>500,000đ (VIP)</td>
-                            <td>12</td>
-                            <td><span class="status-badge status-draft">Bản nháp</span></td>
-                            <td>
-                                <button class="btn btn-outline" style="padding: 0.5rem;">Sửa</button>
-                                <button class="btn btn-outline" style="padding: 0.5rem; color: var(--danger); border-color: var(--danger);">Xóa</button>
-                            </td>
-                        </tr>
+                        <tr><td colspan="5" style="text-align: center;">Đang tải dữ liệu khóa học...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -101,10 +70,71 @@
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Require explicit teacher or admin role
-            App.requireAuth(['teacher']);
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = App.requireAuth(['teacher', 'admin']);
+            if (!user) return;
+
+            try {
+                const res = await window.api.get('/teacher/dashboard');
+                const data = res.data;
+                const stats = data.stats;
+                
+                document.getElementById('teacher-stats').innerHTML = `
+                    <div class="card p-4">
+                        <p class="text-secondary" style="font-size: 0.875rem;">Tổng Khóa Học</p>
+                        <h2 style="font-size: 2rem; color: var(--text-primary);">${stats.total_courses || 0}</h2>
+                    </div>
+                    <div class="card p-4">
+                        <p class="text-secondary" style="font-size: 0.875rem;">Tổng Học Viên (Enrolled)</p>
+                        <h2 style="font-size: 2rem; color: var(--text-primary);">${stats.total_students || 0}</h2>
+                    </div>
+                    <div class="card p-4">
+                        <p class="text-secondary" style="font-size: 0.875rem;">Đánh giá trung bình</p>
+                        <h2 style="font-size: 2rem; color: var(--success);">${stats.avg_rating || 'N/A'} <span style="font-size: 1rem;">⭐</span></h2>
+                    </div>
+                `;
+
+                const tbody = document.getElementById('course-table');
+                const courses = data.courses;
+
+                if (courses.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Bạn chưa có khóa học nào.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = courses.map(c => `
+                    <tr>
+                        <td style="font-weight: 500;">${c.title}</td>
+                        <td>${c.price > 0 ? new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(c.price) : 'Miễn phí'}</td>
+                        <td>${c.total_students || 0} <span class="text-muted" style="font-size:0.8rem">hv</span></td>
+                        <td>
+                            <span class="status-badge ${c.status === 'approved' ? 'status-active' : 'status-draft'}">
+                                ${c.status === 'approved' ? 'Active' : 'Pending'}
+                            </span>
+                        </td>
+                        <td>
+                            <button onclick="window.location.href='/teacher/course-builder.html?course_id=${c.id}'" class="btn btn-outline" style="padding: 0.5rem; color: var(--primary); border-color: var(--primary);">Hành trang lộ trình</button>
+                            <button onclick="deleteCourse(${c.id})" class="btn btn-outline" style="padding: 0.5rem; color: var(--danger); border-color: var(--danger);">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error(err);
+                App.showToast('Lỗi tải dữ liệu Dashboard', 'error');
+            }
         });
+
+        window.deleteCourse = async function(id) {
+            if(!confirm("Bạn có chắc chắn muốn xóa khóa học này?")) return;
+            try {
+                await window.api.delete('/teacher/courses/' + id);
+                App.showToast('Đã xóa khóa học thành công');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch(e) {
+                App.showToast(e.message, 'error');
+            }
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm duyệt Khóa học - Admin AI Study Hub</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .table th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar" style="z-index: 100; border-bottom: 1px solid var(--secondary);">
+        <div class="container navbar-container">
+            <a href="/" class="nav-brand">Hệ Thống <span class="text-gradient">Quản Trị</span></a>
+            <div id="user-menu" class="flex items-center gap-4"></div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="/admin/dashboard.html" class="sidebar-link">📈 Thống kê & Tổng quan</a></li>
+                <li><a href="/admin/users.html" class="sidebar-link">👥 Quản lý Users</a></li>
+                <li><a href="/admin/courses.html" class="sidebar-link active">📚 Kiểm duyệt khóa học</a></li>
+                <li><a href="/admin/vip.html" class="sidebar-link">💎 Giao dịch VIP</a></li>
+                <li><a href="/admin/logs.html" class="sidebar-link">📋 Audit Logs</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 style="font-size: 2rem;">📚 Kiểm Duyệt Khóa Học</h1>
+                    <p class="text-secondary mt-2">Duyệt những khóa học mới trước khi xuất bản lên nền tảng.</p>
+                </div>
+            </div>
+
+            <!-- Pending Courses -->
+            <div class="card glass-panel" style="padding: 1.5rem; border-color: rgba(239, 68, 68, 0.2);" id="courses">
+                <div style="overflow-x: auto;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>KHÓA HỌC</th>
+                                <th>GIẢNG VIÊN</th>
+                                <th>GIÁ BÁN</th>
+                                <th>THAO TÁC</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-courses-table">
+                            <tr><td colspan="5" style="text-align: center; padding: 2rem;">Đang tải dữ liệu...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script src="/assets/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = App.requireAuth(['admin']);
+            if (!user) return;
+            await loadPendingCourses();
+        });
+
+        async function loadPendingCourses() {
+            try {
+                const res = await window.api.get('/admin/courses/pending');
+                const tbody = document.getElementById('pending-courses-table');
+                if(res.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">Tuyệt vời! Không có khóa học nào chờ Duyệt.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = res.data.map(c => `
+                    <tr id="course-row-${c.id}">
+                        <td>#${c.id}</td>
+                        <td style="font-weight: 500; max-width: 200px;">
+                            ${c.title}
+                            <div style="font-size: 0.8rem; color:var(--text-secondary); margin-top: 4px;">
+                                <a href="/student/learning.html?course_id=${c.id}" target="_blank" style="color:var(--primary)">🔍 Xem trước</a>
+                            </div>
+                        </td>
+                        <td>${c.teacher_name}<br><small class="text-secondary">${c.teacher_email}</small></td>
+                        <td style="color:var(--warning); font-weight:bold;">${c.price > 0 ? new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(c.price) : 'Miễn phí'}</td>
+                        <td>
+                            <button onclick="approveCourse(${c.id})" class="btn btn-primary" style="padding: 0.4rem; font-size: 0.8rem; margin-right: 0.5rem; border: none; background: var(--success);">✅ Duyệt</button>
+                            <button onclick="rejectCourse(${c.id})" class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem; border-color: var(--danger); color: var(--danger);">❌ Từ chối</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                console.error("Lỗi tải khóa học", e);
+            }
+        }
+
+        async function approveCourse(id) {
+            if(!confirm('Xác nhận duyệt khóa học này?')) return;
+            try {
+                await window.api.put(`/admin/courses/${id}/approve`);
+                App.showToast("Duyệt khóa học thành công!", "success");
+                document.getElementById(`course-row-${id}`).remove();
+                
+                // Cập nhật lại list nếu trống
+                const tbody = document.getElementById('pending-courses-table');
+                if(tbody.children.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">Tuyệt vời! Không có khóa học nào chờ Duyệt.</td></tr>';
+                }
+            } catch(e) {
+                App.showToast(e.message, "error");
+            }
+        }
+
+        async function rejectCourse(id) {
+            if(!confirm('Từ chối khóa học này? Trạng thái sẽ bị đổi thành Bản Nháp.')) return;
+            try {
+                await window.api.put(`/admin/courses/${id}/reject`);
+                App.showToast("Đã chuyển khóa học về Bản nháp.", "success");
+                document.getElementById(`course-row-${id}`).remove();
+                
+                const tbody = document.getElementById('pending-courses-table');
+                if(tbody.children.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem;">Tuyệt vời! Không có khóa học nào chờ Duyệt.</td></tr>';
+                }
+            } catch(e) {
+                App.showToast(e.message, "error");
+            }
+        }
+    </script>
+</body>
+</html>

@@ -20,7 +20,8 @@
             <ul class="sidebar-nav">
                 <li><a href="/teacher/dashboard.html" class="sidebar-link">📊 Quản lý khóa học</a></li>
                 <li><a href="/teacher/create-course.html" class="sidebar-link active">📝 Tạo khóa học mới</a></li>
-                <li><a href="#" class="sidebar-link">👥 Học viên của tôi</a></li>
+                <li><a href="/teacher/students.html" class="sidebar-link">👥 Học viên của tôi</a></li>
+                <li><a href="/teacher/chat.html" class="sidebar-link">💬 Hộp thư Web Socket</a></li>
             </ul>
         </aside>
 
@@ -42,6 +43,11 @@
                     <div class="form-group">
                         <label class="form-label">Mô tả (Description)</label>
                         <textarea id="description" class="form-control" rows="5" placeholder="Mô tả nội dung học..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Thumbnail (Ảnh bìa chia sẻ khóa học)</label>
+                        <input type="file" id="thumbnail" class="form-control" accept="image/*">
                     </div>
 
                     <div class="grid-cols-2">
@@ -82,9 +88,17 @@
                     const price = document.getElementById('price').value;
                     const premium = document.getElementById('is_premium').value;
 
+                    let thumbnailUrl = null;
+                    const fileInput = document.getElementById('thumbnail');
+                    if (fileInput.files.length > 0) {
+                        const uploadRes = await window.api.uploadFile('/upload', fileInput.files[0]);
+                        thumbnailUrl = uploadRes.data.url;
+                    }
+
                     const res = await window.api.post('/courses', {
                         title: title,
                         description: desc,
+                        thumbnail: thumbnailUrl,
                         price: price,
                         is_premium: premium
                     });

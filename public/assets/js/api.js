@@ -101,6 +101,18 @@ class ApiClient {
         return this._handleResponse(res);
     }
 
+    async uploadFile(endpoint, file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'POST',
+            headers: this._getHeaders(true),
+            body: formData
+        });
+        return this._handleResponse(res);
+    }
+
     async put(endpoint, body) {
         const res = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'PUT',

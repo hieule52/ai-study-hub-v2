@@ -28,7 +28,11 @@ const I18n = {
             "Email và password không được để trống.": "Email và password không được để trống.",
             "Thông tin đăng nhập không chính xác.": "Thông tin đăng nhập không chính xác.",
             "Tài khoản của bạn đã bị khóa.": "Tài khoản của bạn đã bị khóa.",
-            "Provided key is too short": "Cấu hình Server: Khóa bí mật JWT quá ngắn."
+            "Provided key is too short": "Cấu hình Server: Khóa bí mật JWT quá ngắn.",
+            // Thêm các từ khoá chung
+            "btn_register": "Đăng ký ngay",
+            "btn_logout": "Đăng xuất khỏi hệ thống",
+            "text_hello": "Xin chào"
         },
         en: {
             "title_register": "Student Registration",
@@ -57,14 +61,18 @@ const I18n = {
             "Email và password không được để trống.": "Email and password cannot be empty.",
             "Thông tin đăng nhập không chính xác.": "Incorrect login information.",
             "Tài khoản của bạn đã bị khóa.": "Your account has been banned.",
-            "Provided key is too short": "Server Configuration: Provided key is too short."
+            "Provided key is too short": "Server Configuration: Provided key is too short.",
+            // General keywords
+            "btn_register": "Register now",
+            "btn_logout": "Logout from system",
+            "text_hello": "Hello"
         }
     },
 
     setLocale(lang) {
         this.locale = lang;
         localStorage.setItem('lang', lang);
-        this.render();
+        window.location.reload();
     },
 
     get(key) {

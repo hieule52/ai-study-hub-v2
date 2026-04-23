@@ -8,18 +8,18 @@ use Exception;
 class AiService
 {
     private AiRepository $aiRepo;
-    private string $apiKey;
+    private string $geminiApiKey;
 
     public function __construct()
     {
         $this->aiRepo = new AiRepository();
-        $this->apiKey = $_ENV['GROQ_API_KEY'] ?? '';
+        $this->geminiApiKey = $_ENV['GEMINI_API_KEY'] ?? '';
     }
 
-    public function chat(int $userId, string $message): array
+    public function chat(int $userId, string $message, ?string $base64Image = null): array
     {
-        if (empty($this->apiKey)) {
-            throw new Exception("Chưa cấu hình GROQ_API_KEY.");
+        if (empty($this->geminiApiKey)) {
+            throw new Exception("Chưa cấu hình GEMINI_API_KEY.");
         }
 
         if (empty(trim($message))) {
@@ -30,10 +30,16 @@ class AiService
         // Tùy chỉnh prompt tùy theo yêu cầu hệ thống LMS
         $prompt = "Bạn là một trợ lý ảo thông minh cho nền tảng AI Study Hub LMS. Hãy giúp học sinh giải đáp câu hỏi một cách dễ hiểu và tích cực.\nCâu hỏi: " . $message;
 
-        $response = $this->callGroqApi($prompt);
+        $response = $this->callGeminiApi($prompt, $base64Image);
 
         if (!$response) {
-            throw new Exception("Có lỗi khi giao tiếp với AI API.");
+            throw new Exception("Lỗi Gemini API: Trả về rỗng.");
+        }
+        if (str_starts_with($response, 'ERROR_CURL: ')) {
+            throw new Exception($response);
+        }
+        if (str_starts_with($response, 'ERROR_JSON: ')) {
+            throw new Exception("Lỗi API parse: " . $response);
         }
 
         // Lưu vào CSDL
@@ -45,40 +51,67 @@ class AiService
         ];
     }
 
-    private function callGroqApi(string $prompt): ?string
+    private function callGeminiApi(string $prompt, ?string $base64Image = null): ?string
     {
-        $url = 'https://api.groq.com/openai/v1/chat/completions';
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $this->geminiApiKey;
         
+        $parts = [
+            ['text' => $prompt]
+        ];
+
+        if ($base64Image) {
+            $mimeType = 'image/jpeg';
+            $rawData = $base64Image;
+
+            if (preg_match('/^data:(image\/[a-zA-Z]+);base64,(.*)$/', $base64Image, $matches)) {
+                $mimeType = $matches[1];
+                $rawData = $matches[2];
+            }
+
+            $parts[] = [
+                'inline_data' => [
+                    'mime_type' => $mimeType,
+                    'data' => $rawData
+                ]
+            ];
+        }
+
         $data = [
-            'model' => 'llama3-8b-8192', // Model phổ biến, tốc độ cao của Groq
-            'messages' => [
-                ['role' => 'user', 'content' => $prompt]
-            ],
-            'temperature' => 0.7
+            'contents' => [
+                [
+                    'parts' => $parts
+                ]
+            ]
         ];
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
+        
+        // Disable SSL cho Localhost Windows
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $this->apiKey,
             'Content-Type: application/json'
         ]);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        
-        // Timeout 30 giây
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 40);
 
         $response = curl_exec($ch);
         $err = curl_error($ch);
         curl_close($ch);
 
         if ($err) {
-            return null;
+            return 'ERROR_CURL: ' . $err;
         }
 
         $result = json_decode($response, true);
         
-        return $result['choices'][0]['message']['content'] ?? null;
+        if (isset($result['error'])) {
+            return 'ERROR_JSON: ' . json_encode($result['error']);
+        }
+        
+        return $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
     }
 }

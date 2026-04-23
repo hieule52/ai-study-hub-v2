@@ -14,6 +14,7 @@
         .role-teacher { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); }
         .role-student { background: rgba(79, 70, 229, 0.1); color: var(--primary); border: 1px solid var(--primary); }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -28,10 +29,10 @@
         <aside class="sidebar">
             <ul class="sidebar-nav">
                 <li><a href="/admin/dashboard.html" class="sidebar-link active">📈 Thống kê & Tổng quan</a></li>
-                <li><a href="#users" class="sidebar-link">👥 Quản lý Users</a></li>
-                <li><a href="#courses" class="sidebar-link">📚 Kiểm duyệt khóa học</a></li>
-                <li><a href="#vip" class="sidebar-link">💎 Giao dịch VIP</a></li>
-                <li><a href="#logs" class="sidebar-link">📋 Audit Logs</a></li>
+                <li><a href="/admin/users.html" class="sidebar-link">👥 Quản lý Users</a></li>
+                <li><a href="/admin/courses.html" class="sidebar-link">📚 Kiểm duyệt khóa học</a></li>
+                <li><a href="/admin/vip.html" class="sidebar-link">💎 Giao dịch VIP</a></li>
+                <li><a href="/admin/logs.html" class="sidebar-link">📋 Audit Logs</a></li>
             </ul>
         </aside>
 
@@ -44,72 +45,35 @@
             </div>
 
             <!-- Stats -->
-            <div class="grid-cols-4 mb-8">
+            <div class="grid-cols-4 mb-8" id="stats-container">
                 <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Danh Thu (Tháng)</p>
-                    <h2 style="font-size: 1.75rem; color: var(--warning); margin-top: 0.5rem;">45,500,000đ</h2>
+                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Doanh Thu</p>
+                    <h2 id="s-revenue" style="font-size: 1.75rem; color: var(--warning); margin-top: 0.5rem;">0đ</h2>
                 </div>
                 <div class="card p-4">
                     <p class="text-secondary" style="font-size: 0.875rem;">Tài khoản VIP</p>
-                    <h2 style="font-size: 1.75rem; color: var(--primary); margin-top: 0.5rem;">91</h2>
+                    <h2 id="s-vip" style="font-size: 1.75rem; color: var(--primary); margin-top: 0.5rem;">0</h2>
                 </div>
                 <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Học viên</p>
-                    <h2 style="font-size: 1.75rem; color: var(--text-primary); margin-top: 0.5rem;">1,204</h2>
+                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Người Dùng</p>
+                    <h2 id="s-users" style="font-size: 1.75rem; color: var(--text-primary); margin-top: 0.5rem;">0</h2>
                 </div>
-                <div class="card p-4">
+                <div class="card p-4" style="border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">
                     <p class="text-secondary" style="font-size: 0.875rem;">Khóa học chờ duyệt</p>
-                    <h2 style="font-size: 1.75rem; color: var(--danger); margin-top: 0.5rem;">7</h2>
+                    <h2 id="s-pending" style="font-size: 1.75rem; color: var(--danger); margin-top: 0.5rem;">0</h2>
                 </div>
             </div>
 
-            <div class="card glass-panel" style="padding: 1.5rem;" id="users">
+            <!-- Pending Courses (Removed from dashboard, moved to courses.html) -->
+
+        <!-- Chart Section -->
+            <div class="card glass-panel" style="padding: 1.5rem;" id="charts">
                 <div class="flex justify-between items-center mb-4">
-                    <h3>Quản lý Users (Cơ sở dữ liệu)</h3>
-                    <input type="text" class="form-control" style="width: 250px; padding: 0.5rem;" placeholder="Tìm email user...">
+                    <h3>📊 Biểu đồ Doanh Thu Khóa Học Phân Bổ</h3>
                 </div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>EMAIL / TÀI KHOẢN</th>
-                            <th>PHÂN QUYỀN</th>
-                            <th>TRẠNG THÁI TÀI KHOẢN</th>
-                            <th>THAO TÁC</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-table">
-                        <tr>
-                            <td>#001</td>
-                            <td style="font-weight: 500;">hieule.admin@aistudyhub.com</td>
-                            <td><span class="badge-role role-admin">Admin</span></td>
-                            <td><span style="color: var(--success)">• Hoạt động</span></td>
-                            <td>
-                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem;">Chỉnh sửa</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>#102</td>
-                            <td style="font-weight: 500;">thayba.code@gmail.com</td>
-                            <td><span class="badge-role role-teacher">Teacher</span></td>
-                            <td><span style="color: var(--success)">• Hoạt động</span></td>
-                            <td>
-                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem;">Chỉnh sửa</button>
-                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem; border-color: var(--danger); color: var(--danger);">Ban</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>#103</td>
-                            <td style="font-weight: 500;">nguyenvana123@gmail.com</td>
-                            <td><span class="badge-role role-student">Student</span> <span style="font-size: 0.75rem; color: var(--warning)">[VIP]</span></td>
-                            <td><span style="color: var(--success)">• Hoạt động</span></td>
-                            <td>
-                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem;">Chỉnh sửa</button>
-                                <button class="btn btn-outline" style="padding: 0.4rem; font-size: 0.8rem; border-color: var(--danger); color: var(--danger);">Ban</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div style="height: 400px; width: 100%;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
             </div>
             
         </main>
@@ -118,10 +82,63 @@
     <script src="/assets/js/api.js"></script>
     <script src="/assets/js/app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Require explicit admin role
-            App.requireAuth(['admin']);
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = App.requireAuth(['admin']);
+            if (!user) return;
+
+            await loadStats();
+            await loadChart();
         });
+
+        async function loadStats() {
+            try {
+                const res = await window.api.get('/admin/stats');
+                const data = res.data;
+                document.getElementById('s-revenue').innerText = new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(data.total_revenue);
+                document.getElementById('s-vip').innerText = data.total_vip_users;
+                document.getElementById('s-users').innerText = data.total_users;
+                document.getElementById('s-pending').innerText = data.pending_courses;
+            } catch(e) {
+                console.error("Lỗi tải thống kê", e);
+            }
+        }
+
+        // Removed pending courses functions to courses.html
+
+
+
+        async function loadChart() {
+            try {
+                const res = await window.api.get('/admin/chart-data');
+                const chartData = res.data;
+                const ctx = document.getElementById('revenueChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#a0a0a0' }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: { color: '#a0a0a0', callback: function(value) { return new Intl.NumberFormat('vi-VN').format(value) + 'đ'; } },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            },
+                            x: {
+                                ticks: { color: '#a0a0a0' },
+                                grid: { color: 'rgba(255,255,255,0.05)' }
+                            }
+                        }
+                    }
+                });
+            } catch(e) {
+                console.error("Lỗi tải biểu đồ", e);
+            }
+        }
     </script>
 </body>
 </html>

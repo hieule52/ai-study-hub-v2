@@ -28,9 +28,10 @@ class AiController
             // }
 
             $message = $request->input('message');
+            $base64Image = $request->input('base64_image') ?? null;
             $userId = $request->user->sub;
 
-            $result = $this->aiService->chat($userId, $message);
+            $result = $this->aiService->chat($userId, $message, $base64Image);
             
             $response->success("AI đã phân tích", $result);
         } catch (Exception $e) {

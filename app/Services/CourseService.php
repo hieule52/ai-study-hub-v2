@@ -42,6 +42,7 @@ class CourseService
             'teacher_id' => $teacherId,
             'title' => $data['title'],
             'description' => $data['description'] ?? '',
+            'thumbnail' => $data['thumbnail'] ?? null,
             'price' => $price,
             'is_premium' => $is_premium
         ]);

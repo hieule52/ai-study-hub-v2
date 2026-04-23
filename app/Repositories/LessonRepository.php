@@ -49,4 +49,44 @@ class LessonRepository
         $insert = $this->db->prepare("INSERT INTO lesson_progress (user_id, lesson_id, is_completed, completed_at) VALUES (:uid, :lid, 1, CURRENT_TIMESTAMP)");
         return $insert->execute(['uid' => $userId, 'lid' => $lessonId]);
     }
+
+    public function create(array $data): ?array
+    {
+        $sql = "INSERT INTO lessons (chapter_id, title, content_type, video_url, content, order_index) 
+                VALUES (:chapter_id, :title, :content_type, :video_url, :content, :order_index)";
+        $stmt = $this->db->prepare($sql);
+        $success = $stmt->execute([
+            'chapter_id' => $data['chapter_id'],
+            'title' => $data['title'],
+            'content_type' => $data['content_type'] ?? 'video',
+            'video_url' => $data['video_url'] ?? '',
+            'content' => $data['content'] ?? '',
+            'order_index' => $data['order_index'] ?? 0
+        ]);
+
+        if ($success) {
+            return $this->findLessonById($this->db->lastInsertId());
+        }
+        return null;
+    }
+
+    public function update(int $id, array $data): bool
+    {
+        $sql = "UPDATE lessons SET title = :title, content_type = :content_type, video_url = :video_url, content = :content, order_index = :order_index WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            'id' => $id,
+            'title' => $data['title'],
+            'content_type' => $data['content_type'] ?? 'video',
+            'video_url' => $data['video_url'] ?? '',
+            'content' => $data['content'] ?? '',
+            'order_index' => $data['order_index'] ?? 0
+        ]);
+    }
+
+    public function delete(int $id): bool
+    {
+        $stmt = $this->db->prepare("UPDATE lessons SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id");
+        return $stmt->execute(['id' => $id]);
+    }
 }

@@ -69,6 +69,8 @@
         <aside class="sidebar">
             <ul class="sidebar-nav">
                 <li><a href="/student/dashboard.html" class="sidebar-link active">📊 Tổng quan học tập</a></li>
+                <li><a href="/student/dashboard.html#enrolled-course-container" class="sidebar-link">📚 Khóa học của tôi</a></li>
+                <li><a href="/student/ai-chat.html" class="sidebar-link">🤖 Gia Sư AI (AI Tutor)</a></li>
                 <li><a href="/student/chat.html" class="sidebar-link">💬 Cửa sổ Chat (Hội nhóm)</a></li>
                 <li><a href="/" class="sidebar-link">🚪 Về trang chủ</a></li>
             </ul>
@@ -213,15 +215,24 @@
                 document.getElementById('stat_completed').innerHTML = `${completed} <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);">khóa</span>`;
                 document.getElementById('stat_certs').innerText = completed;
 
+                // Thống kê thực tế học tập
+                const statsRes = await window.api.get('/student/stats');
+                const realStats = statsRes.data;
+                const dateLabels = Object.keys(realStats).map(d => {
+                    const parts = d.split('-');
+                    return `${parts[2]}/${parts[1]}`; // Hiển thị DD/MM
+                });
+                const chartData = Object.values(realStats);
+
                 // INIT CHART.JS
                 const ctx = document.getElementById('learningChart').getContext('2d');
                 new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                        labels: dateLabels,
                         datasets: [{
-                            label: 'Giờ học (Hours)',
-                            data: [1.2, 2.5, 0.8, 3.0, 1.5, 4.0, 2.2], // Mock data
+                            label: 'Bài học hoàn thành',
+                            data: chartData,
                             borderColor: '#4f46e5',
                             backgroundColor: 'rgba(79, 70, 229, 0.2)',
                             tension: 0.4,
@@ -236,13 +247,21 @@
                     options: {
                         responsive: true,
                         plugins: {
-                            legend: { display: false }
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.parsed.y + ' bài học hoàn thành';
+                                    }
+                                }
+                            }
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
+                                suggestedMax: 5,
                                 grid: { color: 'rgba(255,255,255,0.05)' },
-                                ticks: { color: '#94a3b8' }
+                                ticks: { color: '#94a3b8', stepSize: 1 }
                             },
                             x: {
                                 grid: { display: false },

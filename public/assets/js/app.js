@@ -82,11 +82,32 @@ const App = {
         const userMenu = document.getElementById('user-menu');
         if (!userMenu) return;
 
+        const currentLang = localStorage.getItem('lang') || 'vi';
+        
+        let loginText = currentLang === 'en' ? 'Login' : 'Đăng nhập';
+        let registerText = currentLang === 'en' ? 'Register Now' : 'Đăng ký ngay';
+        let helloText = currentLang === 'en' ? 'Hello' : 'Xin chào';
+
+        const langToggleBtn = `
+            <div style="display: flex; gap: 0.5rem; margin-right: 1.5rem; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 1.5rem; align-items: center;">
+                <button class="lang-switch-btn" data-lang="vi" onclick="window.I18n && window.I18n.setLocale('vi')" style="background:none; border:none; cursor:pointer; font-weight: ${currentLang==='vi'?'bold':'normal'}; color: var(--${currentLang==='vi'?'primary':'text-secondary'});">VI</button>
+                <span style="color:var(--text-secondary)">|</span>
+                <button class="lang-switch-btn" data-lang="en" onclick="window.I18n && window.I18n.setLocale('en')" style="background:none; border:none; cursor:pointer; font-weight: ${currentLang==='en'?'bold':'normal'}; color: var(--${currentLang==='en'?'primary':'text-secondary'});">EN</button>
+            </div>
+        `;
+
         if (user) {
             const username = user.username || user.email.split('@')[0];
-            userMenu.innerHTML = `
+            let avatarHtml = '';
+            if (user.avatar) {
+                avatarHtml = `<img src="${user.avatar}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">`;
+            } else {
+                avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; border: 2px solid rgba(255,255,255,0.1);">${username.charAt(0).toUpperCase()}</div>`;
+            }
+
+            userMenu.innerHTML = langToggleBtn + `
                 <div style="display: flex; align-items: center; gap: 1rem;">
-                    <span style="font-weight: 500; color: var(--text-primary)">Xin chào, ${username} 👋</span>
+                    <span style="font-weight: 500; color: var(--text-primary); display:flex; align-items:center; gap:0.5rem;">${username} ${avatarHtml}</span>
                     <button class="btn btn-primary" onclick="App.toggleOffcanvasSidebar()" style="padding: 0.5rem; border-radius: 8px; font-size: 1.2rem; line-height: 1; display:flex; align-items:center;">
                         ☰
                     </button>
@@ -94,9 +115,9 @@ const App = {
             `;
             this.renderOffcanvasSidebar(user);
         } else {
-            userMenu.innerHTML = `
-                <a href="/login.html" class="nav-link">Đăng nhập</a>
-                <a href="/register.html" class="btn btn-primary">Đăng ký ngay</a>
+            userMenu.innerHTML = langToggleBtn + `
+                <a href="/login.html" class="nav-link" data-i18n="btn_login">${loginText}</a>
+                <a href="/register.html" class="btn btn-primary" data-i18n="btn_register">${registerText}</a>
             `;
         }
     },
@@ -168,10 +189,11 @@ const App = {
                 <button onclick="App.toggleOffcanvasSidebar()" style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
             <ul class="offcanvas-nav">
+                <li><a href="/profile.html" style="color: var(--warning);">👤 Cá Nhân (Edit Profile)</a></li>
                 ${menuItems}
             </ul>
             <div style="padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05);">
-                <button onclick="App.logout()" class="btn btn-outline" style="width: 100%;">Đăng xuất khỏi hệ thống</button>
+                <button onclick="App.logout()" class="btn btn-outline" style="width: 100%;" data-i18n="btn_logout">${localStorage.getItem('lang')==='en'?'Logout from system':'Đăng xuất khỏi hệ thống'}</button>
             </div>
         `;
         document.body.appendChild(sidebar);
@@ -187,5 +209,15 @@ window.App = App;
 
 // Auto setup on load
 document.addEventListener('DOMContentLoaded', () => {
+    // Tự động load thư viện i18n.js nếu chưa có
+    if (typeof window.I18n === 'undefined') {
+        const script = document.createElement('script');
+        script.src = '/assets/js/i18n.js';
+        script.onload = () => {
+            if (window.I18n) window.I18n.render(); 
+        };
+        document.head.appendChild(script);
+    }
+
     App.renderUserNav();
 });

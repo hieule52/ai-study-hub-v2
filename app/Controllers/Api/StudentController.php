@@ -74,4 +74,18 @@ class StudentController
             $response->error($e->getMessage(), 500);
         }
     }
+
+    public function getStats(Request $request, Response $response)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            $userId = $request->user->sub;
+
+            $stats = $this->enrollRepo->getLearningStats((int)$userId);
+            
+            $response->success("Learning stats retrieved", $stats);
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
 }
