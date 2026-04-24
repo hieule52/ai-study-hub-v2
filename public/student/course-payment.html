@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +9,8 @@
     <style>
         body {
             background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.15), transparent 50%),
-                        radial-gradient(circle at bottom left, rgba(236, 72, 153, 0.1), transparent 50%),
-                        var(--bg-main);
+                radial-gradient(circle at bottom left, rgba(236, 72, 153, 0.1), transparent 50%),
+                var(--bg-main);
             min-height: 100vh;
         }
 
@@ -67,7 +68,10 @@
         .qr-box::before {
             content: '';
             position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
             background: linear-gradient(45deg, var(--primary), var(--secondary), var(--warning));
             z-index: -1;
             border-radius: 22px;
@@ -75,8 +79,13 @@
         }
 
         @keyframes gradient-spin {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
+            0% {
+                filter: hue-rotate(0deg);
+            }
+
+            100% {
+                filter: hue-rotate(360deg);
+            }
         }
 
         .qr-image {
@@ -95,7 +104,7 @@
         .info-row {
             margin-bottom: 1.5rem;
             padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .info-label {
@@ -142,9 +151,17 @@
         }
 
         @keyframes pulse-dot {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+            }
         }
 
         .content-box {
@@ -161,6 +178,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <nav class="navbar" style="position: sticky;">
@@ -173,19 +191,21 @@
     <div class="container">
         <div class="payment-wrapper">
             <div class="payment-glow"></div>
-            
-            <a href="javascript:history.back()" style="display:inline-block; margin-bottom: 1.5rem; color: var(--text-secondary); text-decoration: none;">&larr; Hủy giao dịch</a>
+
+            <a href="javascript:history.back()"
+                style="display:inline-block; margin-bottom: 1.5rem; color: var(--text-secondary); text-decoration: none;">&larr;
+                Hủy giao dịch</a>
 
             <div class="payment-container">
                 <!-- QR Part -->
                 <div class="qr-section">
                     <h2 style="font-size: 2rem;">Thanh toán <span class="text-gradient">Tự Động</span></h2>
                     <p class="text-secondary mt-2">Sử dụng App ngân hàng để quét mã VietQR</p>
-                    
+
                     <div class="qr-box">
                         <img id="qr-img" class="qr-image" src="" alt="Loading QR code...">
                     </div>
-                    
+
                     <div class="flex items-center gap-2 text-secondary" style="font-size: 0.85rem;">
                         <span style="font-size: 1.2rem;">⚡</span> Hệ thống gạch nợ tự động trong 5-10 giây.
                     </div>
@@ -193,12 +213,13 @@
 
                 <!-- Detail Part -->
                 <div class="info-section">
-                    <h3 style="margin-bottom: 2rem; font-size: 1.5rem; color: var(--text-primary);">Chi tiết giao dịch</h3>
-                    
+                    <h3 style="margin-bottom: 2rem; font-size: 1.5rem; color: var(--text-primary);">Chi tiết giao dịch
+                    </h3>
+
                     <div>
                         <div class="info-row" style="display: flex; justify-content: space-between;">
                             <div class="info-label">Ngân hàng</div>
-                            <div class="info-value">MB Bank</div>
+                            <div class="info-value">Viettin Bank</div>
                         </div>
                         <div class="info-row" style="display: flex; justify-content: space-between;">
                             <div class="info-label">Chủ tài khoản</div>
@@ -206,15 +227,18 @@
                         </div>
                         <div class="info-row" style="display: flex; justify-content: space-between;">
                             <div class="info-label">Số tài khoản</div>
-                            <div class="info-value">0328821260</div>
+                            <div class="info-value">101875375750</div>
                         </div>
-                        <div class="info-row" style="display: flex; justify-content: space-between; align-items: center; border-bottom: none; padding-bottom: 0;">
+                        <div class="info-row"
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: none; padding-bottom: 0;">
                             <div class="info-label">Số tiền</div>
-                            <div class="info-value highlight-text" style="font-size: 2rem;" id="display-amount">...</div>
+                            <div class="info-value highlight-text" style="font-size: 2rem;" id="display-amount">...
+                            </div>
                         </div>
 
                         <div style="margin-top: 1.5rem;">
-                            <div class="info-label" style="margin-bottom: 0.8rem;">Lời nhắn chuyển khoản (Ghi chính xác)</div>
+                            <div class="info-label" style="margin-bottom: 0.8rem;">Lời nhắn chuyển khoản (Ghi chính xác)
+                            </div>
                             <div class="info-value content-box" id="display-content">...</div>
                         </div>
                     </div>
@@ -246,11 +270,11 @@
             }
 
             // Configs
-            const BANK_BIN = 'MB'; 
-            const ACCOUNT_NO = '0328821260';
+            const BANK_BIN = 'VIETINBANK';
+            const ACCOUNT_NO = '101875375750';
             const ACCOUNT_NAME = 'LE DIEN HIEU';
             const AMOUNT = Math.round(parseFloat(price));
-            const TRANSFER_CONTENT = `MUA ${courseId} ${user.sub}`;
+            const TRANSFER_CONTENT = `MUA ${courseId} ${user.id}`;
 
             // Setup Details
             document.getElementById('display-amount').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(AMOUNT);
@@ -261,19 +285,23 @@
             document.getElementById('qr-img').src = qrUrl;
 
             // Start Polling JSON from Apps Script
-            const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykhtgco3MvHkM8TJBrI02TSTHMWeT_NBP5suKS_myqszeQzArZuf2F03dRXhZ8QyRlmQ/exec";
+            const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGPUNNyERsT-7sweQuTvvOJJ8z7RUS4YOzPthw6kYCRMH6GcBMnyY22DiS9bDsemkA/exec";
 
             let pollInterval = setInterval(async () => {
                 try {
                     const response = await fetch(APPS_SCRIPT_URL);
-                    const data = await response.json();
+                    const json = await response.json();
+                    
+                    const data = json.data || json;
 
                     const targetContent = TRANSFER_CONTENT.toLowerCase().replace(/\s+/g, '');
 
                     let foundMatch = data.find(tx => {
-                        if (!tx.description) return false;
-                        const desc = String(tx.description).toLowerCase().replace(/\s+/g, '');
-                        return desc.includes(targetContent) && tx.amount >= AMOUNT;
+                        const description = tx['Mô tả'] || tx.description;
+                        const txAmount = tx['Giá trị'] || tx.amount;
+                        if (!description) return false;
+                        const desc = String(description).toLowerCase().replace(/\s+/g, '');
+                        return desc.includes(targetContent) && txAmount >= AMOUNT;
                     });
 
                     if (foundMatch) {
@@ -303,7 +331,9 @@
                     App.showToast('Lỗi khi mở khóa: ' + e.message, 'error');
                 }
             }
+
         });
     </script>
 </body>
+
 </html>

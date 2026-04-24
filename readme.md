@@ -1,6 +1,6 @@
-# 📦 team-php-intelligent-ai-system-v1
+## AI Study Hub LMS
 
-## 📁 Cấu trúc thư mục
+##  Cấu trúc thư mục
 
 ```
 project/
@@ -27,28 +27,24 @@ project/
 
 Nếu project có file .sql, hãy import vào phpMyAdmin / MySQL / XAMPP trước khi chạy web.
 
-## 🚀 Cách chạy project
+##  Cách chạy project
 
-### 1️⃣ Bước 1: Di chuyển vào thư mục public/
+### Bước 1: Di chuyển vào thư mục public/
 
 ```bash
 cd public
 ```
 
-### 2️⃣ Bước 2: Chạy PHP server
+### Bước 2: Chạy PHP server
 
 ```bash
 php -S localhost:8000
  php -S localhost:8000 -t public ( nếu không di chuyển vào public nha ae)
 ```
 
-### 3️⃣ Bước 3: Truy cập website
+### Bước 3: Truy cập website
 
-👉 http://localhost:8000
-
-### Tài khoản admin được cung cấp:
-email: annguyenmxh@gmail.com
-password: annguyenmxh@gmail.com
+ http://localhost:8000
 
 ## Hướng dẫn cài đặt và chạy WebSocket với Ratchet
  ### B1: cài đặt ( lưu ý là phải chạy composer dump-autoload trước)

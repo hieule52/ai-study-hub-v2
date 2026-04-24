@@ -10,3 +10,4 @@
 /.vscode/
 
 composer.lock
+/public/uploads/

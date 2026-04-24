@@ -31,10 +31,7 @@ class EnrollmentRepository
 
     public function enroll(int $userId, int $courseId): bool
     {
-        // Kiểm tra xem đã enroll chưa
-        $stmt = $this->db->prepare("SELECT id FROM enrollments WHERE user_id = :user_id AND course_id = :course_id");
-        $stmt->execute(['user_id' => $userId, 'course_id' => $courseId]);
-        if ($stmt->fetch()) {
+        if ($this->checkEnrollment($userId, $courseId)) {
             return false; // Đã enrolled
         }
 
@@ -46,6 +43,13 @@ class EnrollmentRepository
             'user_id' => $userId,
             'course_id' => $courseId
         ]);
+    }
+
+    public function checkEnrollment(int $userId, int $courseId): bool
+    {
+        $stmt = $this->db->prepare("SELECT id FROM enrollments WHERE user_id = :user_id AND course_id = :course_id");
+        $stmt->execute(['user_id' => $userId, 'course_id' => $courseId]);
+        return (bool)$stmt->fetch();
     }
 
     public function findStudentsByTeacher(int $teacherId): array
