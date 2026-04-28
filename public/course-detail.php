@@ -1,19 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi Tiết Khóa Học - AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-</head>
-<body>
-
-    <nav class="navbar">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">AI <span class="text-gradient">Study Hub</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
+<?php
+$pageTitle = 'Chi tiết khóa học - AI Study Hub';
+$actor = 'guest';
+require __DIR__ . '/layouts/header.php';
+?>
 
     <div class="container mt-8" style="padding-top: 100px;">
         <div class="grid-cols-2" style="grid-template-columns: 2fr 1fr; align-items: start;">
@@ -56,7 +45,6 @@
         </div>
     </div>
 
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-</body>
-</html>
+<?php
+require __DIR__ . '/layouts/footer.php';
+?>

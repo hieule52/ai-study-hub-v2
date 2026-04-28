@@ -1,14 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng ký - AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-</head>
-
-<body>
+<?php
+$pageTitle = 'Đăng ký - AI Study Hub';
+$actor = 'auth';
+require __DIR__ . '/layouts/header.php';
+?>
 
     <div class="auth-wrapper">
         <div
@@ -51,14 +45,13 @@
 
             <div class="text-center mt-8">
                 <p class="text-secondary"><span data-i18n="text_already_have_account">Đã có tài khoản?</span> <a
-                        href="/login.html" class="text-gradient" style="font-weight: 600; text-decoration: none;"
+                        href="/login.php" class="text-gradient" style="font-weight: 600; text-decoration: none;"
                         data-i18n="link_login_now">Đăng nhập ngay</a></p>
             </div>
         </div>
     </div>
 
-    <script src="/assets/js/i18n.js"></script>
-    <script src="/assets/js/api.js"></script>
+<?php ob_start(); ?>
     <script src="/assets/js/app.js"></script>
     <script>
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
@@ -95,6 +88,7 @@
             }
         });
     </script>
-</body>
-
-</html>
+<?php
+$extraScripts = ob_get_clean();
+require __DIR__ . '/layouts/footer.php';
+?>

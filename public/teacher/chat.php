@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phòng Chat - AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <style>
+<?php
+$pageTitle = 'Phòng Chat Giảng Viên - AI Study Hub';
+$actor = 'teacher';
+ob_start();
+?>
+<style>
         .chat-layout { 
             display: flex; 
             height: calc(100vh - 80px); 
             background: var(--bg-main);
         }
         
-        /* Sidebar Contacts */
         .chat-sidebar { 
             width: 320px; 
             border-right: 1px solid rgba(255,255,255,0.05); 
@@ -72,7 +69,6 @@
             border: 2px solid var(--bg-surface);
         }
 
-        /* Main Chat Window */
         .chat-main { 
             flex: 1; 
             display: flex; 
@@ -200,78 +196,41 @@
         }
 
     </style>
-</head>
-<body>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <nav class="navbar" style="z-index: 100;">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">AI <span class="text-gradient">Study Hub</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
-
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="/student/dashboard.html" class="sidebar-link">📊 Tổng quan học tập</a></li>
-                <li><a href="/student/dashboard.html#enrolled-course-container" class="sidebar-link">📚 Khóa học của tôi</a></li>
-                <li><a href="/student/ai-chat.html" class="sidebar-link">🤖 Gia Sư AI (AI Tutor)</a></li>
-                <li><a href="/student/chat.html" class="sidebar-link active">💬 Cửa sổ Chat (Hội nhóm)</a></li>
-                <li><a href="/" class="sidebar-link">🚪 Về trang chủ</a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content" style="padding: 0;">
-            <div class="chat-layout">
-                <!-- Danh sách liên hệ -->
+<div class="chat-layout">
                 <div class="chat-sidebar">
                     <div class="sidebar-header">
-                        <h3 style="font-size: 1.2rem;">Tin Nhắn <span class="text-gradient">Bạn Bè</span></h3>
-                        <div style="margin-top: 1rem;">
-                            <input type="text" class="form-control" placeholder="Tìm kiếm liên hệ..." style="padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem;">
-                        </div>
+                        <h3 style="font-size: 1.2rem;">Kênh <span class="text-gradient">Giải Đáp</span></h3>
+                        <p class="text-secondary" style="font-size: 0.8rem;">World Chat (Hiện tại gộp chung lớp học)</p>
                     </div>
                     
                     <div class="contacts-list" id="contactList">
-                        <!-- Mockup Friends -->
                         <div class="contact-item active">
-                            <div class="avatar" style="background: linear-gradient(135deg, var(--primary), var(--secondary));">
-                                T
-                                <div class="status-dot"></div>
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <h4 style="font-size: 0.95rem; margin: 0;">Thầy Ba Code</h4>
-                                    <span style="font-size: 0.7rem; color: var(--text-muted);">Vừa xong</span>
-                                </div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Offline thì nhắn Zalo em nhé.</div>
-                            </div>
-                        </div>
-
-                        <div class="contact-item">
                             <div class="avatar" style="background: linear-gradient(135deg, var(--warning), var(--danger));">
-                                A
-                                <div class="status-dot" style="background: var(--text-muted);"></div> <!-- Offline -->
+                                🌎
                             </div>
                             <div style="flex: 1;">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <h4 style="font-size: 0.95rem; margin: 0;">Anh Tú (Tutor)</h4>
-                                    <span style="font-size: 0.7rem; color: var(--text-muted);">Hôm qua</span>
+                                    <h4 style="font-size: 0.95rem; margin: 0;">Lớp Học Chung</h4>
+                                    <span style="font-size: 0.7rem; color: var(--success);">Live</span>
                                 </div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Cố lên nha em...</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Trực tuyến nhận câu hỏi...</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cửa sổ Chat Chính -->
                 <div class="chat-main">
                     <div class="chat-header">
-                        <div class="avatar" style="background: linear-gradient(135deg, var(--primary), var(--secondary));">T</div>
+                        <div class="avatar" style="background: linear-gradient(135deg, var(--warning), var(--danger));">🌎</div>
                         <div class="chat-header-info">
-                            <h3>Thầy Ba Code</h3>
+                            <h3>Lớp Học Chung (World)</h3>
                             <div style="font-size: 0.8rem; color: var(--success); display: flex; align-items: center; gap: 5px;">
-                                <div style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></div> Đang hoạt động
+                                <div style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></div> WebSocket Connected
                             </div>
                         </div>
                     </div>
@@ -279,16 +238,16 @@
                     <div class="chat-body" id="chatWindow">
                         <div class="bubble-wrapper other">
                             <div class="bubble other">
-                                Chào bạn, dạo này bạn học các khóa lập trình ổn chứ? Có vướng mắc gì không?
+                                Hệ thống tự động: Xin chào giảng viên, hãy bắt đầu trả lời tin nhắn từ học viên của bạn.
                             </div>
-                            <span class="timestamp">09:41 AM</span>
+                            <span class="timestamp">00:00 AM</span>
                         </div>
                     </div>
 
                     <div class="chat-footer">
                         <form id="wsChatForm">
-                            <div style="color: var(--text-secondary); cursor: pointer; padding: 0 0.5rem; font-size: 1.2rem;">📎</div>
-                            <input type="text" id="wsInput" placeholder="Nhập tin nhắn..." autocomplete="off" required>
+                            <div style="color: var(--text-secondary); cursor: pointer; padding: 0 0.5rem; font-size: 1.2rem;">🗣️</div>
+                            <input type="text" id="wsInput" placeholder="Nhập câu trả lời (Gửi chung)..." autocomplete="off" required>
                             <button type="submit" class="btn-send">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </button>
@@ -296,21 +255,16 @@
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
 
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         document.addEventListener('DOMContentLoaded', () => {
-            const user = App.requireAuth();
+            const user = App.requireAuth(['teacher', 'admin']);
             if (!user) return;
 
-            // Web Socket Connection Integration
             const token = window.api.getToken();
             let socket;
 
-            // Hàm tạo thời gian hiện tại
             const getTime = () => {
                 const now = new Date();
                 let h = now.getHours();
@@ -321,22 +275,20 @@
             };
 
             if (token) {
-                // Kết nối WebSocket
                 socket = new WebSocket(`ws://localhost:8080?token=${token}`);
 
-                socket.onopen = function(e) {
-                    console.log("Đã kết nối Socket Server!");
+                socket.onopen = function() {
+                    console.log("Teacher Socket Connected!");
                 };
 
                 socket.onmessage = function(event) {
                     const data = JSON.parse(event.data);
-                    if(data.error) {
-                        return; // Ignore silently or toast
-                    }
+                    if(data.error) return;
+
                     const chatWin = document.getElementById('chatWindow');
                     chatWin.innerHTML += `
                         <div class="bubble-wrapper other">
-                            <div class="bubble other">${data.content}</div>
+                            <div class="bubble other"><strong>Student</strong>: ${data.content}</div>
                             <span class="timestamp">${getTime()}</span>
                         </div>
                     `;
@@ -344,7 +296,7 @@
                 };
 
                 socket.onerror = function(error) {
-                    console.log("WS Error: Chạy lệnh php server.php để bật server thời gian thực.");
+                    App.showToast("Lỗi WebSocket. Hãy chắc chắn ws server đang chạy.", "error");
                 };
 
                 const form = document.getElementById('wsChatForm');
@@ -354,13 +306,12 @@
                     const msg = input.value.trim();
                     if(!msg) return;
 
-                    // Gửi tin nhắn qua Socket (id = 2 là Thầy Ba Code mock id)
-                    const payload = { receiver_id: 2, content: msg };
+                    // Receiver 1 = global room / mock
+                    const payload = { receiver_id: 1, content: msg };
                     if(socket.readyState === WebSocket.OPEN) {
                         socket.send(JSON.stringify(payload));
                     }
 
-                    // Render UI lập tức
                     const chatWin = document.getElementById('chatWindow');
                     chatWin.innerHTML += `
                         <div class="bubble-wrapper me">
@@ -374,5 +325,7 @@
             }
         });
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

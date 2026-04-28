@@ -72,7 +72,7 @@ class ApiClient {
             // Unathorized -> clear token and force login
             if (response.status === 401) {
                 this.clearSession();
-                window.location.href = '/login.html';
+                window.location.href = '/login.php';
             }
             
             const errMsg = data.message || 'Something went wrong with the server.';

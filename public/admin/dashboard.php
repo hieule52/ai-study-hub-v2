@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <style>
+<?php
+$pageTitle = 'Admin Dashboard - AI Study Hub';
+$actor = 'admin';
+ob_start();
+?>
+<style>
         .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
         .table th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; }
@@ -15,29 +13,12 @@
         .role-student { background: rgba(79, 70, 229, 0.1); color: var(--primary); border: 1px solid var(--primary); }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <nav class="navbar" style="z-index: 100; border-bottom: 1px solid var(--secondary);">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">Hệ Thống <span class="text-gradient">Quản Trị</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
-
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="/admin/dashboard.html" class="sidebar-link active">📈 Thống kê & Tổng quan</a></li>
-                <li><a href="/admin/users.html" class="sidebar-link">👥 Quản lý Users</a></li>
-                <li><a href="/admin/courses.html" class="sidebar-link">📚 Kiểm duyệt khóa học</a></li>
-                <li><a href="/admin/vip.html" class="sidebar-link">💎 Giao dịch VIP</a></li>
-                <li><a href="/admin/logs.html" class="sidebar-link">📋 Audit Logs</a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <div class="flex items-center justify-between mb-8">
+<div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 style="font-size: 2rem;">Bảng Điều Khiển Trung Tâm</h1>
                     <p class="text-secondary mt-2">Dữ liệu theo dõi thời gian thực của toàn bộ hệ thống (REST API v2).</p>
@@ -64,7 +45,7 @@
                 </div>
             </div>
 
-            <!-- Pending Courses (Removed from dashboard, moved to courses.html) -->
+            <!-- Pending Courses (Removed from dashboard, moved to courses.php) -->
 
         <!-- Chart Section -->
             <div class="card glass-panel" style="padding: 1.5rem;" id="charts">
@@ -75,13 +56,9 @@
                     <canvas id="revenueChart"></canvas>
                 </div>
             </div>
-            
-        </main>
-    </div>
 
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         document.addEventListener('DOMContentLoaded', async () => {
             const user = App.requireAuth(['admin']);
             if (!user) return;
@@ -103,7 +80,7 @@
             }
         }
 
-        // Removed pending courses functions to courses.html
+        // Removed pending courses functions to courses.php
 
 
 
@@ -140,5 +117,7 @@
             }
         }
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

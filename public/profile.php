@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hồ Sơ Cá Nhân - AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
+<?php
+$pageTitle = 'Hồ Sơ Cá Nhân - AI Study Hub';
+$actor = 'guest'; // since profile doesn't use dashboard sidebar
+ob_start();
+?>
     <style>
         .profile-container {
             max-width: 800px;
@@ -81,15 +79,10 @@
         }
         .back-btn:hover { color: var(--primary); }
     </style>
-</head>
-<body>
-
-    <nav class="navbar" style="z-index: 100; border-bottom: 1px solid var(--secondary);">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">AI Study <span class="text-gradient">Hub</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/layouts/header.php';
+?>
 
     <div class="profile-container">
         
@@ -179,10 +172,7 @@
 
     </div>
 
-    <!-- Cần load axios/api handling -->
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-
+<?php ob_start(); ?>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const user = App.requireAuth(); // Require any logged in role
@@ -341,5 +331,7 @@
             }
         }
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+require __DIR__ . '/layouts/footer.php';
+?>

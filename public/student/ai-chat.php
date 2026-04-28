@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gia Sư AI - AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <style>
+<?php
+$pageTitle = 'Gia Sư AI - AI Study Hub';
+$actor = 'student';
+ob_start();
+?>
+<style>
         .chat-layout { 
             display: flex; 
             height: calc(100vh - 80px); 
@@ -200,29 +198,13 @@
         }
 
     </style>
-</head>
-<body>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <nav class="navbar" style="z-index: 100;">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">AI <span class="text-gradient">Study Hub</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
-
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="/student/dashboard.html" class="sidebar-link">📊 Tổng quan học tập</a></li>
-                <li><a href="/student/dashboard.html#enrolled-course-container" class="sidebar-link">📚 Khóa học của tôi</a></li>
-                <li><a href="/student/ai-chat.html" class="sidebar-link active">🤖 Gia Sư AI (AI Tutor)</a></li>
-                <li><a href="/student/chat.html" class="sidebar-link">💬 Cửa sổ Chat (Hội nhóm)</a></li>
-                <li><a href="/" class="sidebar-link">🚪 Về trang chủ</a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content" style="padding: 0;">
-            <div class="chat-layout">
+<div class="chat-layout">
+<div class="chat-layout">
                 <div class="chat-main">
                     
                     <div class="chat-header">
@@ -230,7 +212,7 @@
                             <div class="ai-avatar-header">🧠</div>
                             <div>
                                 <h2 style="font-size: 1.4rem; margin-bottom: 0.2rem;">AI Tutor <span style="font-size: 0.8rem; vertical-align: middle; background: var(--warning); color: #000; padding: 2px 8px; border-radius: 12px; font-weight: 800; margin-left: 10px;">Gemini</span></h2>
-                                <p class="text-secondary" style="font-size: 0.9rem;">Hỏi bất cứ điều gì liên quan đến bài tập, code, và lộ trình học tập.</p>
+                                <p class="text-secondary" style="font-size: 0.9rem;" data-i18n="aichat_subtitle">Hỏi bất cứ điều gì liên quan đến bài tập, code, và lộ trình học tập.</p>
                             </div>
                         </div>
                     </div>
@@ -239,7 +221,7 @@
                         <!-- Lời chào đầu tiên của AI -->
                         <div class="msg-container ai">
                             <div class="msg-avatar ai">🧠</div>
-                            <div class="msg-bubble">
+                            <div class="msg-bubble" data-i18n="aichat_welcome">
                                 Chào bạn! Mình là AI Tutor siêu tốc độ. Bạn đang cần luyện tập hay ôn lại kiến thức nào? Cứ đưa ra câu hỏi, hoặc paste mảnh code bị lỗi vào đây, mình sẽ giải thích tường tận cho bạn! ✨
                             </div>
                         </div>
@@ -248,9 +230,9 @@
                     <div class="chat-footer">
                         <!-- Suggested Prompts -->
                         <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                            <button class="btn-prompt" onclick="usePrompt('Giải thích cho mình khái niệm Lập trình Hướng đối tượng (OOP) theo cách dễ hiểu nhất.')">Khái niệm OOP?</button>
-                            <button class="btn-prompt" onclick="usePrompt('Làm sao để sửa lỗi CORS khi gọi API từ Frontend ReactJS?')">Sửa lỗi CORS?</button>
-                            <button class="btn-prompt" onclick="usePrompt('Tạo cho mình một bài tập Python cơ bản để luyện vòng lặp For.')">Bài tập vòng lặp Python</button>
+                            <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt1_val') : 'Giải thích cho mình khái niệm Lập trình Hướng đối tượng (OOP) theo cách dễ hiểu nhất.')" data-i18n="aichat_prompt1_btn">Khái niệm OOP?</button>
+                            <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt2_val') : 'Làm sao để sửa lỗi CORS khi gọi API từ Frontend ReactJS?')" data-i18n="aichat_prompt2_btn">Sửa lỗi CORS?</button>
+                            <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt3_val') : 'Tạo cho mình một bài tập Python cơ bản để luyện vòng lặp For.')" data-i18n="aichat_prompt3_btn">Bài tập vòng lặp Python</button>
                         </div>
 
                         <!-- Image Preview Container -->
@@ -264,7 +246,7 @@
                             <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
                             <div class="input-wrapper">
                                 <button type="button" onclick="document.getElementById('imageInput').click()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding-left: 0.5rem; transition: color 0.3s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='var(--text-muted)'">📎</button>
-                                <input type="text" id="chatInput" placeholder="Nhập câu hỏi hoặc đính kèm ảnh (Tối đa 2MB)..." autocomplete="off" required>
+                                <input type="text" id="chatInput" placeholder="Nhập câu hỏi hoặc đính kèm ảnh (Tối đa 2MB)..." autocomplete="off" required data-i18n="aichat_input_placeholder">
                                 <button type="submit" class="btn-send">
                                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                 </button>
@@ -274,14 +256,9 @@
 
                 </div>
             </div>
-        </main>
-    </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Library for Markdown rendering -->
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         document.addEventListener('DOMContentLoaded', () => {
             const user = App.requireAuth(['student', 'teacher', 'admin']);
             if (!user) return;
@@ -300,7 +277,8 @@
 
             // Kiểm tra dung lượng (Max 5MB)
             if (file.size > 5 * 1024 * 1024) {
-                alert("File ảnh quá lớn! Vui lòng chọn ảnh dưới 5MB.");
+                const errMsg = window.I18n ? window.I18n.get('aichat_file_too_large') : "File ảnh quá lớn! Vui lòng chọn ảnh dưới 5MB.";
+                alert(errMsg);
                 this.value = '';
                 return;
             }
@@ -364,12 +342,16 @@
 
             // Render Bubble AI đang suy nghĩ
             const thinkingId = 'think_' + Date.now();
+            const analyzingMsg = payload.base64_image ? 
+                (window.I18n ? window.I18n.get('aichat_analyzing_img') : 'Đang phân tích câu hỏi và hình ảnh...') : 
+                (window.I18n ? window.I18n.get('aichat_analyzing') : 'Đang phân tích câu hỏi...');
+            
             chatBox.innerHTML += `
                 <div class="msg-container ai" id="container_${thinkingId}">
                     <div class="msg-avatar ai">🧠</div>
                     <div class="msg-bubble thinking-bubble" id="${thinkingId}">
                         <div style="width: 15px; height: 15px; border: 2px solid var(--secondary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div> 
-                        Đang phân tích câu hỏi${payload.base64_image ? ' và hình ảnh' : ''}...
+                        ${analyzingMsg}
                     </div>
                 </div>
             `;
@@ -401,12 +383,15 @@
                 const targetBubble = document.getElementById(thinkingId);
                 targetBubble.classList.remove('thinking-bubble');
                 targetBubble.style.border = '1px solid var(--danger)';
-                targetBubble.innerHTML = "❌ Lỗi kết nối tới AI: " + err.message;
+                const errPrefix = window.I18n ? window.I18n.get('aichat_error') : "❌ Lỗi kết nối tới AI: ";
+                targetBubble.innerHTML = errPrefix + err.message;
             }
             
             chatBox.scrollTop = chatBox.scrollHeight;
         });
 
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

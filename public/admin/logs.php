@@ -1,39 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audit Logs - Admin AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <style>
+<?php
+$pageTitle = 'Audit Logs - Admin AI Study Hub';
+$actor = 'admin';
+ob_start();
+?>
+<style>
         .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
         .table th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; text-transform: uppercase; }
         .log-action { font-family: monospace; background: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--primary); }
     </style>
-</head>
-<body>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <nav class="navbar" style="z-index: 100; border-bottom: 1px solid var(--secondary);">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">Hệ Thống <span class="text-gradient">Quản Trị</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
-
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="/admin/dashboard.html" class="sidebar-link">📈 Thống kê & Tổng quan</a></li>
-                <li><a href="/admin/users.html" class="sidebar-link">👥 Quản lý Users</a></li>
-                <li><a href="/admin/courses.html" class="sidebar-link">📚 Kiểm duyệt khóa học</a></li>
-                <li><a href="/admin/vip.html" class="sidebar-link">💎 Giao dịch VIP</a></li>
-                <li><a href="/admin/logs.html" class="sidebar-link active">📋 Audit Logs</a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <div class="flex items-center justify-between mb-8">
+<div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 style="font-size: 2rem;">📋 Nhật Ký Hệ Thống (Audit Logs)</h1>
                     <p class="text-secondary mt-2">Theo dõi mọi hành vi thay đổi dữ liệu trên toàn máy chủ nhằm mục đích bảo mật.</p>
@@ -60,13 +41,9 @@
                     </table>
                 </div>
             </div>
-            
-        </main>
-    </div>
 
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         document.addEventListener('DOMContentLoaded', async () => {
             const user = App.requireAuth(['admin']);
             if (!user) return;
@@ -105,5 +82,7 @@
             }
         }
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

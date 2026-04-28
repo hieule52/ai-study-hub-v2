@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
+$pageTitle = 'Đăng nhập - AI Study Hub';
+$actor = 'auth';
+require __DIR__ . '/layouts/header.php';
+?>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-</head>
-
-<body>
-
-    <div class="auth-wrapper">
-        <div class="card glass-panel auth-card">
+    <div class="card glass-panel auth-card">
             <div class="text-center mb-8">
                 <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">AI <span class="text-gradient">Study Hub</span></h2>
                 <p class="text-secondary">Rất vui được gặp lại bạn!</p>
@@ -34,23 +27,21 @@
             </form>
 
             <div class="text-center mt-8">
-                <p class="text-secondary">Chưa có tài khoản? <a href="/register.html" class="text-gradient"
+                <p class="text-secondary">Chưa có tài khoản? <a href="/register.php" class="text-gradient"
                         style="font-weight: 600; text-decoration: none;">Đăng ký miễn phí</a></p>
                 <a href="/" class="text-muted" style="display: block; margin-top: 1rem; font-size: 0.875rem;">&larr; Về
                     trang chủ</a>
             </div>
         </div>
-    </div>
 
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
+<?php ob_start(); ?>
     <script>
         // Check if already logged in
         if (window.api.getToken()) {
             const u = window.api.getUser();
             if (u) {
-                if (u.role === 'admin') window.location.href = '/admin/dashboard.html';
-                else if (u.role === 'teacher') window.location.href = '/teacher/dashboard.html';
+                if (u.role === 'admin') window.location.href = '/admin/dashboard.php';
+                else if (u.role === 'teacher') window.location.href = '/teacher/dashboard.php';
                 else window.location.href = '/'; // Redirect student to new homepage
             }
         }
@@ -74,8 +65,8 @@
                 App.showToast('Đăng nhập thành công', 'success');
 
                 setTimeout(() => {
-                    if (res.data.user.role === 'admin') window.location.href = '/admin/dashboard.html';
-                    else if (res.data.user.role === 'teacher') window.location.href = '/teacher/dashboard.html';
+                    if (res.data.user.role === 'admin') window.location.href = '/admin/dashboard.php';
+                    else if (res.data.user.role === 'teacher') window.location.href = '/teacher/dashboard.php';
                     else window.location.href = '/'; // Student goes to guest-like homepage
                 }, 1000);
 
@@ -86,6 +77,7 @@
             }
         });
     </script>
-</body>
-
-</html>
+<?php
+$extraScripts = ob_get_clean();
+require __DIR__ . '/layouts/footer.php';
+?>

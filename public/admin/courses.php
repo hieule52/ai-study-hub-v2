@@ -1,38 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiểm duyệt Khóa học - Admin AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <style>
+<?php
+$pageTitle = 'Kiểm duyệt Khóa học - Admin AI Study Hub';
+$actor = 'admin';
+ob_start();
+?>
+<style>
         .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
         .table th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; }
     </style>
-</head>
-<body>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <nav class="navbar" style="z-index: 100; border-bottom: 1px solid var(--secondary);">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">Hệ Thống <span class="text-gradient">Quản Trị</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
-
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="/admin/dashboard.html" class="sidebar-link">📈 Thống kê & Tổng quan</a></li>
-                <li><a href="/admin/users.html" class="sidebar-link">👥 Quản lý Users</a></li>
-                <li><a href="/admin/courses.html" class="sidebar-link active">📚 Kiểm duyệt khóa học</a></li>
-                <li><a href="/admin/vip.html" class="sidebar-link">💎 Giao dịch VIP</a></li>
-                <li><a href="/admin/logs.html" class="sidebar-link">📋 Audit Logs</a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <div class="flex items-center justify-between mb-8">
+<div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 style="font-size: 2rem;">📚 Kiểm Duyệt Khóa Học</h1>
                     <p class="text-secondary mt-2">Duyệt những khóa học mới trước khi xuất bản lên nền tảng.</p>
@@ -58,13 +39,9 @@
                     </table>
                 </div>
             </div>
-            
-        </main>
-    </div>
 
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         document.addEventListener('DOMContentLoaded', async () => {
             const user = App.requireAuth(['admin']);
             if (!user) return;
@@ -86,7 +63,7 @@
                         <td style="font-weight: 500; max-width: 200px;">
                             ${c.title}
                             <div style="font-size: 0.8rem; color:var(--text-secondary); margin-top: 4px;">
-                                <a href="/student/learning.html?course_id=${c.id}" target="_blank" style="color:var(--primary)">🔍 Xem trước</a>
+                                <a href="/student/learning.php?course_id=${c.id}" target="_blank" style="color:var(--primary)">🔍 Xem trước</a>
                             </div>
                         </td>
                         <td>${c.teacher_name}<br><small class="text-secondary">${c.teacher_email}</small></td>
@@ -135,5 +112,7 @@
             }
         }
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

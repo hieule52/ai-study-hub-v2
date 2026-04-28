@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xây Dựng Lộ Trình Khóa Học</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <style>
+<?php
+$pageTitle = 'Xây Dựng Lộ Trình Khóa Học';
+$actor = 'teacher';
+ob_start();
+?>
+<style>
         .builder-layout { display: flex; gap: 2rem; margin-top: 2rem; }
         .builder-sidebar { width: 350px; background: rgba(255,255,255,0.03); border-right: 1px solid var(--border-color); padding: 1.5rem; height: calc(100vh - 80px); overflow-y: auto; }
         .builder-content { flex: 1; padding: 2rem; }
@@ -15,17 +13,12 @@
         .lesson-item { padding: 0.5rem; margin-top: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .lesson-item:hover { background: rgba(79, 70, 229, 0.2); }
     </style>
-</head>
-<body>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <nav class="navbar" style="z-index: 100;">
-        <div class="container navbar-container" style="max-width: 100%;">
-            <a href="/teacher/dashboard.html" class="nav-brand">🔙 Trở Lại <span class="text-gradient">Dashboard</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
-
-    <div class="builder-layout">
+<div class="builder-layout">
         <!-- Sidebar: Curriculum List -->
         <div class="builder-sidebar">
             <h3 class="mb-4">Cấu Trúc Lộ Trình</h3>
@@ -81,9 +74,8 @@
         </div>
     </div>
 
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         let courseId = new URLSearchParams(window.location.search).get('course_id');
         let currentCurriculum = [];
 
@@ -91,7 +83,7 @@
             App.requireAuth(['teacher']);
             if (!courseId) {
                 App.showToast('Vui lòng chọn Hành trang lộ trình từ Dashboard', 'error');
-                setTimeout(() => window.location.href = '/teacher/dashboard.html', 1500);
+                setTimeout(() => window.location.href = '/teacher/dashboard.php', 1500);
                 return;
             }
             loadCurriculum();
@@ -196,5 +188,7 @@
             }
         });
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

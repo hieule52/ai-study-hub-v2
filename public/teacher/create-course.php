@@ -1,32 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tạo Khóa Học - AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-</head>
-<body>
+<?php
+$pageTitle = 'Tạo Khóa Học - AI Study Hub';
+$actor = 'teacher';
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <nav class="navbar" style="z-index: 100;">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">AI <span class="text-gradient">Teacher Panel</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
-
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="/teacher/dashboard.html" class="sidebar-link">📊 Quản lý khóa học</a></li>
-                <li><a href="/teacher/create-course.html" class="sidebar-link active">📝 Tạo khóa học mới</a></li>
-                <li><a href="/teacher/students.html" class="sidebar-link">👥 Học viên của tôi</a></li>
-                <li><a href="/teacher/chat.html" class="sidebar-link">💬 Hộp thư Web Socket</a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <div class="flex items-center justify-between mb-8">
+<div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 style="font-size: 2rem;">Thêm Mới Khóa Học</h1>
                     <p class="text-secondary mt-2">Điền thông tin form bên dưới để tạo trang Course.</p>
@@ -70,13 +48,9 @@
                     <button type="button" class="btn btn-outline" style="padding: 1rem 2rem; margin-left: 1rem;">Lưu Nháp</button>
                 </form>
             </div>
-            
-        </main>
-    </div>
 
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         document.addEventListener('DOMContentLoaded', () => {
             App.requireAuth(['teacher']);
 
@@ -104,12 +78,14 @@
                     });
 
                     App.showToast('Khóa học đã được tạo thành công!', 'success');
-                    setTimeout(() => window.location.href='/teacher/dashboard.html', 1500);
+                    setTimeout(() => window.location.href='/teacher/dashboard.php', 1500);
                 } catch(err) {
                     App.showToast(err.message, 'error');
                 }
             });
         });
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Users - Admin AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <style>
+<?php
+$pageTitle = 'Quản lý Users - Admin AI Study Hub';
+$actor = 'admin';
+ob_start();
+?>
+<style>
         .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
         .table th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; }
@@ -67,29 +65,12 @@
             box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
         }
     </style>
-</head>
-<body>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <nav class="navbar" style="z-index: 100; border-bottom: 1px solid var(--secondary);">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">Hệ Thống <span class="text-gradient">Quản Trị</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
-
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="/admin/dashboard.html" class="sidebar-link">📈 Thống kê & Tổng quan</a></li>
-                <li><a href="/admin/users.html" class="sidebar-link active">👥 Quản lý Users</a></li>
-                <li><a href="/admin/courses.html" class="sidebar-link">📚 Kiểm duyệt khóa học</a></li>
-                <li><a href="/admin/vip.html" class="sidebar-link">💎 Giao dịch VIP</a></li>
-                <li><a href="/admin/logs.html" class="sidebar-link">📋 Audit Logs</a></li>
-            </ul>
-        </aside>
-
-        <main class="main-content">
-            <div class="flex items-center justify-between mb-8">
+<div class="flex items-center justify-between mb-8">
                 <div>
                     <h1 style="font-size: 2rem;">👥 Quản lý Users Toàn Hệ Thống</h1>
                     <p class="text-secondary mt-2">Toàn quyền kiểm soát tài khoản, phân quyền, và chặn truy cập.</p>
@@ -119,68 +100,9 @@
                     </table>
                 </div>
             </div>
-            
-        </main>
-    </div>
 
-    <!-- Premium Edit User Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--warning)"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    Chỉnh Sửa Tài Khoản
-                </h3>
-                <span class="modal-close" onclick="closeModal()">&times;</span>
-            </div>
-            <form id="editForm" onsubmit="saveUser(event)">
-                <input type="hidden" id="edit_id">
-                
-                <div class="form-group mb-4">
-                    <label style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem; display: block;">Định danh Email</label>
-                    <input type="email" id="edit_email" class="form-control premium-input" required disabled style="opacity: 0.6; cursor: not-allowed;">
-                </div>
-
-                <div class="form-group mb-4">
-                    <label style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem; display: block;">Tên hiển thị</label>
-                    <input type="text" id="edit_username" class="form-control premium-input" required placeholder="Nhập tên người dùng">
-                </div>
-                
-                <div class="grid-cols-2 gap-4 mb-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem; display: block;">Phân Quyền</label>
-                        <select id="edit_role" class="form-control premium-input">
-                            <option value="student">👨‍🎓 Student</option>
-                            <option value="teacher">👨‍🏫 Teacher</option>
-                            <option value="admin">🛡️ Admin</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem; display: block;">Đặc quyền</label>
-                        <select id="edit_vip" class="form-control premium-input">
-                            <option value="0">Thường</option>
-                            <option value="1">💎 VIP Member</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group mb-6" style="margin-bottom: 2rem;">
-                    <label style="font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem; display: block;">Trạng thái truy cập</label>
-                    <select id="edit_status" class="form-control premium-input">
-                        <option value="active">🟢 Đang hoạt động (Active)</option>
-                        <option value="banned">🔴 Khóa tài khoản (Banned)</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-premium-save" style="width: 100%; padding: 0.85rem;">💾 LƯU THAY ĐỔI</button>
-            </form>
-        </div>
-    </div>
-
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         let allUsers = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -291,5 +213,7 @@
             }
         }
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

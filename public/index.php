@@ -25,8 +25,24 @@ if (php_sapi_name() === 'cli-server' && is_file(__DIR__ . $uriPath)) {
 
 // Nếu người dùng truy cập trang gốc '/', tự động đọc file giao diện HTML
 if ($uriPath === '/' || $uriPath === '') {
-    readfile(__DIR__ . '/index.html');
+    header('Content-Type: text/html; charset=utf-8');
+    require __DIR__ . '/home.php';
     exit;
+}
+
+
+// Nếu URL không bắt đầu bằng /api/, thử tìm file .php tương ứng và include nó
+if (strpos($uriPath, '/api/') !== 0) {
+    // Xử lý trường hợp URL bị thừa dấu gạch chéo cuối
+    $path = rtrim($uriPath, '/');
+    $phpFile = __DIR__ . $path . '.php';
+
+    // Nếu tệp vật lý có đuôi .php tồn tại, include nó
+    if (file_exists($phpFile)) {
+        header('Content-Type: text/html; charset=utf-8');
+        require $phpFile;
+        exit;
+    }
 }
 
 // Khởi tạo Core objects cho Backend API

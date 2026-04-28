@@ -63,7 +63,7 @@ const App = {
     requireAuth(allowedRoles = []) {
         const user = window.api.getUser();
         if (!user) {
-            window.location.href = '/login.html';
+            window.location.href = '/login.php';
             return;
         }
 
@@ -116,8 +116,8 @@ const App = {
             this.renderOffcanvasSidebar(user);
         } else {
             userMenu.innerHTML = langToggleBtn + `
-                <a href="/login.html" class="nav-link" data-i18n="btn_login">${loginText}</a>
-                <a href="/register.html" class="btn btn-primary" data-i18n="btn_register">${registerText}</a>
+                <a href="/login.php" class="nav-link" data-i18n="btn_login">${loginText}</a>
+                <a href="/register.php" class="btn btn-primary" data-i18n="btn_register">${registerText}</a>
             `;
         }
     },
@@ -171,25 +171,25 @@ const App = {
 
         let menuItems = '';
         if (user.role === 'admin') {
-            menuItems = `<li><a href="/admin/dashboard.html">⚙️ Bảng Điều Khiển Admin</a></li>`;
+            menuItems = `<li><a href="/admin/dashboard.php" data-i18n="nav_admin_dashboard">⚙️ Bảng Điều Khiển Admin</a></li>`;
         } else if (user.role === 'teacher') {
-            menuItems = `<li><a href="/teacher/dashboard.html">🧑‍🏫 Quản lý Khóa học</a></li>`;
+            menuItems = `<li><a href="/teacher/dashboard.php" data-i18n="nav_teacher_courses">🧑‍🏫 Quản lý Khóa học</a></li>`;
         } else {
             menuItems = `
-                <li><a href="/student/dashboard.html">📊 Tổng quan học tập</a></li>
-                <li><a href="/student/dashboard.html#my-courses">📚 Khóa học của tôi</a></li>
-                <li><a href="/student/chat.html">💬 Cửa sổ Chat (Hội nhóm)</a></li>
-                <li><a href="/#courses">✨ Khám phá Khóa học mới</a></li>
+                <li><a href="/student/dashboard.php" data-i18n="nav_student_dashboard">📊 Tổng quan học tập</a></li>
+                <li><a href="/student/dashboard.php#my-courses" data-i18n="nav_student_courses">📚 Khóa học của tôi</a></li>
+                <li><a href="/student/chat.php" data-i18n="nav_student_chat">💬 Cửa sổ Chat (Hội nhóm)</a></li>
+                <li><a href="/#courses" data-i18n="std_explore_new">✨ Khám phá Khóa học mới</a></li>
             `;
         }
 
         sidebar.innerHTML = `
             <div style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
-                <h3 style="margin:0;">Hub <span class="text-gradient">Menu</span></h3>
+                <h3 style="margin:0;" data-i18n="nav_hub_menu">Hub <span class="text-gradient">Menu</span></h3>
                 <button onclick="App.toggleOffcanvasSidebar()" style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
             <ul class="offcanvas-nav">
-                <li><a href="/profile.html" style="color: var(--warning);">👤 Cá Nhân (Edit Profile)</a></li>
+                <li><a href="/profile.php" style="color: var(--warning);" data-i18n="nav_profile">👤 Cá Nhân (Edit Profile)</a></li>
                 ${menuItems}
             </ul>
             <div style="padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05);">
@@ -197,11 +197,12 @@ const App = {
             </div>
         `;
         document.body.appendChild(sidebar);
+        if (window.I18n) window.I18n.render();
     },
 
     logout() {
         window.api.clearSession();
-        window.location.href = '/login.html';
+        window.location.href = '/login.php';
     }
 };
 

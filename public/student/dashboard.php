@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Góc Học Tập - Dashboard</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <!-- Chart.js for stats -->
+<?php
+$pageTitle = 'Góc Học Tập - Dashboard';
+$actor = 'student';
+ob_start();
+?>
+<!-- Chart.js for stats -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .chart-container {
@@ -35,54 +32,18 @@
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
         }
-
-        .scroller-container::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 10px;
-        }
-
-        .scroller-item {
-            min-width: 300px;
-            scroll-snap-align: start;
-        }
-
-        .dashboard-main {
-            padding: 2rem;
-            flex: 1;
-            margin-left: 280px;
-            /* Sidebar width from style.css */
-        }
     </style>
-</head>
 
-<body>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <!-- Header Overlay -->
-    <nav class="navbar" style="z-index: 100;">
-        <div class="container navbar-container">
-            <a href="/" class="nav-brand">AI <span class="text-gradient">Study Hub</span></a>
-            <div id="user-menu" class="flex items-center gap-4"></div>
-        </div>
-    </nav>
-
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <ul class="sidebar-nav">
-                <li><a href="/student/dashboard.html" class="sidebar-link active">📊 Tổng quan học tập</a></li>
-                <li><a href="/student/dashboard.html#enrolled-course-container" class="sidebar-link">📚 Khóa học của tôi</a></li>
-                <li><a href="/student/ai-chat.html" class="sidebar-link">🤖 Gia Sư AI (AI Tutor)</a></li>
-                <li><a href="/student/chat.html" class="sidebar-link">💬 Cửa sổ Chat (Hội nhóm)</a></li>
-                <li><a href="/" class="sidebar-link">🚪 Về trang chủ</a></li>
-            </ul>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="dashboard-main">
-            <div class="flex items-center justify-between mb-8">
+<div class="flex items-center justify-between mb-8">
                 <div>
-                    <h1 style="font-size: 2.5rem; letter-spacing: -1px;">Chào mừng quay lại, <span id="student-name"
+                    <h1 style="font-size: 2.5rem; letter-spacing: -1px;"><span data-i18n="std_welcome">Chào mừng quay lại, </span><span id="student-name"
                             class="text-gradient">...</span> 👋</h1>
-                    <p class="text-secondary mt-2 text-lg">Hôm nay bạn muốn học thêm điều gì mới?</p>
+                    <p class="text-secondary mt-2 text-lg" data-i18n="std_subtitle">Hôm nay bạn muốn học thêm điều gì mới?</p>
                 </div>
             </div>
 
@@ -114,40 +75,36 @@
 
             <!-- Chart.js integration -->
             <div class="chart-container mb-8">
-                <h3 class="mb-4">Biểu đồ tiến độ học tập trong tuần</h3>
+                <h3 class="mb-4" data-i18n="std_chart_title">Biểu đồ tiến độ học tập trong tuần</h3>
                 <canvas id="learningChart" height="80"></canvas>
             </div>
 
             <!-- My Courses (Enrolled) -->
-            <h2 class="mb-4 text-xl">🚀 Khóa Học Của Bạn</h2>
+            <h2 class="mb-4 text-xl" data-i18n="std_my_courses">🚀 Khóa Học Của Bạn</h2>
             <div class="scroller-container mb-8" id="enrolled-course-container">
-                <div class="text-secondary col-span-2">Đang tải khóa học...</div>
+                <div class="text-secondary col-span-2" data-i18n="home_loading">Đang tải khóa học...</div>
             </div>
 
             <hr style="border-color: rgba(255,255,255,0.05); margin: 3rem 0;">
 
             <!-- All Courses Advertisement (Like Guest Page) -->
             <div class="flex items-center justify-between mb-6">
-                <h2 style="font-size: 2rem;">Khám Phá <span class="text-gradient">Khóa Học Mới</span> 🌟</h2>
+                <h2 style="font-size: 2rem;" data-i18n="std_explore_new">Khám Phá <span class="text-gradient">Khóa Học Mới</span> 🌟</h2>
                 <div style="width: 250px;">
                     <input type="text" class="form-control" placeholder="🔍 Tìm khóa học..."
-                        style="border-radius: 20px;">
+                        style="border-radius: 20px;" data-i18n="home_search_placeholder">
                 </div>
             </div>
 
             <!-- Render all courses list here -->
             <div class="grid-cols-3" id="all-course-list">
                 <div class="card p-4 text-center col-span-3">
-                    <p>Đang lấy dữ liệu khóa học mới...</p>
+                    <p data-i18n="home_loading">Đang lấy dữ liệu khóa học mới...</p>
                 </div>
             </div>
 
-        </main>
-    </div>
-
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         // Global variables for enrolled logic
         let enrolledCourseIds = [];
 
@@ -159,7 +116,7 @@
             } catch (e) {
                 console.log("Error or already enrolled", e.message);
             }
-            window.location.href = `/student/learning.html?course_id=${courseId}`;
+            window.location.href = `/student/learning.php?course_id=${courseId}`;
         };
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -181,7 +138,7 @@
                 enrolledContainer.innerHTML = '';
 
                 if (enrolledCourses.length === 0) {
-                    enrolledContainer.innerHTML = '<div class="card p-4 text-center text-secondary w-full" style="flex: 1;">Bạn chưa tham gia khóa học nào. Hãy khám phá bên dưới nhé! 👇</div>';
+                    enrolledContainer.innerHTML = '<div class="card p-4 text-center text-secondary w-full" style="flex: 1;" data-i18n="std_no_enrolled">Bạn chưa tham gia khóa học nào. Hãy khám phá bên dưới nhé! 👇</div>';
                 } else {
                     enrolledCourses.forEach(c => {
                         let prog = parseInt(c.progress_percent) || 0;
@@ -201,18 +158,18 @@
                                     <div style="width: ${prog}%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 4px; box-shadow: 0 0 10px var(--primary);"></div>
                                 </div>
                                 <p class="text-secondary flex justify-between" style="font-size: 0.75rem;">
-                                    <span>Tiến độ học</span> 
+                                    <span data-i18n="std_progress">Tiến độ học</span> 
                                     <span style="color: ${prog >= 100 ? 'var(--success)' : 'var(--text-primary)'}; font-weight: bold;">${prog}%</span>
                                 </p>
-                                <a href="/student/learning.html?course_id=${c.id}" class="btn btn-primary mt-4" style="width: 100%; padding: 0.5rem 1rem;">${prog > 0 ? 'Tiếp tục học' : 'Vào học ngay'}</a>
+                                <a href="/student/learning.php?course_id=${c.id}" class="btn btn-primary mt-4" style="width: 100%; padding: 0.5rem 1rem;" data-i18n="${prog > 0 ? 'std_btn_continue' : 'std_btn_start'}">${prog > 0 ? 'Tiếp tục học' : 'Vào học ngay'}</a>
                             </div>
                         `;
                         enrolledContainer.appendChild(div);
                     });
                 }
 
-                document.getElementById('stat_learning').innerHTML = `${learning} <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);">khóa</span>`;
-                document.getElementById('stat_completed').innerHTML = `${completed} <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);">khóa</span>`;
+                document.getElementById('stat_learning').innerHTML = `${learning} <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);" data-i18n="std_courses_unit">khóa</span>`;
+                document.getElementById('stat_completed').innerHTML = `${completed} <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);" data-i18n="std_courses_unit">khóa</span>`;
                 document.getElementById('stat_certs').innerText = completed;
 
                 // Thống kê thực tế học tập
@@ -225,13 +182,14 @@
                 const chartData = Object.values(realStats);
 
                 // INIT CHART.JS
+                const chartLabelText = window.I18n ? window.I18n.get('std_chart_label') : 'Bài học hoàn thành';
                 const ctx = document.getElementById('learningChart').getContext('2d');
                 new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: dateLabels,
                         datasets: [{
-                            label: 'Bài học hoàn thành',
+                            label: chartLabelText,
                             data: chartData,
                             borderColor: '#4f46e5',
                             backgroundColor: 'rgba(79, 70, 229, 0.2)',
@@ -251,7 +209,7 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        return context.parsed.y + ' bài học hoàn thành';
+                                        return context.parsed.y + ' ' + chartLabelText;
                                     }
                                 }
                             }
@@ -278,7 +236,8 @@
                 const container = document.getElementById('all-course-list');
 
                 if (courses.length === 0) {
-                    container.innerHTML = '<p class="text-muted col-span-3">Chưa có khóa học nào trên hệ thống.</p>';
+                    container.innerHTML = '<p class="text-muted col-span-3" data-i18n="home_no_courses">Chưa có khóa học nào trên hệ thống.</p>';
+                    if (window.I18n) window.I18n.render();
                     return;
                 }
 
@@ -287,22 +246,22 @@
                     let buttonHtml = '';
 
                     if (isEnrolled) {
-                        buttonHtml = `<button onclick="window.location.href='/student/learning.html?course_id=${c.id}'" class="btn btn-outline" style="width: 100%; border-color: var(--success); color: var(--success); justify-content: center; pointer-events: none;">Đã sở hữu ✅</button>`;
+                        buttonHtml = `<button onclick="window.location.href='/student/learning.php?course_id=${c.id}'" class="btn btn-outline" style="width: 100%; border-color: var(--success); color: var(--success); justify-content: center; pointer-events: none;" data-i18n="std_owned">Đã sở hữu ✅</button>`;
                     } else if (c.is_premium == 1 || c.price > 0) {
-                        buttonHtml = `<button onclick="window.location.href='/student/course-payment.html?course_id=${c.id}&price=${c.price}'" class="btn" style="background: var(--warning); color: #000; font-weight: bold; width: 100%; justify-content: center; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);">💳 Mua khóa học</button>`;
+                        buttonHtml = `<button onclick="window.location.href='/student/course-payment.php?course_id=${c.id}&price=${c.price}'" class="btn" style="background: var(--warning); color: #000; font-weight: bold; width: 100%; justify-content: center; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);" data-i18n="std_btn_buy">💳 Mua khóa học</button>`;
                     } else {
-                        buttonHtml = `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width: 100%; justify-content: center;">Đăng ký Miễn Phí</button>`;
+                        buttonHtml = `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width: 100%; justify-content: center;" data-i18n="std_btn_free">Đăng ký Miễn Phí</button>`;
                     }
 
                     return `
                     <div class="card glass-panel" style="display: flex; flex-direction: column;">
                         <div class="card-img-placeholder" style="position: relative; height: 160px; font-size: 3rem;">
                             📚
-                            ${(c.is_premium == 1 || c.price > 0) ? '<span style="position: absolute; top: 15px; right: 15px; background: var(--warning); color: #000; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">PREMIUM 💎</span>' : '<span style="position: absolute; top: 15px; right: 15px; background: var(--success); color: #fff; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px;">FREE</span>'}
+                            ${(c.is_premium == 1 || c.price > 0) ? '<span style="position: absolute; top: 15px; right: 15px; background: var(--warning); color: #000; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">PREMIUM 💎</span>' : '<span style="position: absolute; top: 15px; right: 15px; background: var(--success); color: #fff; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px;" data-i18n="home_free">FREE</span>'}
                         </div>
                         <div class="card-body" style="flex: 1; display: flex; flex-direction: column;">
                             <h3 class="card-title" style="margin-bottom: 0.5rem;">${c.title}</h3>
-                            <p class="text-secondary" style="font-size: 0.875rem; flex: 1; margin-bottom: 1.5rem;">
+                            <p class="text-secondary" style="font-size: 0.875rem; flex: 1; margin-bottom: 1.5rem;" ${!c.description ? 'data-i18n="std_no_desc"' : ''}>
                                 ${c.description ? c.description.substring(0, 90) + '...' : 'Chưa có mô tả chi tiết từ giảng viên.'}
                             </p>
                             
@@ -315,13 +274,16 @@
                         </div>
                     </div>`;
                 }).join('');
+                
+                if (window.I18n) window.I18n.render();
 
             } catch (error) {
                 console.error(error);
-                document.getElementById('enrolled-course-container').innerHTML = '<div class="text-danger">Lỗi kết nối.</div>';
+                document.getElementById('enrolled-course-container').innerHTML = `<div class="text-danger" data-i18n="std_conn_error">Lỗi kết nối.</div>`;
             }
         });
     </script>
-</body>
-
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>

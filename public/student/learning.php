@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đang Học - AI Study Hub</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <style>
+<?php
+$pageTitle = 'Đang Học - AI Study Hub';
+$actor = 'guest';
+ob_start();
+?>
+<style>
         body {
             background: #000; /* Cinematic background */
         }
@@ -252,16 +250,18 @@
         }
 
     </style>
-</head>
-<body>
+<?php
+$extraHead = ob_get_clean();
+require __DIR__ . '/../layouts/header.php';
+?>
 
-    <div class="learning-layout">
+<div class="learning-layout">
 
         <!-- Left: Video Area -->
         <div class="main-player">
             <!-- Go Back nav -->
             <div style="padding: 1rem 2rem; background: transparent; position: absolute; top: 0; left: 0; right: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);">
-                <a href="/student/dashboard.html" class="btn btn-outline" style="border-radius: 20px; font-size: 0.9rem; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);">&larr; Quay lại Home</a>
+                <a href="/student/dashboard.php" class="btn btn-outline" style="border-radius: 20px; font-size: 0.9rem; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);" data-i18n="lrn_back_home">&larr; Quay lại Home</a>
                 <span style="font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.8);" id="course_title_span">...</span>
             </div>
 
@@ -269,7 +269,7 @@
             <div class="video-wrapper" id="video_wrapper">
                 <div style="text-align: center;">
                     <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🎬</div>
-                    <h2 class="text-secondary" id="video_placeholder">Trình phát Video sẽ mô phỏng ở đây.</h2>
+                    <h2 class="text-secondary" id="video_placeholder" data-i18n="lrn_video_placeholder">Trình phát Video sẽ mô phỏng ở đây.</h2>
                 </div>
             </div>
 
@@ -277,11 +277,11 @@
             <div class="content-area">
                 <div class="flex justify-between items-center mb-6">
                     <h1 id="lesson_title" style="font-size: 2.5rem; font-weight: 800; letter-spacing: -1px;">...</h1>
-                    <button class="btn btn-primary" id="btn_mark_complete" style="display:none; border-radius: 20px;" onclick="markComplete()">✅ Đánh dấu Đã Học</button>
+                    <button class="btn btn-primary" id="btn_mark_complete" style="display:none; border-radius: 20px;" onclick="markComplete()" data-i18n="lrn_mark_complete">✅ Đánh dấu Đã Học</button>
                 </div>
                 
                 <div class="text-secondary" id="lesson_content" style="font-size: 1.1rem; line-height: 1.8;">
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 2rem; opacity: 0.7;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 2rem; opacity: 0.7;" data-i18n="lrn_select_lesson">
                         <span>👈</span> Chọn một bài học ở danh mục bên phải để bắt đầu.
                     </div>
                 </div>
@@ -294,14 +294,14 @@
         <!-- Right: Curriculum Sidebar -->
         <div class="curriculum-sidebar">
             <div style="padding: 2rem 1.5rem; background: rgba(0,0,0,0.2);">
-                <h3 style="font-size: 1.25rem;">Nội Dung Cùng Khóa</h3>
+                <h3 style="font-size: 1.25rem;" data-i18n="lrn_curriculum">Nội Dung Cùng Khóa</h3>
                 <div class="flex items-center gap-2 mt-2" style="font-size: 0.875rem; color: var(--success); font-weight: 600;">
-                    <span id="curriculum-progress">Tiến độ: --</span>
+                    <span id="curriculum-progress" data-i18n="lrn_progress">Tiến độ: --</span>
                 </div>
             </div>
 
             <div style="flex: 1; overflow-y: auto;" id="curriculumList">
-                <div class="p-4 text-center text-muted">Đang tải giáo trình...</div>
+                <div class="p-4 text-center text-muted" data-i18n="lrn_loading_curriculum">Đang tải giáo trình...</div>
             </div>
         </div>
 
@@ -337,9 +337,8 @@
         </form>
     </div>
 
-    <script src="/assets/js/api.js"></script>
-    <script src="/assets/js/app.js"></script>
-    <script>
+<?php ob_start(); ?>
+<script>
         const user = App.requireAuth();
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -370,7 +369,8 @@
                 let totalLessons = 0;
 
                 if (chapters.length === 0) {
-                    sidebar.innerHTML = '<div class="p-4 text-secondary text-center">Chưa có nội dung.</div>';
+                    sidebar.innerHTML = '<div class="p-4 text-secondary text-center" data-i18n="lrn_no_content">Chưa có nội dung.</div>';
+                    if (window.I18n) window.I18n.render();
                     return;
                 }
 
@@ -393,7 +393,8 @@
                     }
                 });
 
-                document.getElementById('curriculum-progress').innerText = `Tổng số: ${totalLessons} bài học`;
+                document.getElementById('curriculum-progress').innerHTML = `<span data-i18n="lrn_total">Tổng số: </span>${totalLessons}<span data-i18n="lrn_lessons"> bài học</span>`;
+                if (window.I18n) window.I18n.render();
 
             } catch (err) {
                 App.showToast(err.message, 'error');
@@ -422,7 +423,7 @@
                 const lesson = res.data;
 
                 document.getElementById('lesson_title').innerText = lesson.title;
-                document.getElementById('lesson_content').innerHTML = lesson.content ? `<div style="background: rgba(255,255,255,0.03); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.05);">${lesson.content}</div>` : '<div class="text-muted">Giảng viên chưa cập nhật mô tả chi tiết bài học này.</div>';
+                document.getElementById('lesson_content').innerHTML = lesson.content ? `<div style="background: rgba(255,255,255,0.03); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.05);">${lesson.content}</div>` : '<div class="text-muted" data-i18n="lrn_no_desc">Giảng viên chưa cập nhật mô tả chi tiết bài học này.</div>';
                 document.getElementById('btn_mark_complete').style.display = 'block';
 
                 if (lesson.video_url) {
@@ -431,12 +432,13 @@
                     document.getElementById('video_wrapper').innerHTML = `
                         <div style="text-align: center;">
                             <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">📝</div>
-                            <h2 class="text-secondary">Bài học văn bản (Không có Video)</h2>
+                            <h2 class="text-secondary" data-i18n="lrn_text_lesson">Bài học văn bản (Không có Video)</h2>
                         </div>
                     `;
                 }
 
                 loadQuizData(lessonId);
+                if (window.I18n) window.I18n.render();
 
             } catch (err) {
                 App.showToast(err.message, 'error');
@@ -456,7 +458,7 @@
                         <div class="flex items-center gap-3 mb-6">
                             <div style="font-size: 2rem;">🧠</div>
                             <div>
-                                <h3 style="color: var(--success); font-size: 1.5rem; margin-bottom: 5px;">Thử thách trí tuệ</h3>
+                                <h3 style="color: var(--success); font-size: 1.5rem; margin-bottom: 5px;" data-i18n="lrn_quiz_title">Thử thách trí tuệ</h3>
                                 <p class="text-secondary text-sm">${quiz.title}</p>
                             </div>
                         </div>
@@ -477,10 +479,11 @@
                         });
                     }
 
-                    html += `<button type="submit" class="btn btn-primary quiz-submit-btn">Nộp Bài Kiểm Tra</button>
+                    html += `<button type="submit" class="btn btn-primary quiz-submit-btn" data-i18n="lrn_quiz_submit">Nộp Bài Kiểm Tra</button>
                     </form></div>`;
 
                     quizArea.innerHTML = html;
+                    if (window.I18n) window.I18n.render();
 
                     document.getElementById('quizForm').addEventListener('submit', async (e) => {
                         e.preventDefault();
@@ -492,13 +495,16 @@
 
                         try {
                             const btnSubmit = e.target.querySelector('button[type="submit"]');
-                            btnSubmit.innerHTML = 'Đang chấm điểm...';
+                            btnSubmit.innerHTML = window.I18n ? window.I18n.get('lrn_quiz_grading') : 'Đang chấm điểm...';
                             btnSubmit.disabled = true;
 
                             const submitRes = await window.api.post(`/quizzes/${currentQuizId}/submit`, { answers });
                             
-                            App.showToast(`Tuyệt vời! Điểm của bạn là: ${submitRes.data.score}`, 'success');
-                            btnSubmit.innerHTML = `Hoàn thành! KẾT QUẢ: ${submitRes.data.score}`;
+                            const successMsg = window.I18n ? window.I18n.get('lrn_quiz_success') : 'Tuyệt vời! Điểm của bạn là: ';
+                            App.showToast(`${successMsg}${submitRes.data.score}`, 'success');
+                            
+                            const resultMsg = window.I18n ? window.I18n.get('lrn_quiz_result') : 'Hoàn thành! KẾT QUẢ: ';
+                            btnSubmit.innerHTML = `${resultMsg}${submitRes.data.score}`;
                             btnSubmit.style.background = 'var(--success)';
                             markComplete();
                         } catch (err) {
@@ -518,7 +524,7 @@
             try {
                 await window.api.post(`/lessons/${currentLessonId}/complete`, {});
                 const btn = document.getElementById('btn_mark_complete');
-                btn.innerHTML = '✅ Đã hoàn thành';
+                btn.innerHTML = window.I18n ? window.I18n.get('lrn_btn_completed') : '✅ Đã hoàn thành';
                 btn.classList.replace('btn-primary', 'btn-outline');
                 btn.style.color = 'var(--success)';
                 btn.style.borderColor = 'var(--success)';
@@ -545,9 +551,10 @@
             chatBox.scrollTop = chatBox.scrollHeight;
 
             const thinkingId = 'think_' + Date.now();
+            const thinkingMsg = window.I18n ? window.I18n.get('lrn_ai_thinking') : 'AI đang suy nghĩ...';
             chatBox.innerHTML += `
                 <div class="msg bot flex items-center gap-2" id="${thinkingId}">
-                    <span style="font-size: 1.2rem; animation: spin 2s linear infinite;">⏳</span> AI đang suy nghĩ...
+                    <span style="font-size: 1.2rem; animation: spin 2s linear infinite;">⏳</span> ${thinkingMsg}
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -556,12 +563,15 @@
                 const res = await window.api.post('/ai/chat', { message });
                 document.getElementById(thinkingId).innerHTML = res.data.ai_response.replace(/\n/g, '<br>');
             } catch (err) {
-                document.getElementById(thinkingId).innerHTML = "Lỗi kết nối tới AI: " + err.message;
+                const errMsg = window.I18n ? window.I18n.get('lrn_ai_error') : 'Lỗi kết nối tới AI: ';
+                document.getElementById(thinkingId).innerHTML = errMsg + err.message;
                 document.getElementById(thinkingId).style.color = 'var(--danger)';
             }
             chatBox.scrollTop = chatBox.scrollHeight;
         });
 
     </script>
-</body>
-</html>
+<?php
+$extraScripts = ob_get_clean();
+?>
+<?php require __DIR__ . '/../layouts/footer.php'; ?>
