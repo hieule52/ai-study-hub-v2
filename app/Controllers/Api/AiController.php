@@ -17,21 +17,22 @@ class AiController
         $this->aiService = new AiService();
     }
 
+    /**
+     * POST /api/ai/chat
+     * Body: { message, base64_image?, lesson_id?, course_id? }
+     */
     public function chat(Request $request, Response $response)
     {
         try {
             AuthMiddleware::handle($request, $response);
-            
-            // Check nếu rule project: chỉ VIP mới được dùng AI
-            // if ($request->user->is_vip == 0) {
-            //     $response->error("Bạn cần nâng cấp VIP để dùng tính năng AI.", 403);
-            // }
 
             $message = $request->input('message');
             $base64Image = $request->input('base64_image') ?? null;
+            $lessonId = $request->input('lesson_id') ? (int)$request->input('lesson_id') : null;
+            $courseId = $request->input('course_id') ? (int)$request->input('course_id') : null;
             $userId = $request->user->sub;
 
-            $result = $this->aiService->chat($userId, $message, $base64Image);
+            $result = $this->aiService->chat($userId, $message, $base64Image, $lessonId, $courseId);
             
             $response->success("AI đã phân tích", $result);
         } catch (Exception $e) {

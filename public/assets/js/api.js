@@ -113,6 +113,18 @@ class ApiClient {
         return this._handleResponse(res);
     }
 
+    /**
+     * Upload with custom FormData (for video uploads with extra fields)
+     */
+    async uploadFormData(endpoint, formData) {
+        const res = await fetch(`${this.baseUrl}${endpoint}`, {
+            method: 'POST',
+            headers: this._getHeaders(true),
+            body: formData
+        });
+        return this._handleResponse(res);
+    }
+
     async put(endpoint, body) {
         const res = await fetch(`${this.baseUrl}${endpoint}`, {
             method: 'PUT',

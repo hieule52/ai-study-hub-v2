@@ -55,4 +55,48 @@ class ChapterRepository
         $stmt = $this->db->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
+
+    /**
+     * Sắp xếp lại thứ tự chương
+     * @param array $chapterOrders [['id' => 1, 'order_index' => 0], ...]
+     */
+    public function reorder(int $courseId, array $chapterOrders): bool
+    {
+        $sql = "UPDATE chapters SET order_index = :order_index WHERE id = :id AND course_id = :course_id";
+        $stmt = $this->db->prepare($sql);
+
+        foreach ($chapterOrders as $item) {
+            $stmt->execute([
+                'id' => $item['id'],
+                'order_index' => $item['order_index'],
+                'course_id' => $courseId
+            ]);
+        }
+        return true;
+    }
+
+    /**
+     * Đếm số bài học trong chương
+     */
+    public function countLessons(int $chapterId): int
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM lessons WHERE chapter_id = :cid AND deleted_at IS NULL");
+        $stmt->execute(['cid' => $chapterId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Tìm tất cả chương theo course (kèm số bài)
+     */
+    public function findByCourseWithCount(int $courseId): array
+    {
+        $sql = "SELECT ch.*, 
+                       (SELECT COUNT(*) FROM lessons l WHERE l.chapter_id = ch.id AND l.deleted_at IS NULL) as lesson_count
+                FROM chapters ch
+                WHERE ch.course_id = :course_id AND ch.deleted_at IS NULL
+                ORDER BY ch.order_index ASC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['course_id' => $courseId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

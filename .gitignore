@@ -11,3 +11,7 @@
 
 composer.lock
 /public/uploads/
+
+# Video storage (files excluded, structure kept via .gitkeep)
+/storage/videos/*
+!/storage/videos/.gitkeep

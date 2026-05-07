@@ -17,7 +17,14 @@ class CourseRepository
 
     public function findAll(int $limit = 20, int $offset = 0): array
     {
-        $stmt = $this->db->prepare("SELECT * FROM courses WHERE deleted_at IS NULL AND status = 'approved' ORDER BY id DESC LIMIT :limit OFFSET :offset");
+        $stmt = $this->db->prepare("
+            SELECT c.*, cc.name as category_name, cc.slug as category_slug, u.username as teacher_name
+            FROM courses c
+            LEFT JOIN course_categories cc ON c.category_id = cc.id
+            LEFT JOIN users u ON c.teacher_id = u.id
+            WHERE c.deleted_at IS NULL AND c.status = 'approved' 
+            ORDER BY c.id DESC LIMIT :limit OFFSET :offset
+        ");
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -43,12 +50,15 @@ class CourseRepository
 
     public function create(array $data): ?Course
     {
-        $sql = "INSERT INTO courses (teacher_id, title, description, thumbnail, price, is_premium, status) 
-                VALUES (:teacher_id, :title, :description, :thumbnail, :price, :is_premium, :status)";
+        $sql = "INSERT INTO courses (teacher_id, category_id, level, estimated_duration, title, description, thumbnail, price, is_premium, status) 
+                VALUES (:teacher_id, :category_id, :level, :estimated_duration, :title, :description, :thumbnail, :price, :is_premium, :status)";
         
         $stmt = $this->db->prepare($sql);
         $success = $stmt->execute([
             'teacher_id' => $data['teacher_id'],
+            'category_id' => $data['category_id'] ?? null,
+            'level' => $data['level'] ?? 'beginner',
+            'estimated_duration' => $data['estimated_duration'] ?? 0,
             'title' => $data['title'],
             'description' => $data['description'] ?? '',
             'thumbnail' => $data['thumbnail'] ?? null,
@@ -96,7 +106,11 @@ class CourseRepository
 
     public function update(int $id, array $data): bool
     {
-        $sql = "UPDATE courses SET title = :title, description = :description, thumbnail = COALESCE(:thumbnail, thumbnail), price = :price, is_premium = :is_premium WHERE id = :id";
+        $sql = "UPDATE courses SET title = :title, description = :description, 
+                thumbnail = COALESCE(:thumbnail, thumbnail), price = :price, 
+                is_premium = :is_premium, category_id = :category_id,
+                level = :level, estimated_duration = :estimated_duration
+                WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             'id' => $id,
@@ -105,7 +119,66 @@ class CourseRepository
             'thumbnail' => $data['thumbnail'] ?? null,
             'price' => $data['price'] ?? 0,
             'is_premium' => $data['is_premium'] ?? 0,
+            'category_id' => $data['category_id'] ?? null,
+            'level' => $data['level'] ?? 'beginner',
+            'estimated_duration' => $data['estimated_duration'] ?? 0,
         ]);
+    }
+
+    /**
+     * Tìm kiếm khóa học theo từ khóa
+     */
+    public function search(string $keyword, int $limit = 20): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT c.*, cc.name as category_name, u.username as teacher_name
+            FROM courses c
+            LEFT JOIN course_categories cc ON c.category_id = cc.id
+            LEFT JOIN users u ON c.teacher_id = u.id
+            WHERE c.deleted_at IS NULL AND c.status = 'approved'
+              AND (c.title LIKE :kw1 OR c.description LIKE :kw2)
+            ORDER BY c.id DESC LIMIT :limit
+        ");
+        $kw = '%' . $keyword . '%';
+        $stmt->bindValue(':kw1', $kw);
+        $stmt->bindValue(':kw2', $kw);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Tìm khóa học theo danh mục
+     */
+    public function findByCategory(int $categoryId, int $limit = 20): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT c.*, cc.name as category_name, u.username as teacher_name
+            FROM courses c
+            LEFT JOIN course_categories cc ON c.category_id = cc.id
+            LEFT JOIN users u ON c.teacher_id = u.id
+            WHERE c.category_id = :cat_id AND c.deleted_at IS NULL AND c.status = 'approved'
+            ORDER BY c.id DESC LIMIT :limit
+        ");
+        $stmt->bindValue(':cat_id', $categoryId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Auto-cập nhật total_lessons cho khóa học
+     * Đếm tổng lessons active trong tất cả chapters
+     */
+    public function updateTotalLessons(int $courseId): bool
+    {
+        $sql = "UPDATE courses SET total_lessons = (
+                    SELECT COUNT(*) FROM lessons l
+                    JOIN chapters ch ON l.chapter_id = ch.id
+                    WHERE ch.course_id = :cid AND l.deleted_at IS NULL AND ch.deleted_at IS NULL
+                ) WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute(['cid' => $courseId, 'id' => $courseId]);
     }
 
     public function delete(int $id): bool

@@ -44,7 +44,10 @@ class CourseService
             'description' => $data['description'] ?? '',
             'thumbnail' => $data['thumbnail'] ?? null,
             'price' => $price,
-            'is_premium' => $is_premium
+            'is_premium' => $is_premium,
+            'category_id' => $data['category_id'] ?? null,
+            'level' => $data['level'] ?? 'beginner',
+            'estimated_duration' => $data['estimated_duration'] ?? 0
         ]);
 
         if (!$newCourse) {

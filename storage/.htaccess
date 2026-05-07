@@ -1,0 +1,4 @@
+# Chặn truy cập trực tiếp vào thư mục storage
+# Video chỉ có thể xem qua API với signed token
+Order Deny,Allow
+Deny from all

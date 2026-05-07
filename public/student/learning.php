@@ -426,8 +426,58 @@ require __DIR__ . '/../layouts/header.php';
                 document.getElementById('lesson_content').innerHTML = lesson.content ? `<div style="background: rgba(255,255,255,0.03); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.05);">${lesson.content}</div>` : '<div class="text-muted" data-i18n="lrn_no_desc">Giảng viên chưa cập nhật mô tả chi tiết bài học này.</div>';
                 document.getElementById('btn_mark_complete').style.display = 'block';
 
-                if (lesson.video_url) {
-                    document.getElementById('video_wrapper').innerHTML = `<iframe src="${lesson.video_url}" width="100%" height="100%" frameborder="0" allowfullscreen style="box-shadow: 0 10px 40px rgba(0,0,0,0.8);"></iframe>`;
+                // === VIDEO DISPLAY LOGIC ===
+                if (lesson.video_filename && lesson.content_type === 'video') {
+                    // Secured video: lấy signed token rồi stream
+                    try {
+                        document.getElementById('video_wrapper').innerHTML = `
+                            <div style="text-align: center;">
+                                <div style="font-size: 3rem; animation: spin 2s linear infinite;">⏳</div>
+                                <p class="text-secondary mt-2">Đang tải video bảo mật...</p>
+                            </div>`;
+
+                        const tokenRes = await window.api.get(`/video/token/${lessonId}?course_id=${courseId}`);
+                        const streamUrl = tokenRes.data.stream_url;
+
+                        document.getElementById('video_wrapper').innerHTML = `
+                            <video id="secureVideoPlayer" controls controlsList="nodownload" disablePictureInPicture
+                                   style="width:100%;height:100%;background:#000;"
+                                   oncontextmenu="return false;">
+                                <source src="${streamUrl}" type="video/mp4">
+                                Trình duyệt không hỗ trợ video.
+                            </video>`;
+
+                        // Thêm event listener cho video errors
+                        const videoEl = document.getElementById('secureVideoPlayer');
+                        if (videoEl) {
+                            videoEl.addEventListener('error', () => {
+                                document.getElementById('video_wrapper').innerHTML = `
+                                    <div style="text-align:center;padding:2rem;">
+                                        <div style="font-size:3rem;opacity:0.5;">⚠️</div>
+                                        <p class="text-secondary">Video không thể phát. Vui lòng tải lại trang.</p>
+                                    </div>`;
+                            });
+                        }
+                    } catch(videoErr) {
+                        document.getElementById('video_wrapper').innerHTML = `
+                            <div style="text-align: center;">
+                                <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🔒</div>
+                                <h2 class="text-secondary">${videoErr.message || 'Không thể tải video'}</h2>
+                                <p class="text-muted mt-2">Vui lòng đảm bảo bạn đã đăng ký khóa học này.</p>
+                            </div>`;
+                    }
+                } else if (lesson.video_url) {
+                    // External URL (YouTube, Vimeo, etc.)
+                    const url = lesson.video_url;
+                    if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) {
+                        document.getElementById('video_wrapper').innerHTML = `<iframe src="${url}" width="100%" height="100%" frameborder="0" allowfullscreen style="box-shadow: 0 10px 40px rgba(0,0,0,0.8);"></iframe>`;
+                    } else {
+                        // Direct video URL
+                        document.getElementById('video_wrapper').innerHTML = `
+                            <video controls style="width:100%;height:100%;background:#000;">
+                                <source src="${url}" type="video/mp4">
+                            </video>`;
+                    }
                 } else {
                     document.getElementById('video_wrapper').innerHTML = `
                         <div style="text-align: center;">
@@ -537,7 +587,25 @@ require __DIR__ . '/../layouts/header.php';
             document.getElementById('aiPopup').classList.toggle('open');
         }
 
-        // AI Chat
+        // AI Chat — gửi context bài học + khóa học
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatAiResponse(text) {
+            // Bold: **text**
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            // Bullet points
+            text = text.replace(/^[-•]\s+(.+)$/gm, '<span style="display:block;padding-left:1rem;">• $1</span>');
+            // Numbered list
+            text = text.replace(/^(\d+)\.\s+(.+)$/gm, '<span style="display:block;padding-left:1rem;">$1. $2</span>');
+            // Emoji headers
+            text = text.replace(/\n/g, '<br>');
+            return text;
+        }
+
         document.getElementById('chatForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input = document.getElementById('chatInput');
@@ -546,25 +614,52 @@ require __DIR__ . '/../layouts/header.php';
             const message = input.value.trim();
             if (!message) return;
 
-            chatBox.innerHTML += `<div class="msg user">${message}</div>`;
+            chatBox.innerHTML += `<div class="msg user">${escapeHtml(message)}</div>`;
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
             const thinkingId = 'think_' + Date.now();
-            const thinkingMsg = window.I18n ? window.I18n.get('lrn_ai_thinking') : 'AI đang suy nghĩ...';
+            const thinkingMsg = window.I18n ? window.I18n.get('lrn_ai_thinking') : 'AI đang phân tích bài học...';
             chatBox.innerHTML += `
-                <div class="msg bot flex items-center gap-2" id="${thinkingId}">
-                    <span style="font-size: 1.2rem; animation: spin 2s linear infinite;">⏳</span> ${thinkingMsg}
+                <div class="msg bot" id="${thinkingId}">
+                    <div class="flex items-center gap-2">
+                        <span style="font-size: 1.2rem; animation: spin 2s linear infinite;">🧠</span> ${thinkingMsg}
+                    </div>
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                const res = await window.api.post('/ai/chat', { message });
-                document.getElementById(thinkingId).innerHTML = res.data.ai_response.replace(/\n/g, '<br>');
+                // Gửi kèm context bài học đang xem
+                const res = await window.api.post('/ai/chat', {
+                    message,
+                    lesson_id: currentLessonId,
+                    course_id: courseId
+                });
+
+                let html = formatAiResponse(res.data.ai_response);
+
+                // Hiển thị gợi ý bài tiếp theo
+                if (res.data.suggestions && res.data.suggestions.length > 0) {
+                    html += `<div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.1);">`;
+                    html += `<small style="color:var(--primary);">📚 Gợi ý bài tiếp:</small>`;
+                    res.data.suggestions.forEach(s => {
+                        const icon = s.content_type === 'video' ? '🎬' : '📝';
+                        html += `<div style="margin-top:4px;cursor:pointer;color:rgba(255,255,255,0.7);font-size:0.85rem;" 
+                                      onclick="loadLesson(${s.id})">${icon} ${escapeHtml(s.title)}</div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                // Nếu bị moderated
+                if (res.data.moderated) {
+                    document.getElementById(thinkingId).style.borderColor = 'rgba(251,146,60,0.3)';
+                }
+
+                document.getElementById(thinkingId).innerHTML = html;
             } catch (err) {
                 const errMsg = window.I18n ? window.I18n.get('lrn_ai_error') : 'Lỗi kết nối tới AI: ';
-                document.getElementById(thinkingId).innerHTML = errMsg + err.message;
+                document.getElementById(thinkingId).innerHTML = '❌ ' + errMsg + (err.message || '');
                 document.getElementById(thinkingId).style.color = 'var(--danger)';
             }
             chatBox.scrollTop = chatBox.scrollHeight;
