@@ -9,8 +9,6 @@
 /.idea/
 /.vscode/
 
-composer.lock
-
 *.log
 
 /public/uploads/*
