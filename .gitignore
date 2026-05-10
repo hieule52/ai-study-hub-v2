@@ -10,8 +10,11 @@
 /.vscode/
 
 composer.lock
-/public/uploads/
 
-# Video storage (files excluded, structure kept via .gitkeep)
+*.log
+
+/public/uploads/*
+!/public/uploads/.gitkeep
+
 /storage/videos/*
 !/storage/videos/.gitkeep
