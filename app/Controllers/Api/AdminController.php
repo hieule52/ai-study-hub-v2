@@ -6,6 +6,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Repositories\UserRepository;
 use App\Repositories\CourseRepository;
+use App\Repositories\EnrollmentRepository;
 use App\Middlewares\AuthMiddleware;
 use App\Middlewares\RoleMiddleware;
 use Exception;
@@ -14,11 +15,13 @@ class AdminController
 {
     private UserRepository $userRepo;
     private CourseRepository $courseRepo;
+    private EnrollmentRepository $enrollRepo;
 
     public function __construct()
     {
         $this->userRepo = new UserRepository();
         $this->courseRepo = new CourseRepository();
+        $this->enrollRepo = new EnrollmentRepository();
     }
 
     public function getStats(Request $request, Response $response)
@@ -45,8 +48,25 @@ class AdminController
         try {
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
-            $users = $this->userRepo->getAllUsers();
-            $response->success("Danh sách người dùng", $users);
+
+            $page    = max(1, (int)($request->query('page') ?? 1));
+            $limit   = min(100, max(10, (int)($request->query('limit') ?? 20)));
+            $search  = trim($request->query('search') ?? '');
+            $role    = $request->query('role') ?? '';
+            $offset  = ($page - 1) * $limit;
+
+            $users = $this->userRepo->getAllUsersPaginated($limit, $offset, $search, $role);
+            $total = $this->userRepo->countUsersFiltered($search, $role);
+
+            $response->success("Danh sách người dùng", [
+                'items'      => $users,
+                'pagination' => [
+                    'page'        => $page,
+                    'limit'       => $limit,
+                    'total'       => $total,
+                    'total_pages' => (int)ceil($total / $limit),
+                ]
+            ]);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }
@@ -91,6 +111,18 @@ class AdminController
             } else {
                 $response->error("Không thể cập nhật quyền.", 500);
             }
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    public function getAllCourses(Request $request, Response $response)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['admin']);
+            $courses = $this->courseRepo->getAllAdminCourses();
+            $response->success("Danh sách toàn bộ khóa học", $courses);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }
@@ -141,6 +173,54 @@ class AdminController
         }
     }
 
+    public function hideCourse(Request $request, Response $response, string $id)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['admin']);
+            $success = $this->courseRepo->updateStatus((int)$id, 'hidden');
+            if ($success) {
+                $response->success("Đã ẩn khóa học.");
+            } else {
+                $response->error("Không thể ẩn khóa học.", 500);
+            }
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    public function showCourse(Request $request, Response $response, string $id)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['admin']);
+            $success = $this->courseRepo->updateStatus((int)$id, 'approved');
+            if ($success) {
+                $response->success("Đã hiển thị lại khóa học.");
+            } else {
+                $response->error("Không thể hiển thị khóa học.", 500);
+            }
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    public function deleteCourse(Request $request, Response $response, string $id)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['admin']);
+            $success = $this->courseRepo->delete((int)$id);
+            if ($success) {
+                $response->success("Đã xóa khóa học thành công (Soft Delete).");
+            } else {
+                $response->error("Không thể xóa khóa học.", 500);
+            }
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
     public function getChartData(Request $request, Response $response)
     {
         try {
@@ -175,8 +255,21 @@ class AdminController
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
             $body = $request->all();
-            
-            $success = $this->userRepo->update((int)$id, $body);
+
+            // Whitelist: only allow safe fields to be updated via this endpoint
+            $allowed = ['username', 'email', 'is_vip', 'status', 'role', 'password'];
+            $safeData = array_intersect_key($body, array_flip($allowed));
+
+            if (!empty($safeData['password'])) {
+                $safeData['password'] = password_hash($safeData['password'], PASSWORD_DEFAULT);
+            }
+
+            if (empty($safeData)) {
+                $response->error("Không có trường hợp lệ để cập nhật.", 400);
+                return;
+            }
+
+            $success = $this->userRepo->update((int)$id, $safeData);
             if ($success) {
                 $response->success("Đã cập nhật thông tin người dùng thành công.");
             } else {
@@ -198,6 +291,18 @@ class AdminController
             } else {
                 $response->error("Không thể xóa tài khoản.", 500);
             }
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    public function getEnrollments(Request $request, Response $response)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['admin']);
+            $enrollments = $this->enrollRepo->getAllEnrollments();
+            $response->success("Danh sách ghi danh", $enrollments);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }

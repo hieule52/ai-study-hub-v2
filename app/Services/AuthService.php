@@ -25,13 +25,21 @@ class AuthService
             throw new Exception("Email đã tồn tại trong hệ thống.");
         }
 
+        if ($this->userRepo->findByUsername($data['username'])) {
+            throw new Exception("Tên hiển thị này đã được sử dụng. Vui lòng chọn tên khác.");
+        }
+
         $passwordHash = password_hash($data['password'], PASSWORD_BCRYPT);
         
+        // Chỉ cho phép student hoặc teacher khi tự đăng ký (admin phải được cấp qua admin panel)
+        $allowedRoles = ['student', 'teacher'];
+        $role = in_array($data['role'] ?? '', $allowedRoles) ? $data['role'] : 'student';
+
         $user = $this->userRepo->create([
             'username' => $data['username'],
             'email' => $data['email'],
             'password_hash' => $passwordHash,
-            'role' => 'student'
+            'role' => $role
         ]);
 
         if (!$user) {

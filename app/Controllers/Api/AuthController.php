@@ -19,6 +19,7 @@ class AuthController
     public function register(Request $request, Response $response)
     {
         try {
+            \App\Middlewares\RateLimitMiddleware::handle($request, $response, 5, 60, 'register');
             $data = $request->all();
             $result = $this->authService->register($data);
             $response->success("Đăng ký thành công", $result, 201);
@@ -30,6 +31,7 @@ class AuthController
     public function login(Request $request, Response $response)
     {
         try {
+            \App\Middlewares\RateLimitMiddleware::handle($request, $response, 10, 60, 'login');
             $email = $request->input('email');
             $password = $request->input('password');
 

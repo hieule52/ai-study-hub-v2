@@ -42,12 +42,20 @@ class LessonController
     {
         try {
             AuthMiddleware::handle($request, $response);
-            $userId = $request->user->sub; // Get from JWT sub payload
 
-            $this->lessonService->markLessonCompleted($userId, (int)$lessonId);
-            $response->success("Đã lưu tiến độ hoàn thành bài học thành công.");
+            // === ROLE GUARD: Chỉ student mới được mark bài hoàn thành ===
+            $userRole = $request->user->role ?? 'guest';
+            if ($userRole !== 'student') {
+                $response->error("Chỉ học viên mới có thể đánh dấu hoàn thành bài học.", 403);
+                return;
+            }
+
+            $userId = (int)$request->user->sub;
+            $percent = $this->lessonService->markLessonCompleted($userId, (int)$lessonId);
+            $response->success("Đã lưu tiến độ hoàn thành bài học thành công.", ['progress' => $percent]);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }
     }
 }
+

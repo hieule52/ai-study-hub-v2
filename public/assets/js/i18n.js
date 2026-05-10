@@ -44,14 +44,14 @@ const I18n = {
             "nav_student_dashboard": "Tổng quan học tập",
             "nav_student_courses": "Khóa học của tôi",
             "nav_student_ai": "Gia Sư AI (AI Tutor)",
-            "nav_student_chat": "Cửa sổ Chat (Hội nhóm)",
+            "nav_student_chat": "Trò Chuyện Giảng Viên",
             "nav_teacher_dashboard": "Tổng quan Giảng dạy",
             "nav_teacher_courses": "Quản lý Khóa học",
             "nav_teacher_students": "Học viên của tôi",
             "nav_teacher_chat": "Hỗ trợ học viên",
             "nav_admin_dashboard": "Tổng quan Hệ thống",
             "nav_admin_users": "Quản lý Người dùng",
-            "nav_admin_vip": "Giao dịch VIP",
+            "nav_admin_vip": "Quản lý Ghi danh",
             "nav_admin_logs": "Audit Logs",
             
             // Home
@@ -111,7 +111,7 @@ const I18n = {
             "lrn_quiz_grading": "Đang chấm điểm...",
             "lrn_quiz_success": "Tuyệt vời! Điểm của bạn là: ",
             "lrn_quiz_result": "Hoàn thành! KẾT QUẢ: ",
-            "lrn_btn_completed": "✅ Đã hoàn thành",
+            "lrn_btn_completed": "✅ Đã hoàn thành bài học",
             "lrn_ai_thinking": "AI đang suy nghĩ...",
             "lrn_ai_error": "Lỗi kết nối tới AI: ",
 
@@ -150,7 +150,7 @@ const I18n = {
 
             // Student Chat
             "chat_title_1": "Tin Nhắn ",
-            "chat_title_2": "Bạn Bè",
+            "chat_title_2": "Giảng Viên",
             "chat_search": "Tìm kiếm liên hệ...",
             "chat_time_now": "Vừa xong",
             "chat_msg_1": "Offline thì nhắn Zalo em nhé.",
@@ -238,7 +238,7 @@ const I18n = {
             "nav_teacher_chat": "Student Support",
             "nav_admin_dashboard": "System Overview",
             "nav_admin_users": "Manage Users",
-            "nav_admin_vip": "VIP Transactions",
+            "nav_admin_vip": "Enrollments",
             "nav_admin_logs": "Audit Logs",
             
             // Home

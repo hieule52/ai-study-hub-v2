@@ -17,10 +17,10 @@ class Course
     public string $status;
     public int $total_lessons;
 
-    // Joined fields (từ query JOIN)
     public ?string $category_name;
     public ?string $category_slug;
     public ?string $teacher_name;
+    public ?string $teacher_email;
 
     public function __construct(array $data = [])
     {
@@ -42,6 +42,7 @@ class Course
             $this->category_name = $data['category_name'] ?? null;
             $this->category_slug = $data['category_slug'] ?? null;
             $this->teacher_name = $data['teacher_name'] ?? null;
+            $this->teacher_email = $data['teacher_email'] ?? null;
         }
     }
 }

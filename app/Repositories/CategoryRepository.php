@@ -25,7 +25,7 @@ class CategoryRepository
     public function findAll(): array
     {
         $sql = "SELECT c.*, 
-                       (SELECT COUNT(*) FROM courses co WHERE co.category_id = c.id AND co.deleted_at IS NULL) as course_count
+                       (SELECT COUNT(*) FROM courses co WHERE co.category_id = c.id) as course_count
                 FROM course_categories c
                 ORDER BY c.order_index ASC, c.name ASC";
         $stmt = $this->db->query($sql);

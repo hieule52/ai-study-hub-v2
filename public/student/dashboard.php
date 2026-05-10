@@ -88,10 +88,10 @@ require __DIR__ . '/../layouts/header.php';
             <hr style="border-color: rgba(255,255,255,0.05); margin: 3rem 0;">
 
             <!-- All Courses Advertisement (Like Guest Page) -->
-            <div class="flex items-center justify-between mb-6">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
                 <h2 style="font-size: 2rem;" data-i18n="std_explore_new">Khám Phá <span class="text-gradient">Khóa Học Mới</span> 🌟</h2>
-                <div style="width: 250px;">
-                    <input type="text" class="form-control" placeholder="🔍 Tìm khóa học..."
+                <div style="width: 250px; display:flex; gap: 0.5rem;">
+                    <input type="text" id="courseSearchInput" class="form-control" placeholder="🔍 Tìm khóa học..."
                         style="border-radius: 20px;" data-i18n="home_search_placeholder">
                 </div>
             </div>
@@ -119,9 +119,23 @@ require __DIR__ . '/../layouts/header.php';
             window.location.href = `/student/learning.php?course_id=${courseId}`;
         };
 
+        window.claimCert = async function (courseId) {
+            try {
+                const res = await window.api.post(`/certificates/claim/${courseId}`, {});
+                App.showToast('🎓 Chúc mừng! Chứng chỉ đã được cấp thành công!', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } catch (e) {
+                App.showToast(e.message, 'error');
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', async () => {
-            const user = App.requireAuth(['student', 'admin', 'teacher']);
+            const user = App.requireAuth(['student']);
             if (!user) return;
+
+            // Role guard: redirect non-students to their dashboards
+            if (user.role === 'admin') { window.location.replace('/admin/dashboard.php'); return; }
+            if (user.role === 'teacher') { window.location.replace('/teacher/dashboard.php'); return; }
 
             document.getElementById('student-name').innerText = user.username || user.email.split('@')[0];
 
@@ -130,6 +144,16 @@ require __DIR__ . '/../layouts/header.php';
                 const enrolledRes = await window.api.get('/student/courses');
                 const enrolledCourses = enrolledRes.data || [];
                 enrolledCourseIds = enrolledCourses.map(c => c.id);
+
+                // Load real certificate list first
+                let certsList = [];
+                try {
+                    const certRes = await window.api.get('/certificates/my');
+                    certsList = certRes.data || [];
+                } catch (e) {
+                    // Ignore
+                }
+                const certCourseIds = certsList.map(c => c.course_id);
 
                 let completed = 0;
                 let learning = 0;
@@ -144,6 +168,17 @@ require __DIR__ . '/../layouts/header.php';
                         let prog = parseInt(c.progress_percent) || 0;
                         if (prog >= 100) completed++;
                         else learning++;
+
+                        const hasCert = certCourseIds.includes(c.id);
+                        let certBtnHtml = '';
+                        if (prog >= 100) {
+                            if (hasCert) {
+                                const cert = certsList.find(cert => cert.course_id === c.id);
+                                certBtnHtml = `<button onclick="window.location.href='/student/certificates.php'" class="btn" style="width:100%; margin-top:0.5rem; background: var(--success); color:#fff; font-weight:700;">🎓 Xem Chứng Chỉ</button>`;
+                            } else {
+                                certBtnHtml = `<button onclick="claimCert(${c.id})" class="btn" style="width:100%; margin-top:0.5rem; background: var(--warning); color:#000; font-weight:700;">🎓 Nhận Chứng Chỉ</button>`;
+                            }
+                        }
 
                         const div = document.createElement('div');
                         div.className = 'card glass-panel scroller-item';
@@ -162,6 +197,7 @@ require __DIR__ . '/../layouts/header.php';
                                     <span style="color: ${prog >= 100 ? 'var(--success)' : 'var(--text-primary)'}; font-weight: bold;">${prog}%</span>
                                 </p>
                                 <a href="/student/learning.php?course_id=${c.id}" class="btn btn-primary mt-4" style="width: 100%; padding: 0.5rem 1rem;" data-i18n="${prog > 0 ? 'std_btn_continue' : 'std_btn_start'}">${prog > 0 ? 'Tiếp tục học' : 'Vào học ngay'}</a>
+                                ${certBtnHtml}
                             </div>
                         `;
                         enrolledContainer.appendChild(div);
@@ -170,7 +206,9 @@ require __DIR__ . '/../layouts/header.php';
 
                 document.getElementById('stat_learning').innerHTML = `${learning} <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);" data-i18n="std_courses_unit">khóa</span>`;
                 document.getElementById('stat_completed').innerHTML = `${completed} <span style="font-size: 1.2rem; font-weight: normal; color: var(--text-muted);" data-i18n="std_courses_unit">khóa</span>`;
-                document.getElementById('stat_certs').innerText = completed;
+
+                // Render certificate count
+                document.getElementById('stat_certs').innerText = certsList.length;
 
                 // Thống kê thực tế học tập
                 const statsRes = await window.api.get('/student/stats');
@@ -231,51 +269,69 @@ require __DIR__ . '/../layouts/header.php';
 
 
                 // 2. Load ALL Courses to showcase (Like Guest Page)
-                const allCoursesRes = await window.api.get('/courses');
-                const courses = allCoursesRes.data;
-                const container = document.getElementById('all-course-list');
+                let currentCourses = [];
 
-                if (courses.length === 0) {
-                    container.innerHTML = '<p class="text-muted col-span-3" data-i18n="home_no_courses">Chưa có khóa học nào trên hệ thống.</p>';
+                async function renderCourseList(courses) {
+                    const container = document.getElementById('all-course-list');
+                    if (courses.length === 0) {
+                        container.innerHTML = '<p class="text-muted col-span-3" data-i18n="home_no_courses">Chưa có khóa học nào.</p>';
+                        if (window.I18n) window.I18n.render();
+                        return;
+                    }
+                    container.innerHTML = courses.map(c => {
+                        const isEnrolled = enrolledCourseIds.includes(c.id);
+                        let buttonHtml = '';
+                        if (isEnrolled) {
+                            buttonHtml = `<button onclick="window.location.href='/student/learning.php?course_id=${c.id}'" class="btn btn-outline" style="width: 100%; border-color: var(--success); color: var(--success); justify-content: center;" data-i18n="std_owned">Đã sở hữu ✅</button>`;
+                        } else if (c.is_premium == 1 || c.price > 0) {
+                            buttonHtml = `<button onclick="window.location.href='/student/course-payment.php?course_id=${c.id}&price=${c.price}'" class="btn" style="background: var(--warning); color: #000; font-weight: bold; width: 100%; justify-content: center;" data-i18n="std_btn_buy">💳 Mua khóa học</button>`;
+                        } else {
+                            buttonHtml = `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width: 100%; justify-content: center;" data-i18n="std_btn_free">Đăng ký Miễn Phí</button>`;
+                        }
+                        return `
+                        <div class="card glass-panel" style="display: flex; flex-direction: column;">
+                            <div class="card-img-placeholder" style="position: relative; height: 160px; font-size: 3rem;">📚
+                                ${(c.is_premium == 1 || c.price > 0) ? '<span style="position: absolute; top: 15px; right: 15px; background: var(--warning); color: #000; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px;">PREMIUM 💎</span>' : '<span style="position: absolute; top: 15px; right: 15px; background: var(--success); color: #fff; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px;" data-i18n="home_free">FREE</span>'}
+                            </div>
+                            <div class="card-body" style="flex: 1; display: flex; flex-direction: column;">
+                                <h3 class="card-title" style="margin-bottom: 0.5rem;">${c.title}</h3>
+                                <p class="text-secondary" style="font-size: 0.875rem; flex: 1; margin-bottom: 1.5rem;">${c.description ? c.description.substring(0, 90) + '...' : 'Chưa có mô tả.'}</p>
+                                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem; margin-bottom: 1rem;">
+                                    <span style="color: var(--text-primary); font-weight: 800; font-size: 1.5rem;">${c.price > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(c.price) : '0 ₫'}</span>
+                                </div>
+                                ${buttonHtml}
+                            </div>
+                        </div>`;
+                    }).join('');
                     if (window.I18n) window.I18n.render();
-                    return;
                 }
 
-                container.innerHTML = courses.map(c => {
-                    const isEnrolled = enrolledCourseIds.includes(c.id);
-                    let buttonHtml = '';
+                const allCoursesRes = await window.api.get('/courses');
+                currentCourses = allCoursesRes.data.items ? allCoursesRes.data.items : (allCoursesRes.data || []);
+                await renderCourseList(currentCourses);
 
-                    if (isEnrolled) {
-                        buttonHtml = `<button onclick="window.location.href='/student/learning.php?course_id=${c.id}'" class="btn btn-outline" style="width: 100%; border-color: var(--success); color: var(--success); justify-content: center; pointer-events: none;" data-i18n="std_owned">Đã sở hữu ✅</button>`;
-                    } else if (c.is_premium == 1 || c.price > 0) {
-                        buttonHtml = `<button onclick="window.location.href='/student/course-payment.php?course_id=${c.id}&price=${c.price}'" class="btn" style="background: var(--warning); color: #000; font-weight: bold; width: 100%; justify-content: center; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);" data-i18n="std_btn_buy">💳 Mua khóa học</button>`;
-                    } else {
-                        buttonHtml = `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width: 100%; justify-content: center;" data-i18n="std_btn_free">Đăng ký Miễn Phí</button>`;
-                    }
+                // Search with debounce
+                const searchInput = document.getElementById('courseSearchInput');
+                if (searchInput) {
+                    let debounceTimer;
+                    searchInput.addEventListener('input', () => {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(async () => {
+                            const q = searchInput.value.trim();
+                            if (!q) { await renderCourseList(currentCourses); return; }
+                            try {
+                                const res = await window.api.get(`/courses/search?q=${encodeURIComponent(q)}`);
+                                const searchResults = res.data.items ? res.data.items : (res.data || []);
+                                await renderCourseList(searchResults);
+                            } catch (e) {
+                                // silently keep showing current list
+                            }
+                        }, 400);
+                    });
+                }
 
-                    return `
-                    <div class="card glass-panel" style="display: flex; flex-direction: column;">
-                        <div class="card-img-placeholder" style="position: relative; height: 160px; font-size: 3rem;">
-                            📚
-                            ${(c.is_premium == 1 || c.price > 0) ? '<span style="position: absolute; top: 15px; right: 15px; background: var(--warning); color: #000; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">PREMIUM 💎</span>' : '<span style="position: absolute; top: 15px; right: 15px; background: var(--success); color: #fff; font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px;" data-i18n="home_free">FREE</span>'}
-                        </div>
-                        <div class="card-body" style="flex: 1; display: flex; flex-direction: column;">
-                            <h3 class="card-title" style="margin-bottom: 0.5rem;">${c.title}</h3>
-                            <p class="text-secondary" style="font-size: 0.875rem; flex: 1; margin-bottom: 1.5rem;" ${!c.description ? 'data-i18n="std_no_desc"' : ''}>
-                                ${c.description ? c.description.substring(0, 90) + '...' : 'Chưa có mô tả chi tiết từ giảng viên.'}
-                            </p>
-                            
-                            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem; margin-bottom: 1rem;">
-                                <span style="color: var(--text-primary); font-weight: 800; font-size: 1.5rem;">
-                                    ${c.price > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(c.price) : '0 ₫'}
-                                </span>
-                            </div>
-                            ${buttonHtml}
-                        </div>
-                    </div>`;
-                }).join('');
-                
-                if (window.I18n) window.I18n.render();
+
+
 
             } catch (error) {
                 console.error(error);

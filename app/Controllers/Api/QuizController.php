@@ -43,4 +43,22 @@ class QuizController
             $response->error($e->getMessage(), 400);
         }
     }
+
+    /**
+     * GET /api/quizzes/:id/history
+     * Lịch sử làm bài của học viên
+     */
+    public function history(Request $request, Response $response, string $quizId)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            $userId = (int)$request->user->sub;
+
+            $history = $this->quizService->getHistory($userId, (int)$quizId);
+            $response->success("Lịch sử làm bài", $history);
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
 }
+

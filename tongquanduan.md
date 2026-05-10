@@ -377,4 +377,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-_Tài liệu này được cập nhật thường xuyên. Phiên bản hiện tại: v1.0 - Ngày cập nhật: 2025_
+_Tài liệu này được cập nhật thường xuyên. Phiên bản hiện tại: v1.0 - Ngày cập nhật: 10_05_2026_

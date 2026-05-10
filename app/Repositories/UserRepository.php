@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Core\Database;
 use App\Models\User;
 use PDO;
+use PDOException;
 
 class UserRepository
 {
@@ -17,7 +18,7 @@ class UserRepository
 
     public function findByEmail(string $email): ?User
     {
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE email = :email AND deleted_at IS NULL LIMIT 1");
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
         $stmt->execute(['email' => $email]);
         $data = $stmt->fetch();
 
@@ -27,29 +28,51 @@ class UserRepository
         return null;
     }
 
+    public function findByUsername(string $username): ?User
+    {
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE username = :username LIMIT 1");
+        $stmt->execute(['username' => $username]);
+        $data = $stmt->fetch();
+        return $data ? new User((array)$data) : null;
+    }
+
     public function create(array $data): ?User
     {
         $sql = "INSERT INTO users (username, email, password_hash, role) 
                 VALUES (:username, :email, :password_hash, :role)";
         
-        $stmt = $this->db->prepare($sql);
-        $success = $stmt->execute([
-            'username'      => $data['username'],
-            'email'         => $data['email'],
-            'password_hash' => $data['password_hash'],
-            'role'          => $data['role'] ?? 'student'
-        ]);
+        try {
+            $stmt = $this->db->prepare($sql);
+            $success = $stmt->execute([
+                'username'      => $data['username'],
+                'email'         => $data['email'],
+                'password_hash' => $data['password_hash'],
+                'role'          => $data['role'] ?? 'student'
+            ]);
 
-        if ($success) {
-            $id = $this->db->lastInsertId();
-            return $this->findById($id);
+            if ($success) {
+                $id = $this->db->lastInsertId();
+                return $this->findById($id);
+            }
+            return null;
+        } catch (PDOException $e) {
+            // Bắt lỗi duplicate key (SQLSTATE 23000)
+            if ($e->getCode() === '23000') {
+                if (str_contains($e->getMessage(), 'username')) {
+                    throw new \Exception("Tên hiển thị này đã được sử dụng. Vui lòng chọn tên khác.");
+                }
+                if (str_contains($e->getMessage(), 'email')) {
+                    throw new \Exception("Email đã tồn tại trong hệ thống.");
+                }
+                throw new \Exception("Thông tin đã tồn tại trong hệ thống.");
+            }
+            throw $e;
         }
-        return null;
     }
 
     public function findById(int $id): ?User
     {
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE id = :id AND deleted_at IS NULL LIMIT 1");
+        $stmt = $this->db->prepare("SELECT * FROM users WHERE id = :id LIMIT 1");
         $stmt->execute(['id' => $id]);
         $data = $stmt->fetch();
 
@@ -69,9 +92,72 @@ class UserRepository
     {
         $stmt = $this->db->query("SELECT id, username, email, role, is_vip, status, created_at, last_login 
                                   FROM users 
-                                  WHERE deleted_at IS NULL 
+                                  
                                   ORDER BY id DESC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Paginated + searchable user list for admin
+     */
+    public function getAllUsersPaginated(int $limit, int $offset, string $search = '', string $role = ''): array
+    {
+        $where = ["deleted_at IS NULL", "role != 'admin'"];
+        $params = [];
+
+        if ($search !== '') {
+            $where[] = '(username LIKE :search OR email LIKE :search2)';
+            $kw = '%' . $search . '%';
+            $params[':search']  = $kw;
+            $params[':search2'] = $kw;
+        }
+        if ($role !== '' && in_array($role, ['student', 'teacher', 'admin'])) {
+            $where[] = 'role = :role';
+            $params[':role'] = $role;
+        }
+
+        $sql = "SELECT id, username, email, role, is_vip, status, created_at, last_login
+                FROM users
+                WHERE " . implode(' AND ', $where) . "
+                ORDER BY id DESC
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+        $stmt->bindValue(':limit',  $limit,  PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Count filtered users for pagination meta
+     */
+    public function countUsersFiltered(string $search = '', string $role = ''): int
+    {
+        $where = ["deleted_at IS NULL", "role != 'admin'"];
+        $params = [];
+
+        if ($search !== '') {
+            $where[] = '(username LIKE :search OR email LIKE :search2)';
+            $kw = '%' . $search . '%';
+            $params[':search']  = $kw;
+            $params[':search2'] = $kw;
+        }
+        if ($role !== '' && in_array($role, ['student', 'teacher', 'admin'])) {
+            $where[] = 'role = :role';
+            $params[':role'] = $role;
+        }
+
+        $sql = "SELECT COUNT(*) FROM users WHERE " . implode(' AND ', $where);
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
     }
 
     public function updateStatus(int $id, string $status): bool
@@ -88,13 +174,13 @@ class UserRepository
 
     public function countUsers(): int
     {
-        $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE deleted_at IS NULL");
+        $stmt = $this->db->query("SELECT COUNT(*) FROM users");
         return (int) $stmt->fetchColumn();
     }
 
     public function countVipUsers(): int
     {
-        $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE is_vip = 1 AND deleted_at IS NULL");
+        $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE is_vip = 1");
         return (int) $stmt->fetchColumn();
     }
 
@@ -106,8 +192,9 @@ class UserRepository
                 email = COALESCE(:email, email),
                 role = COALESCE(:role, role),
                 is_vip = COALESCE(:is_vip, is_vip),
-                status = COALESCE(:status, status)
-                WHERE id = :id AND deleted_at IS NULL";
+                status = COALESCE(:status, status),
+                password_hash = COALESCE(:password_hash, password_hash)
+                WHERE id = :id";
         
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -116,7 +203,8 @@ class UserRepository
             'email' => $data['email'] ?? null,
             'role' => $data['role'] ?? null,
             'is_vip' => isset($data['is_vip']) ? (int)$data['is_vip'] : null,
-            'status' => $data['status'] ?? null
+            'status' => $data['status'] ?? null,
+            'password_hash' => $data['password'] ?? null
         ]);
     }
 
@@ -155,7 +243,7 @@ class UserRepository
 
     public function updateProfile(int $id, string $username): bool
     {
-        $stmt = $this->db->prepare("UPDATE users SET username = :username WHERE id = :id AND deleted_at IS NULL");
+        $stmt = $this->db->prepare("UPDATE users SET username = :username WHERE id = :id");
         return $stmt->execute([
             'username' => $username,
             'id' => $id
@@ -164,7 +252,7 @@ class UserRepository
 
     public function updatePassword(int $id, string $hashedPassword): bool
     {
-        $stmt = $this->db->prepare("UPDATE users SET password_hash = :password_hash WHERE id = :id AND deleted_at IS NULL");
+        $stmt = $this->db->prepare("UPDATE users SET password_hash = :password_hash WHERE id = :id");
         return $stmt->execute([
             'password_hash' => $hashedPassword,
             'id' => $id
@@ -173,7 +261,7 @@ class UserRepository
 
     public function updateAvatar(int $id, string $avatarUrl): bool
     {
-        $stmt = $this->db->prepare("UPDATE users SET avatar = :avatar WHERE id = :id AND deleted_at IS NULL");
+        $stmt = $this->db->prepare("UPDATE users SET avatar = :avatar WHERE id = :id");
         return $stmt->execute([
             'avatar' => $avatarUrl,
             'id' => $id

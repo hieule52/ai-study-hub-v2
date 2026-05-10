@@ -68,8 +68,15 @@ const App = {
         }
 
         if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-            alert('Bạn không có quyền truy cập trang này.');
-            window.history.back();
+            // Redirect to role-appropriate dashboard instead of history.back()
+            const dashboards = {
+                'admin': '/admin/dashboard.php',
+                'teacher': '/teacher/dashboard.php',
+                'student': '/student/dashboard.php'
+            };
+            const redirectUrl = dashboards[user.role] || '/';
+            window.location.replace(redirectUrl);
+            return null;
         }
         return user;
     },
@@ -177,8 +184,9 @@ const App = {
         } else {
             menuItems = `
                 <li><a href="/student/dashboard.php" data-i18n="nav_student_dashboard">📊 Tổng quan học tập</a></li>
-                <li><a href="/student/dashboard.php#my-courses" data-i18n="nav_student_courses">📚 Khóa học của tôi</a></li>
-                <li><a href="/student/chat.php" data-i18n="nav_student_chat">💬 Cửa sổ Chat (Hội nhóm)</a></li>
+                <li><a href="/student/dashboard.php#enrolled-course-container" data-i18n="nav_student_courses">📚 Khóa học của tôi</a></li>
+                <li><a href="/student/certificates.php">🎓 Chứng chỉ của tôi</a></li>
+                <li><a href="/student/chat.php" data-i18n="nav_student_chat">💬 Trò Chuyện Giảng Viên</a></li>
                 <li><a href="/#courses" data-i18n="std_explore_new">✨ Khám phá Khóa học mới</a></li>
             `;
         }

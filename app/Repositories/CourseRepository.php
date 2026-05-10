@@ -22,7 +22,7 @@ class CourseRepository
             FROM courses c
             LEFT JOIN course_categories cc ON c.category_id = cc.id
             LEFT JOIN users u ON c.teacher_id = u.id
-            WHERE c.deleted_at IS NULL AND c.status = 'approved' 
+            WHERE c.status = 'approved' AND c.deleted_at IS NULL
             ORDER BY c.id DESC LIMIT :limit OFFSET :offset
         ");
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -38,7 +38,14 @@ class CourseRepository
 
     public function findById(int $id): ?Course
     {
-        $stmt = $this->db->prepare("SELECT * FROM courses WHERE id = :id AND deleted_at IS NULL LIMIT 1");
+        $stmt = $this->db->prepare("
+            SELECT c.*, cc.name as category_name, cc.slug as category_slug, u.username as teacher_name, u.email as teacher_email
+            FROM courses c
+            LEFT JOIN course_categories cc ON c.category_id = cc.id
+            LEFT JOIN users u ON c.teacher_id = u.id
+            WHERE c.id = :id AND c.deleted_at IS NULL
+            LIMIT 1
+        ");
         $stmt->execute(['id' => $id]);
         $data = $stmt->fetch();
 
@@ -79,7 +86,7 @@ class CourseRepository
             SELECT c.*, 
                    (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id) as total_students 
             FROM courses c 
-            WHERE c.teacher_id = :teacher_id AND c.deleted_at IS NULL 
+            WHERE c.teacher_id = :teacher_id AND c.deleted_at IS NULL
             ORDER BY c.id DESC
         ");
         $stmt->execute(['teacher_id' => $teacherId]);
@@ -91,7 +98,7 @@ class CourseRepository
         $stmt = $this->db->prepare("
             SELECT 
                 COUNT(c.id) as total_courses,
-                COALESCE((SELECT COUNT(e.id) FROM enrollments e JOIN courses c2 ON e.course_id = c2.id WHERE c2.teacher_id = :t1 AND c2.deleted_at IS NULL), 0) as total_students
+                COALESCE((SELECT COUNT(e.id) FROM enrollments e JOIN courses c2 ON e.course_id = c2.id WHERE c2.teacher_id = :t1), 0) as total_students
             FROM courses c
             WHERE c.teacher_id = :t2 AND c.deleted_at IS NULL
         ");
@@ -100,7 +107,16 @@ class CourseRepository
         if (!$stats) {
             $stats = ['total_courses' => 0, 'total_students' => 0];
         }
-        $stats['avg_rating'] = "4.8"; // Thay thế bằng bảng review nếu có
+        $stmtAvg = $this->db->prepare("
+            SELECT AVG(cr.rating) 
+            FROM course_reviews cr 
+            JOIN courses c ON cr.course_id = c.id 
+            WHERE c.teacher_id = :teacher_id AND c.deleted_at IS NULL
+        ");
+        $stmtAvg->execute(['teacher_id' => $teacherId]);
+        $avg = $stmtAvg->fetchColumn();
+        $stats['avg_rating'] = $avg ? number_format($avg, 1) : "0.0";
+        
         return $stats;
     }
 
@@ -135,7 +151,7 @@ class CourseRepository
             FROM courses c
             LEFT JOIN course_categories cc ON c.category_id = cc.id
             LEFT JOIN users u ON c.teacher_id = u.id
-            WHERE c.deleted_at IS NULL AND c.status = 'approved'
+            WHERE c.status = 'approved' AND c.deleted_at IS NULL
               AND (c.title LIKE :kw1 OR c.description LIKE :kw2)
             ORDER BY c.id DESC LIMIT :limit
         ");
@@ -157,7 +173,7 @@ class CourseRepository
             FROM courses c
             LEFT JOIN course_categories cc ON c.category_id = cc.id
             LEFT JOIN users u ON c.teacher_id = u.id
-            WHERE c.category_id = :cat_id AND c.deleted_at IS NULL AND c.status = 'approved'
+            WHERE c.category_id = :cat_id AND c.status = 'approved'
             ORDER BY c.id DESC LIMIT :limit
         ");
         $stmt->bindValue(':cat_id', $categoryId, PDO::PARAM_INT);
@@ -199,9 +215,30 @@ class CourseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getAllAdminCourses(): array
+    {
+        $stmt = $this->db->query("
+            SELECT c.*, u.username as teacher_name, u.email as teacher_email
+            FROM courses c
+            JOIN users u ON c.teacher_id = u.id
+            WHERE c.deleted_at IS NULL
+            ORDER BY c.id DESC
+        ");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function countPendingCourses(): int
     {
         $stmt = $this->db->query("SELECT COUNT(*) FROM courses WHERE status = 'pending' AND deleted_at IS NULL");
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Count published (approved) courses for pagination
+     */
+    public function countApproved(): int
+    {
+        $stmt = $this->db->query("SELECT COUNT(*) FROM courses WHERE status = 'approved' AND deleted_at IS NULL");
         return (int) $stmt->fetchColumn();
     }
 
@@ -209,6 +246,34 @@ class CourseRepository
     {
         $stmt = $this->db->prepare("UPDATE courses SET status = :status WHERE id = :id");
         return $stmt->execute(['status' => $status, 'id' => $id]);
+    }
+
+    /**
+     * Mark course as pending if it was approved (used when teacher makes changes)
+     */
+    public function requireReapproval(int $courseId): bool
+    {
+        $stmt = $this->db->prepare("UPDATE courses SET status = 'pending' WHERE id = :id AND status = 'approved'");
+        $success = $stmt->execute(['id' => $courseId]);
+        
+        // Nếu có dòng nào bị ảnh hưởng (nghĩa là nó từ approved -> pending)
+        if ($success && $stmt->rowCount() > 0) {
+            // Lấy thông tin course
+            $course = $this->findById($courseId);
+            if ($course) {
+                // Lấy danh sách admin
+                $admins = $this->db->query("SELECT id FROM users WHERE role = 'admin'")->fetchAll(PDO::FETCH_COLUMN);
+                $notifStmt = $this->db->prepare("INSERT INTO notifications (user_id, type, title, message) VALUES (:uid, 'warning', :title, :msg)");
+                foreach ($admins as $adminId) {
+                    $notifStmt->execute([
+                        'uid' => $adminId,
+                        'title' => "Khóa học cần duyệt lại",
+                        'msg' => "Khóa học '{$course->title}' đã bị chỉnh sửa bởi giảng viên và đang chờ bạn xét duyệt lại."
+                    ]);
+                }
+            }
+        }
+        return $success;
     }
 
     public function getTotalRevenue(): float

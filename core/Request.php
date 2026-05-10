@@ -4,7 +4,11 @@ namespace App\Core;
 
 class Request
 {
-    private array $data = [];
+    private array $data      = []; // merged GET + Body
+    private array $queryData = []; // GET-only params
+    private array $bodyData  = []; // POST/PUT Body-only params
+
+    public mixed $user = null; // Populated by AuthMiddleware
 
     public function __construct()
     {
@@ -13,26 +17,29 @@ class Request
 
     private function parse(): void
     {
-        // Parse GET params
-        $this->data = $_GET;
+        // Parse GET query string params
+        $this->queryData = $_GET;
 
         // Parse POST/PUT JSON payload or Form data
         $method = $_SERVER['REQUEST_METHOD'];
         $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 
-        if ($method === 'POST' || $method === 'PUT' || $method === 'PATCH') {
+        if (in_array($method, ['POST', 'PUT', 'PATCH'])) {
             if (strpos($contentType, 'application/json') !== false) {
                 // JSON Data
                 $input = file_get_contents('php://input');
                 $json = json_decode($input, true);
                 if (is_array($json)) {
-                    $this->data = array_merge($this->data, $json);
+                    $this->bodyData = $json;
                 }
             } else {
                 // Form data
-                $this->data = array_merge($this->data, $_POST);
+                $this->bodyData = $_POST;
             }
         }
+
+        // Merged: body takes priority over query for same keys
+        $this->data = array_merge($this->queryData, $this->bodyData);
     }
 
     public function getMethod(): string
@@ -73,13 +80,25 @@ class Request
         return $headers;
     }
 
-    public function input(string $key, $default = null)
+    /**
+     * Read from merged data (GET + Body)
+     */
+    public function input(string $key, $default = null): mixed
     {
         return $this->data[$key] ?? $default;
     }
 
+    /**
+     * Read from GET query string ONLY — use for pagination, filters, search
+     */
+    public function query(string $key, $default = null): mixed
+    {
+        return $this->queryData[$key] ?? $default;
+    }
+
     public function all(): array
     {
-        return $this->data;
+        return $this->bodyData; // all() returns BODY data only (security: no GET params leaking into body handlers)
     }
 }
+

@@ -24,6 +24,7 @@ class AiController
     public function chat(Request $request, Response $response)
     {
         try {
+            \App\Middlewares\RateLimitMiddleware::handle($request, $response, 20, 60, 'ai_chat');
             AuthMiddleware::handle($request, $response);
 
             $message = $request->input('message');

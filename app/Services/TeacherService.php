@@ -42,7 +42,11 @@ class TeacherService
         if (!$course || $course->teacher_id != $teacherId) {
             throw new Exception("Không tìm thấy khóa học hoặc bạn không có quyền sửa.");
         }
-        return $this->courseRepo->update($courseId, $data);
+        $success = $this->courseRepo->update($courseId, $data);
+        if ($success) {
+            $this->courseRepo->requireReapproval($courseId);
+        }
+        return $success;
     }
 
     public function deleteCourse(int $teacherId, int $courseId): bool

@@ -100,6 +100,62 @@ require __DIR__ . '/../layouts/header.php';
                     </table>
                 </div>
             </div>
+        <!-- Edit Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Sửa thông tin tài khoản</h3>
+                    <div class="modal-close" onclick="closeModal()">✕</div>
+                </div>
+                <form id="editForm" onsubmit="saveUser(event)">
+                    <input type="hidden" id="edit_id">
+                    
+                    <div class="form-group mb-4">
+                        <label class="form-label" style="color:var(--text-secondary); font-size:0.875rem;">Email (Không thể sửa)</label>
+                        <input type="email" id="edit_email" class="form-control premium-input" disabled>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label class="form-label" style="color:var(--text-secondary); font-size:0.875rem;">Tên hiển thị</label>
+                        <input type="text" id="edit_username" class="form-control premium-input" required>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label" style="color:var(--text-secondary); font-size:0.875rem;">Phân quyền</label>
+                        <select id="edit_role" class="form-control premium-input">
+                            <option value="student">Học viên (Student)</option>
+                            <option value="teacher">Giảng viên (Teacher)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label" style="color:var(--text-secondary); font-size:0.875rem;">Đổi Mật khẩu (Bỏ trống nếu không đổi)</label>
+                        <input type="password" id="edit_password" class="form-control premium-input" placeholder="Nhập mật khẩu mới...">
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="form-label" style="color:var(--text-secondary); font-size:0.875rem;">Trạng thái VIP</label>
+                        <select id="edit_vip" class="form-control premium-input">
+                            <option value="0">Thường</option>
+                            <option value="1">VIP Premium</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-6">
+                        <label class="form-label" style="color:var(--text-secondary); font-size:0.875rem;">Trạng thái tài khoản</label>
+                        <select id="edit_status" class="form-control premium-input">
+                            <option value="active">Hoạt động</option>
+                            <option value="banned">Bị Khóa</option>
+                        </select>
+                    </div>
+
+                    <div class="flex justify-end mt-4">
+                        <button type="button" class="btn btn-outline" style="margin-right: 1rem;" onclick="closeModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary btn-premium-save">💾 Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
 <?php ob_start(); ?>
 <script>
@@ -114,7 +170,7 @@ require __DIR__ . '/../layouts/header.php';
         async function loadUsers() {
             try {
                 const res = await window.api.get('/admin/users');
-                allUsers = res.data;
+                allUsers = res.data.items || res.data;
                 renderUsers(allUsers);
             } catch(e) {
                 console.error("Lỗi tải user", e);
@@ -175,6 +231,7 @@ require __DIR__ . '/../layouts/header.php';
             document.getElementById('edit_role').value = u.role;
             document.getElementById('edit_vip').value = u.is_vip;
             document.getElementById('edit_status').value = u.status;
+            document.getElementById('edit_password').value = '';
             modal.classList.add('active');
         }
 

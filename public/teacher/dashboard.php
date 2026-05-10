@@ -114,8 +114,7 @@ require __DIR__ . '/../layouts/header.php';
 
             } catch (err) {
                 console.error(err);
-                const errMsg = window.I18n ? window.I18n.get('tc_dash_err_load') : 'Lỗi tải dữ liệu Dashboard';
-                App.showToast(errMsg, 'error');
+                App.showToast('Lỗi: ' + err.message, 'error');
             }
         });
 

@@ -33,7 +33,7 @@ class LearningPathRepository
                        (SELECT COUNT(*) FROM learning_path_enrollments lpe WHERE lpe.path_id = lp.id) as total_students
                 FROM learning_paths lp
                 JOIN users u ON lp.created_by = u.id
-                WHERE lp.is_published = 1 AND lp.deleted_at IS NULL
+                WHERE lp.is_published = 1
                 ORDER BY lp.created_at DESC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -49,7 +49,7 @@ class LearningPathRepository
                        (SELECT COUNT(*) FROM learning_path_enrollments lpe WHERE lpe.path_id = lp.id) as total_students
                 FROM learning_paths lp
                 JOIN users u ON lp.created_by = u.id
-                WHERE lp.deleted_at IS NULL
+               
                 ORDER BY lp.created_at DESC";
         $stmt = $this->db->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -63,7 +63,7 @@ class LearningPathRepository
         $sql = "SELECT lp.*, u.username as creator_name
                 FROM learning_paths lp
                 JOIN users u ON lp.created_by = u.id
-                WHERE lp.id = :id AND lp.deleted_at IS NULL
+                WHERE lp.id = :id
                 LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['id' => $id]);
@@ -122,7 +122,7 @@ class LearningPathRepository
                     difficulty = :difficulty, 
                     estimated_hours = :estimated_hours,
                     is_published = :is_published
-                WHERE id = :id AND deleted_at IS NULL";
+                WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             'id' => $id,
@@ -160,7 +160,7 @@ class LearningPathRepository
                 FROM learning_path_courses lpc
                 JOIN courses c ON lpc.course_id = c.id
                 JOIN users u ON c.teacher_id = u.id
-                WHERE lpc.path_id = :path_id AND c.deleted_at IS NULL
+                WHERE lpc.path_id = :path_id
                 ORDER BY lpc.order_index ASC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['path_id' => $pathId]);
@@ -287,7 +287,7 @@ class LearningPathRepository
                        (SELECT COUNT(*) FROM learning_path_courses lpc WHERE lpc.path_id = lp.id) as total_courses
                 FROM learning_path_enrollments lpe
                 JOIN learning_paths lp ON lpe.path_id = lp.id
-                WHERE lpe.user_id = :user_id AND lp.deleted_at IS NULL
+                WHERE lpe.user_id = :user_id
                 ORDER BY lpe.enrolled_at DESC";
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['user_id' => $userId]);

@@ -18,15 +18,17 @@ class EnrollmentRepository
     public function findEnrolledCoursesByUser(int $userId): array
     {
         $stmt = $this->db->prepare("
-            SELECT e.progress_percent, e.enrolled_at, c.* 
+            SELECT e.progress_percent, e.enrolled_at, c.*,
+                   u.username as teacher_name, u.email as teacher_email, u.avatar as teacher_avatar
             FROM enrollments e
             JOIN courses c ON e.course_id = c.id
+            LEFT JOIN users u ON c.teacher_id = u.id
             WHERE e.user_id = :user_id AND c.deleted_at IS NULL
             ORDER BY e.enrolled_at DESC
         ");
         $stmt->execute(['user_id' => $userId]);
         
-        return $stmt->fetchAll(PDO::FETCH_ASSOC); // Trả về mảng array data để tiện render frontend
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function enroll(int $userId, int $courseId): bool
@@ -49,20 +51,65 @@ class EnrollmentRepository
     {
         $stmt = $this->db->prepare("SELECT id FROM enrollments WHERE user_id = :user_id AND course_id = :course_id");
         $stmt->execute(['user_id' => $userId, 'course_id' => $courseId]);
-        return (bool)$stmt->fetch();
+        return $stmt->fetchColumn() !== false;
+    }
+
+    public function updateProgress(int $userId, int $courseId): int
+    {
+        // Total lessons in course
+        $stmtTotal = $this->db->prepare("
+            SELECT COUNT(l.id) as total
+            FROM lessons l
+            JOIN chapters c ON l.chapter_id = c.id
+            WHERE c.course_id = :course_id AND l.deleted_at IS NULL
+        ");
+        $stmtTotal->execute(['course_id' => $courseId]);
+        $total = (int)$stmtTotal->fetchColumn();
+
+        if ($total === 0) return 0;
+
+        // Completed lessons by user
+        $stmtCompleted = $this->db->prepare("
+            SELECT COUNT(lp.lesson_id) as completed
+            FROM lesson_progress lp
+            JOIN lessons l ON lp.lesson_id = l.id
+            JOIN chapters c ON l.chapter_id = c.id
+            WHERE lp.user_id = :user_id 
+              AND lp.is_completed = 1 
+              AND c.course_id = :course_id
+              AND l.deleted_at IS NULL
+        ");
+        $stmtCompleted->execute(['user_id' => $userId, 'course_id' => $courseId]);
+        $completed = (int)$stmtCompleted->fetchColumn();
+
+        $percent = (int)round(($completed / $total) * 100);
+
+        // Update enrollment
+        $stmtUpdate = $this->db->prepare("
+            UPDATE enrollments 
+            SET progress_percent = :percent 
+            WHERE user_id = :user_id AND course_id = :course_id
+        ");
+        $stmtUpdate->execute([
+            'percent' => $percent,
+            'user_id' => $userId,
+            'course_id' => $courseId
+        ]);
+
+        return $percent;
     }
 
     public function findStudentsByTeacher(int $teacherId): array
     {
         // Join enrollments with users and courses, filtering by teacher_id
         $stmt = $this->db->prepare("
-            SELECT u.id as user_id, u.username, u.email, 
+            SELECT u.id as user_id, u.username, u.email, u.avatar,
                    c.id as course_id, c.title as course_title, 
                    e.progress_percent, e.enrolled_at
             FROM enrollments e
             JOIN users u ON e.user_id = u.id
             JOIN courses c ON e.course_id = c.id
-            WHERE c.teacher_id = :teacher_id AND c.deleted_at IS NULL
+            WHERE c.teacher_id = :teacher_id
             ORDER BY e.enrolled_at DESC
         ");
         $stmt->execute(['teacher_id' => $teacherId]);
@@ -99,5 +146,37 @@ class EnrollmentRepository
         }
 
         return $stats;
+    }
+
+    /**
+     * Lấy phần trăm tiến độ của một khóa học cụ thể
+     */
+    public function getProgressPercent(int $userId, int $courseId): int
+    {
+        $stmt = $this->db->prepare("
+            SELECT progress_percent 
+            FROM enrollments 
+            WHERE user_id = :uid AND course_id = :cid 
+            LIMIT 1
+        ");
+        $stmt->execute(['uid' => $userId, 'cid' => $courseId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (int)$row['progress_percent'] : 0;
+    }
+
+    public function getAllEnrollments(): array
+    {
+        $stmt = $this->db->query("
+            SELECT e.id, e.enrolled_at, e.progress_percent,
+                   u.username as student_name, u.email as student_email,
+                   c.title as course_title, c.price as course_price,
+                   t.username as teacher_name
+            FROM enrollments e
+            JOIN users u ON e.user_id = u.id
+            JOIN courses c ON e.course_id = c.id
+            LEFT JOIN users t ON c.teacher_id = t.id
+            ORDER BY e.enrolled_at DESC
+        ");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

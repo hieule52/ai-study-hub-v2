@@ -27,8 +27,10 @@ $router->post('/api/user/avatar', 'Api\UserController@uploadAvatar');
 // COURSE ROUTES
 // =============================================
 $router->get('/api/courses', 'Api\CourseController@index');
+$router->get('/api/courses/search', 'Api\CourseController@search');
 $router->post('/api/courses', 'Api\CourseController@store');
 $router->get('/api/courses/:id', 'Api\CourseController@show');
+$router->get('/api/courses/:id/reviews', 'Api\CourseController@getReviews');
 $router->post('/api/courses/:id/enroll', 'Api\StudentController@enrollCourse');
 $router->post('/api/courses/:id/verify-purchase', 'Api\StudentController@verifyPurchase');
 
@@ -43,6 +45,7 @@ $router->delete('/api/categories/:id', 'Api\CategoryController@delete');
 // =============================================
 $router->get('/api/student/courses', 'Api\StudentController@getEnrolledCourses');
 $router->get('/api/student/stats', 'Api\StudentController@getStats');
+$router->post('/api/student/courses/:courseId/reviews', 'Api\StudentController@submitReview');
 
 // Lesson Routes
 $router->get('/api/courses/:id/curriculum', 'Api\LessonController@curriculum');
@@ -73,9 +76,10 @@ $router->post('/api/learning-paths/:id/enroll', 'Api\LearningPathController@enro
 $router->get('/api/learning-paths/:id/progress', 'Api\LearningPathController@progress');
 
 // =============================================
-// AI CHAT
+// AI & USER CHAT
 // =============================================
 $router->post('/api/ai/chat', 'Api\AiController@chat');
+$router->get('/api/chat/history', 'Api\ChatController@history');
 
 // =============================================
 // VIP PAYMENT
@@ -106,6 +110,10 @@ $router->post('/api/teacher/quizzes', 'Api\TeacherCurriculumController@createQui
 $router->put('/api/teacher/quizzes/:id', 'Api\TeacherCurriculumController@updateQuiz');
 $router->delete('/api/teacher/quizzes/:id', 'Api\TeacherCurriculumController@deleteQuiz');
 
+// Quiz Builder — lấy và lưu toàn bộ câu hỏi + đáp án
+$router->get('/api/teacher/lessons/:id/quiz', 'Api\TeacherCurriculumController@getFullQuiz');
+$router->post('/api/teacher/lessons/:id/quiz', 'Api\TeacherCurriculumController@saveFullQuiz');
+
 // File Upload (Image / Video)
 $router->post('/api/upload', 'Api\UploadController@upload');
 $router->post('/api/upload/image', 'Api\UploadController@uploadImage');
@@ -122,7 +130,31 @@ $router->delete('/api/admin/users/:id', 'Api\AdminController@deleteUser');
 $router->put('/api/admin/users/:id/status', 'Api\AdminController@updateUserStatus');
 $router->put('/api/admin/users/:id/role', 'Api\AdminController@updateUserRole');
 $router->get('/api/admin/courses/pending', 'Api\AdminController@getPendingCourses');
+$router->get('/api/admin/courses', 'Api\AdminController@getAllCourses');
 $router->put('/api/admin/courses/:id/approve', 'Api\AdminController@approveCourse');
 $router->put('/api/admin/courses/:id/reject', 'Api\AdminController@rejectCourse');
+$router->put('/api/admin/courses/:id/hide', 'Api\AdminController@hideCourse');
+$router->put('/api/admin/courses/:id/show', 'Api\AdminController@showCourse');
+$router->delete('/api/admin/courses/:id', 'Api\AdminController@deleteCourse');
+$router->get('/api/admin/enrollments', 'Api\AdminController@getEnrollments');
 $router->get('/api/admin/vip-payments', 'Api\AdminController@getVipPayments');
 $router->get('/api/admin/audit-logs', 'Api\AdminController@getAuditLogs');
+
+// =============================================
+// CERTIFICATES
+// =============================================
+$router->get('/api/certificates/my', 'Api\CertificateController@myCertificates');
+$router->post('/api/certificates/claim/:courseId', 'Api\CertificateController@claim');
+$router->get('/api/certificates/verify/:uuid', 'Api\CertificateController@verify');
+
+// =============================================
+// NOTIFICATIONS
+// =============================================
+$router->get('/api/notifications', 'Api\CertificateController@getNotifications');
+$router->put('/api/notifications/read-all', 'Api\CertificateController@markAllRead');
+
+// =============================================
+// QUIZ HISTORY & RETRY
+// =============================================
+$router->get('/api/quizzes/:id/history', 'Api\QuizController@history');
+

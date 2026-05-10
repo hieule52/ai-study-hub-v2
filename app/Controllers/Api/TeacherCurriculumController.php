@@ -51,7 +51,7 @@ class TeacherCurriculumController
                 throw new Exception("Thông tin thiếu");
             }
 
-            $chapter = $this->chapterRepo->create($data);
+            $chapter = $this->chapterRepo->create($data); if ($chapter) $this->courseRepo->requireReapproval((int)$data['course_id']);
             if ($chapter) {
                 $response->success("Tạo chương thành công", $chapter, 201);
             } else {
@@ -77,7 +77,7 @@ class TeacherCurriculumController
                 throw new Exception("Tiêu đề chương không được để trống.");
             }
 
-            $success = $this->chapterRepo->update((int)$id, $data);
+            $success = $this->chapterRepo->update((int)$id, $data); if ($success) { $chapter = $this->chapterRepo->findById((int)$id); if ($chapter) $this->courseRepo->requireReapproval((int)$chapter['course_id']); }
             if ($success) {
                 $response->success("Cập nhật chương thành công");
             } else {
@@ -103,7 +103,7 @@ class TeacherCurriculumController
                 throw new Exception("Không tìm thấy chương.");
             }
 
-            $this->chapterRepo->delete((int)$id);
+            $this->chapterRepo->delete((int)$id); $this->courseRepo->requireReapproval((int)$chapter['course_id']);
 
             // Auto-update total lessons
             $this->courseRepo->updateTotalLessons($chapter['course_id']);
@@ -130,7 +130,7 @@ class TeacherCurriculumController
                 throw new Exception("Thiếu thông tin sắp xếp.");
             }
 
-            $this->chapterRepo->reorder((int)$data['course_id'], $data['orders']);
+            $this->chapterRepo->reorder((int)$data['course_id'], $data['orders']); $this->courseRepo->requireReapproval((int)$data['course_id']);
             $response->success("Đã sắp xếp lại thứ tự chương");
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
@@ -156,8 +156,16 @@ class TeacherCurriculumController
             if (empty($data['title']) || empty($data['chapter_id'])) {
                 throw new Exception("Thông tin thiếu");
             }
+            
+            $contentType = $data['content_type'] ?? 'video';
+            if ($contentType !== 'quiz') {
+                $contentStr = trim($data['content'] ?? '');
+                if (empty($contentStr) || $contentStr === '<p><br></p>') {
+                    throw new Exception("Vui lòng nhập nội dung chi tiết cho bài học.");
+                }
+            }
 
-            $lesson = $this->lessonRepo->create($data);
+            $lesson = $this->lessonRepo->create($data); if ($lesson) $this->requireReapprovalByChapter((int)$data['chapter_id']);
             if ($lesson) {
                 // Auto-update total lessons count
                 $chapter = $this->chapterRepo->findById((int)$data['chapter_id']);
@@ -189,7 +197,15 @@ class TeacherCurriculumController
                 throw new Exception("Tiêu đề bài học không được để trống.");
             }
 
-            $success = $this->lessonRepo->update((int)$id, $data);
+            $contentType = $data['content_type'] ?? 'video';
+            if ($contentType !== 'quiz') {
+                $contentStr = trim($data['content'] ?? '');
+                if (empty($contentStr) || $contentStr === '<p><br></p>') {
+                    throw new Exception("Vui lòng nhập nội dung chi tiết cho bài học.");
+                }
+            }
+
+            $this->requireReapprovalByLesson((int)$id); $success = $this->lessonRepo->update((int)$id, $data);
             if ($success) {
                 $response->success("Cập nhật bài học thành công");
             } else {
@@ -215,7 +231,7 @@ class TeacherCurriculumController
                 throw new Exception("Không tìm thấy bài học.");
             }
 
-            $this->lessonRepo->delete((int)$id);
+            $this->lessonRepo->delete((int)$id); $this->requireReapprovalByChapter((int)$lesson['chapter_id']);
 
             // Auto-update total lessons
             $chapter = $this->chapterRepo->findById($lesson['chapter_id']);
@@ -245,7 +261,7 @@ class TeacherCurriculumController
                 throw new Exception("Thiếu thông tin sắp xếp.");
             }
 
-            $this->lessonRepo->reorder((int)$data['chapter_id'], $data['orders']);
+            $this->lessonRepo->reorder((int)$data['chapter_id'], $data['orders']); $this->requireReapprovalByChapter((int)$data['chapter_id']);
             $response->success("Đã sắp xếp lại thứ tự bài học");
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
@@ -271,12 +287,55 @@ class TeacherCurriculumController
                 throw new Exception("Thông tin thiếu");
             }
 
-            $quiz = $this->quizRepo->create($data);
+            $quiz = $this->quizRepo->create($data); if ($quiz) $this->requireReapprovalByLesson((int)$data['lesson_id']);
             if ($quiz) {
                 $response->success("Tạo bài kiểm tra thành công", $quiz, 201);
             } else {
                 $response->error("Tạo thất bại", 400);
             }
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Lấy toàn bộ quiz (câu hỏi + đáp án) theo lesson_id — dùng cho Quiz Builder
+     * GET /api/teacher/lessons/:id/quiz
+     */
+    public function getFullQuiz(Request $request, Response $response, string $id)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['teacher', 'admin']);
+
+            $quiz = $this->quizRepo->getFullQuiz((int)$id);
+            $response->success("OK", $quiz); // null nếu chưa có
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Lưu toàn bộ quiz + câu hỏi + đáp án theo lesson — dùng cho Quiz Builder
+     * POST /api/teacher/lessons/:id/quiz
+     * Body: { title: string, questions: [{ question, answers: [{ text, is_correct }] }] }
+     */
+    public function saveFullQuiz(Request $request, Response $response, string $id)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['teacher', 'admin']);
+
+            $data = $request->all();
+            if (empty($data['title'])) {
+                throw new Exception("Tiêu đề bài kiểm tra không được để trống.");
+            }
+            if (empty($data['questions']) || !is_array($data['questions'])) {
+                throw new Exception("Cần ít nhất 1 câu hỏi.");
+            }
+
+            $result = $this->quizRepo->saveFullQuiz((int)$id, $data['title'], $data['questions']); $this->requireReapprovalByLesson((int)$id);
+            $response->success("Đã lưu bài kiểm tra thành công!", $result);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }
@@ -297,7 +356,7 @@ class TeacherCurriculumController
                 throw new Exception("Tiêu đề bài kiểm tra không được để trống.");
             }
 
-            $success = $this->quizRepo->update((int)$id, $data);
+            $success = $this->quizRepo->update((int)$id, $data); if ($success) { $quiz = $this->quizRepo->findById((int)$id); if ($quiz) $this->requireReapprovalByLesson((int)$quiz['lesson_id']); }
             if ($success) {
                 $response->success("Cập nhật bài kiểm tra thành công");
             } else {
@@ -318,10 +377,24 @@ class TeacherCurriculumController
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['teacher', 'admin']);
 
-            $this->quizRepo->delete((int)$id);
+            $quiz = $this->quizRepo->findById((int)$id); $this->quizRepo->delete((int)$id); if ($quiz) $this->requireReapprovalByLesson((int)$quiz['lesson_id']);
             $response->success("Đã xóa bài kiểm tra thành công");
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
+        }
+    }
+
+    private function requireReapprovalByChapter(int $chapterId) {
+        $chapter = $this->chapterRepo->findById($chapterId);
+        if ($chapter) {
+            $this->courseRepo->requireReapproval((int)$chapter['course_id']);
+        }
+    }
+
+    private function requireReapprovalByLesson(int $lessonId) {
+        $lesson = $this->lessonRepo->findLessonById($lessonId);
+        if ($lesson) {
+            $this->requireReapprovalByChapter((int)$lesson['chapter_id']);
         }
     }
 }

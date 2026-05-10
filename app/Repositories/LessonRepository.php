@@ -29,6 +29,24 @@ class LessonRepository
     }
 
     /**
+     * Batch query: lấy tất cả lessons của nhiều chapters trong 1 query
+     * Tránh N+1 problem trong getCourseCurriculum
+     */
+    public function findLessonsByChapterIds(array $chapterIds): array
+    {
+        if (empty($chapterIds)) return [];
+
+        $placeholders = implode(',', array_fill(0, count($chapterIds), '?'));
+        $stmt = $this->db->prepare("
+            SELECT * FROM lessons
+            WHERE chapter_id IN ({$placeholders}) AND deleted_at IS NULL
+            ORDER BY chapter_id ASC, order_index ASC
+        ");
+        $stmt->execute(array_values($chapterIds));
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Tìm bài học kèm trạng thái hoàn thành của user
      */
     public function findLessonWithProgress(int $lessonId, int $userId): ?array
@@ -55,24 +73,25 @@ class LessonRepository
         return $data ? (array)$data : null;
     }
 
+    /**
+     * Đánh dấu hoàn thành bài học
+     * Dùng INSERT IGNORE (hoặc ON DUPLICATE KEY UPDATE) thay vì SELECT rồi INSERT
+     * Requires UNIQUE KEY (user_id, lesson_id) — xem migration_v3.sql
+     */
     public function markProgress(int $userId, int $lessonId): bool
     {
-        // Kiểm tra xem đã có chưa
-        $stmt = $this->db->prepare("SELECT id FROM lesson_progress WHERE user_id = :uid AND lesson_id = :lid");
+        $stmt = $this->db->prepare("
+            INSERT IGNORE INTO lesson_progress (user_id, lesson_id, is_completed, completed_at)
+            VALUES (:uid, :lid, 1, CURRENT_TIMESTAMP)
+        ");
         $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
-        
-        if ($stmt->fetch()) {
-            return true; // Đã đánh dấu hoàn thành từ trước
-        }
-
-        $insert = $this->db->prepare("INSERT INTO lesson_progress (user_id, lesson_id, is_completed, completed_at) VALUES (:uid, :lid, 1, CURRENT_TIMESTAMP)");
-        return $insert->execute(['uid' => $userId, 'lid' => $lessonId]);
+        return true; // INSERT IGNORE không throw exception nếu đã tồn tại
     }
 
     public function create(array $data): ?array
     {
-        $sql = "INSERT INTO lessons (chapter_id, title, content_type, video_url, video_filename, video_size, duration, content, ai_summary, order_index, is_free) 
-                VALUES (:chapter_id, :title, :content_type, :video_url, :video_filename, :video_size, :duration, :content, :ai_summary, :order_index, :is_free)";
+        $sql = "INSERT INTO lessons (chapter_id, title, content_type, video_url, video_filename, video_size, duration, content, objectives, ai_summary, order_index, is_free) 
+                VALUES (:chapter_id, :title, :content_type, :video_url, :video_filename, :video_size, :duration, :content, :objectives, :ai_summary, :order_index, :is_free)";
         $stmt = $this->db->prepare($sql);
         $success = $stmt->execute([
             'chapter_id' => $data['chapter_id'],
@@ -83,6 +102,7 @@ class LessonRepository
             'video_size' => $data['video_size'] ?? 0,
             'duration' => $data['duration'] ?? 0,
             'content' => $data['content'] ?? '',
+            'objectives' => $data['objectives'] ?? null,
             'ai_summary' => $data['ai_summary'] ?? null,
             'order_index' => $data['order_index'] ?? 0,
             'is_free' => $data['is_free'] ?? 0
@@ -100,7 +120,7 @@ class LessonRepository
                 video_url = :video_url, video_filename = COALESCE(:video_filename, video_filename),
                 video_size = CASE WHEN :video_size > 0 THEN :video_size2 ELSE video_size END,
                 duration = CASE WHEN :duration > 0 THEN :duration2 ELSE duration END,
-                content = :content, ai_summary = :ai_summary, order_index = :order_index, is_free = :is_free
+                content = :content, objectives = :objectives, ai_summary = :ai_summary, order_index = :order_index, is_free = :is_free
                 WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -114,6 +134,7 @@ class LessonRepository
             'duration' => $data['duration'] ?? 0,
             'duration2' => $data['duration'] ?? 0,
             'content' => $data['content'] ?? '',
+            'objectives' => $data['objectives'] ?? null,
             'ai_summary' => $data['ai_summary'] ?? null,
             'order_index' => $data['order_index'] ?? 0,
             'is_free' => $data['is_free'] ?? 0

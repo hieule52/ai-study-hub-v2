@@ -69,4 +69,9 @@ $router->post('/admin/users/edit', 'AdminController@editUser');
 $router->post('/admin/vip/remove', 'AdminController@removeVip');
 $router->post('/admin/vip/add', 'AdminController@addVip');
 
+// =============================================
+// CERTIFICATE VERIFICATION (Public)
+// =============================================
+// This serves public/certificate/verify.php via direct file access (no controller needed)
+// Access: /certificate/verify.php?uuid=xxx  OR  /certificate/verify.php
 

@@ -1,6 +1,9 @@
-<?php
 $pageTitle = 'Xây Dựng Khóa Học';
 $actor = 'teacher';
+$extraHead = '
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+';
 ob_start();
 ?>
 <style>
@@ -54,6 +57,87 @@ ob_start();
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .free-toggle { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; background: rgba(255,255,255,0.03); border-radius: var(--radius-md); cursor: pointer; margin-top: 0.5rem; }
     .free-toggle input { transform: scale(1.3); accent-color: var(--success); }
+
+    /* ===== QUIZ BUILDER ===== */
+    .quiz-builder { margin-top: 0.5rem; }
+    .quiz-question-card {
+        background: rgba(0,0,0,0.25);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        position: relative;
+        transition: border-color 0.2s;
+    }
+    .quiz-question-card:hover { border-color: rgba(79,70,229,0.4); }
+    .quiz-q-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+    .quiz-q-num { background: var(--primary); color: white; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; flex-shrink: 0; }
+    .quiz-q-input { flex: 1; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.6rem 0.9rem; color: var(--text-primary); font-family: inherit; font-size: 0.9rem; }
+    .quiz-q-input:focus { outline: none; border-color: var(--primary); }
+    .quiz-q-remove { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.4; transition: 0.2s; padding: 4px; }
+    .quiz-q-remove:hover { opacity: 1; color: var(--danger); }
+
+    .quiz-answers { display: flex; flex-direction: column; gap: 0.5rem; }
+    .quiz-answer-row { display: flex; align-items: center; gap: 0.6rem; }
+    .quiz-answer-radio { accent-color: var(--success); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+    .quiz-answer-input { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 0.5rem 0.75rem; color: var(--text-primary); font-family: inherit; font-size: 0.875rem; }
+    .quiz-answer-input:focus { outline: none; border-color: var(--success); background: rgba(16,185,129,0.06); }
+    .quiz-answer-correct-label { font-size: 0.72rem; color: var(--success); font-weight: 600; min-width: 48px; }
+
+    .quiz-add-q-btn { width: 100%; padding: 0.75rem; border: 2px dashed rgba(79,70,229,0.4); border-radius: var(--radius-lg); background: transparent; color: var(--primary); cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s; font-family: inherit; }
+    .quiz-add-q-btn:hover { background: rgba(79,70,229,0.08); border-color: var(--primary); }
+    .quiz-save-btn { margin-top: 1rem; width: 100%; padding: 0.875rem; font-size: 1rem; }
+
+    /* Custom Form Inputs */
+    .form-control {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: var(--text-primary) !important;
+        border-radius: var(--radius-md) !important;
+        padding: 0.75rem 1rem !important;
+        transition: all 0.2s !important;
+    }
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1) !important;
+    }
+    .form-label { font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; display: block; font-size: 0.875rem; }
+
+    /* ===== QUILL EDITOR DARK THEME ===== */
+    .ql-toolbar.ql-snow {
+        background: rgba(30, 41, 59, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-top-left-radius: var(--radius-md);
+        border-top-right-radius: var(--radius-md);
+        position: sticky;
+        top: -2.5rem; /* Bù trừ cho padding của container */
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .ql-container.ql-snow {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-bottom-left-radius: var(--radius-md);
+        border-bottom-right-radius: var(--radius-md);
+        font-family: inherit;
+        font-size: 1rem;
+        color: #e2e8f0 !important;
+        min-height: 300px;
+    }
+    .ql-editor { min-height: 300px; }
+    .ql-snow .ql-stroke { stroke: #94a3b8 !important; }
+    .ql-snow .ql-fill { fill: #94a3b8 !important; }
+    .ql-snow .ql-picker { color: #94a3b8 !important; }
+    .ql-snow.ql-toolbar button:hover .ql-stroke { stroke: #fff !important; }
+    .ql-snow.ql-toolbar button:hover .ql-fill { fill: #fff !important; }
+    .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--primary) !important; }
+
+    /* Quill Alignment Fix */
+    .ql-align-center { text-align: center !important; }
+    .ql-align-right { text-align: right !important; }
+    .ql-align-justify { text-align: justify !important; }
 </style>
 <?php $extraHead = ob_get_clean(); require __DIR__ . '/../layouts/header.php'; ?>
 
@@ -118,11 +202,18 @@ ob_start();
                         </div>
                     </div>
 
+                    <!-- Learning Objectives -->
+                    <div class="form-group" id="objectives-group">
+                        <label class="form-label">🎯 Mục tiêu bài học <small style="color:var(--text-muted); font-weight:400;">(Điều học viên sẽ đạt được)</small></label>
+                        <input type="text" id="lesson_objectives" class="form-control" placeholder="VD: Hiểu về mạng Neuron, Phân biệt Supervised và Unsupervised Learning...">
+                    </div>
+
                     <!-- Text Content -->
                     <div class="form-group" id="content-group">
-                        <label class="form-label">Nội dung bài học <small style="color:var(--text-muted); font-weight:400;">(Trợ lý AI sẽ dựa vào đây để hỗ trợ học sinh)</small></label>
-                        <textarea id="lesson_content" class="form-control" rows="8" placeholder="📝 Viết nội dung chi tiết bài học. AI Tutor sẽ đọc phần này để giúp học sinh hiểu bài.&#10;&#10;Ví dụ:&#10;- Định nghĩa và khái niệm chính&#10;- Các bước thực hành&#10;- Ví dụ minh họa&#10;- Lưu ý quan trọng"></textarea>
-                        <small style="color:var(--text-muted); margin-top:0.25rem; display:block;">💡 Càng viết chi tiết, AI Tutor càng hỗ trợ học sinh tốt hơn.</small>
+                        <label class="form-label">📝 Nội dung chi tiết bài học</label>
+                        <div id="lesson_quill_editor"></div>
+                        <input type="hidden" id="lesson_content">
+                        <small style="color:var(--text-muted); margin-top:0.25rem; display:block;">💡 Bạn có thể copy ảnh trực tiếp vào trình soạn thảo.</small>
                     </div>
 
                     <!-- AI Summary -->
@@ -131,13 +222,36 @@ ob_start();
                         <textarea id="ai_summary" class="form-control" rows="3" placeholder="Tóm tắt ngắn gọn nội dung bài. VD: Bài này dạy về vòng lặp for/while trong Python, cách dùng break/continue, và bài tập tính tổng 1-100."></textarea>
                     </div>
 
+                    <!-- ===== QUIZ BUILDER ===== -->
+                    <div id="quiz-builder-section" style="display:none;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+                            <label class="form-label" style="margin:0;">❓ Câu hỏi trắc nghiệm</label>
+                            <span style="font-size:0.8rem; color:var(--text-muted);">Chọn ⬤ để đánh dấu đáp án đúng</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Tiêu đề bài kiểm tra</label>
+                            <input type="text" id="quiz_title" class="form-control" placeholder="VD: Kiểm tra cuối chương 1">
+                        </div>
+
+                        <div class="quiz-builder" id="quiz-questions-container"></div>
+
+                        <button type="button" class="quiz-add-q-btn" onclick="addQuestion()">
+                            ➕ Thêm câu hỏi
+                        </button>
+
+                        <button type="button" class="btn btn-primary quiz-save-btn" id="quizSaveBtn" onclick="saveQuiz()">
+                            💾 Lưu Bài Kiểm Tra
+                        </button>
+                    </div>
+
                     <!-- Free lesson toggle -->
                     <label class="free-toggle">
                         <input type="checkbox" id="is_free">
                         <span>🆓 Bài học miễn phí (cho phép xem trước khi mua)</span>
                     </label>
 
-                    <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+                    <div style="margin-top:1.5rem; display:flex; gap:1rem;" id="lesson-save-btns">
                         <button type="submit" class="btn btn-primary" id="saveBtn" style="padding:0.75rem 2rem;">💾 Lưu Bài Học</button>
                         <button type="button" class="btn btn-outline" onclick="hideEditor()">Hủy</button>
                     </div>
@@ -159,9 +273,64 @@ ob_start();
     let courseId = new URLSearchParams(window.location.search).get('course_id');
     let currentCurriculum = [];
     let uploadedVideoFilename = '';
+    let quill;
 
     document.addEventListener('DOMContentLoaded', async () => {
         App.requireAuth(['teacher']);
+        
+        // Initialize Quill Editor
+        quill = new Quill('#lesson_quill_editor', {
+            theme: 'snow',
+            placeholder: 'Viết nội dung bài giảng tại đây...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'image', 'code-block'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Custom Image Handler for Optimization
+        quill.getModule('toolbar').addHandler('image', () => {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+
+            input.onchange = async () => {
+                const file = input.files[0];
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    try {
+                        const res = await fetch('/api-upload-image.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!res.ok) throw new Error('Lỗi server');
+                        const data = await res.json();
+                        if (data.error) throw new Error(data.error);
+                        
+                        // Fix lỗi mất focus:
+                        let range = quill.getSelection(true);
+                        if (!range) {
+                            range = { index: quill.getLength() };
+                        }
+                        quill.insertEmbed(range.index, 'image', data.url);
+                    } catch (err) {
+                        console.error(err);
+                        App.showToast('Lỗi khi chèn ảnh: ' + err.message, 'error');
+                    }
+                }
+            };
+        });
+
         if (!courseId) {
             App.showToast('Vui lòng chọn khóa học từ Dashboard', 'error');
             setTimeout(() => window.location.href = '/teacher/dashboard.php', 1500);
@@ -260,6 +429,7 @@ ob_start();
         document.getElementById('editor-title-text').textContent = 'Thêm Bài Học Mới';
         document.getElementById('editor-icon').textContent = '➕';
         document.getElementById('lesson-form').reset();
+        quill.root.innerHTML = '';
         document.getElementById('video_filename').value = '';
         document.getElementById('video-info-display').style.display = 'none';
         uploadedVideoFilename = '';
@@ -280,7 +450,8 @@ ob_start();
             document.getElementById('lesson_title').value = lesson.title || '';
             document.getElementById('content_type').value = lesson.content_type || 'video';
             document.getElementById('video_url').value = lesson.video_url || '';
-            document.getElementById('lesson_content').value = lesson.content || '';
+            quill.root.innerHTML = lesson.content || '';
+            document.getElementById('lesson_objectives').value = lesson.objectives || '';
             document.getElementById('ai_summary').value = lesson.ai_summary || '';
             document.getElementById('order_index').value = lesson.order_index || 0;
             document.getElementById('is_free').checked = !!lesson.is_free;
@@ -308,8 +479,173 @@ ob_start();
 
     function toggleContentFields() {
         const type = document.getElementById('content_type').value;
+        const isQuiz = type === 'quiz';
         document.getElementById('video-upload-section').style.display = (type === 'video') ? 'block' : 'none';
-        document.getElementById('content-group').style.display = (type === 'quiz') ? 'none' : 'block';
+        document.getElementById('content-group').style.display = isQuiz ? 'none' : 'block';
+        document.getElementById('ai-summary-group').style.display = isQuiz ? 'none' : 'block';
+        document.getElementById('quiz-builder-section').style.display = isQuiz ? 'block' : 'none';
+        // Hide/show default save button when quiz (quiz has own save btn)
+        document.getElementById('lesson-save-btns').style.display = isQuiz ? 'none' : 'flex';
+        // Auto-load quiz if editing existing quiz lesson
+        if (isQuiz) {
+            const lessonId = document.getElementById('edit_lesson_id').value;
+            if (lessonId) loadQuiz(lessonId);
+            else if (document.getElementById('quiz-questions-container').children.length === 0) addQuestion();
+        }
+    }
+
+    // ==========================================
+    // QUIZ BUILDER LOGIC
+    // ==========================================
+    let questionCounter = 0;
+
+    function addQuestion(data = null) {
+        questionCounter++;
+        const qNum = questionCounter;
+        const container = document.getElementById('quiz-questions-container');
+        const qId = `q_${Date.now()}_${qNum}`;
+
+        const div = document.createElement('div');
+        div.className = 'quiz-question-card';
+        div.dataset.qid = qId;
+
+        const questionText = data?.question ?? '';
+        const answers = data?.answers ?? [
+            { answer_text: '', is_correct: 1 },
+            { answer_text: '', is_correct: 0 },
+            { answer_text: '', is_correct: 0 },
+            { answer_text: '', is_correct: 0 }
+        ];
+
+        div.innerHTML = `
+            <div class="quiz-q-header">
+                <div class="quiz-q-num">${qNum}</div>
+                <input class="quiz-q-input" type="text" placeholder="Nhập câu hỏi..." value="${questionText.replace(/"/g,'&quot;')}">
+                <button type="button" class="quiz-q-remove" onclick="removeQuestion(this)" title="Xóa câu hỏi">🗑️</button>
+            </div>
+            <div class="quiz-answers">
+                ${answers.map((a, i) => `
+                <div class="quiz-answer-row">
+                    <input type="radio" class="quiz-answer-radio" name="correct_${qId}" value="${i}" ${a.is_correct ? 'checked' : ''} title="Đáp án đúng">
+                    <input class="quiz-answer-input" type="text" placeholder="Đáp án ${i+1}..." value="${(a.answer_text||'').replace(/"/g,'&quot;')}">
+                    <span class="quiz-answer-correct-label">${a.is_correct ? '✅ Đúng' : ''}</span>
+                </div>`).join('')}
+            </div>
+        `;
+
+        // Update ✅ label on radio change
+        div.querySelectorAll('.quiz-answer-radio').forEach(radio => {
+            radio.addEventListener('change', () => {
+                div.querySelectorAll('.quiz-answer-correct-label').forEach((lbl, i) => {
+                    lbl.textContent = (i === parseInt(radio.value)) ? '✅ Đúng' : '';
+                });
+            });
+        });
+
+        container.appendChild(div);
+        // Renumber all
+        renumberQuestions();
+    }
+
+    function removeQuestion(btn) {
+        btn.closest('.quiz-question-card').remove();
+        renumberQuestions();
+    }
+
+    function renumberQuestions() {
+        document.querySelectorAll('#quiz-questions-container .quiz-question-card').forEach((card, i) => {
+            card.querySelector('.quiz-q-num').textContent = i + 1;
+        });
+    }
+
+    function collectQuizData() {
+        const title = document.getElementById('quiz_title').value.trim();
+        const questions = [];
+        document.querySelectorAll('#quiz-questions-container .quiz-question-card').forEach(card => {
+            const qText = card.querySelector('.quiz-q-input').value.trim();
+            if (!qText) return;
+            const radios = card.querySelectorAll('.quiz-answer-radio');
+            const inputs = card.querySelectorAll('.quiz-answer-input');
+            const answers = [];
+            let checkedIdx = 0;
+            radios.forEach((r, i) => { if (r.checked) checkedIdx = i; });
+            inputs.forEach((inp, i) => {
+                const txt = inp.value.trim();
+                if (!txt) return;
+                answers.push({ text: txt, is_correct: (i === checkedIdx) ? 1 : 0 });
+            });
+            if (answers.length >= 2) questions.push({ question: qText, answers });
+        });
+        return { title, questions };
+    }
+
+    async function saveQuiz() {
+        let lessonId = document.getElementById('edit_lesson_id').value;
+        const { title, questions } = collectQuizData();
+        
+        if (!title) { App.showToast('Nhập tiêu đề bài kiểm tra.', 'error'); return; }
+        if (questions.length === 0) { App.showToast('Cần ít nhất 1 câu hỏi có 2+ đáp án.', 'error'); return; }
+
+        const btn = document.getElementById('quizSaveBtn');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Đang lưu...';
+
+        try {
+            // Collect lesson data
+            const lessonData = {
+                chapter_id: document.getElementById('chapter_id').value,
+                title: document.getElementById('lesson_title').value,
+                content_type: 'quiz',
+                video_url: '', video_filename: '', content: '', objectives: '', ai_summary: '',
+                order_index: parseInt(document.getElementById('order_index').value) || 0,
+                is_free: document.getElementById('is_free').checked ? 1 : 0
+            };
+            
+            if (!lessonData.title) { throw new Error('Vui lòng nhập tên bài học ở phía trên'); }
+
+            // Create or update lesson
+            if (!lessonId) {
+                const res = await window.api.post('/teacher/lessons', lessonData);
+                lessonId = res.data?.id;
+                document.getElementById('edit_lesson_id').value = lessonId;
+                document.getElementById('edit_mode').value = 'edit';
+            } else {
+                await window.api.put(`/teacher/lessons/${lessonId}`, lessonData);
+            }
+
+            // Save quiz questions
+            await window.api.post(`/teacher/lessons/${lessonId}/quiz`, { title, questions });
+            App.showToast(`✅ Đã lưu toàn bộ bài kiểm tra!`, 'success');
+            
+            await loadCurriculum();
+            hideEditor();
+        } catch(e) { 
+            App.showToast(e.message, 'error'); 
+        }
+        
+        btn.disabled = false;
+        btn.innerHTML = '💾 Lưu Bài Kiểm Tra';
+    }
+
+    async function loadQuiz(lessonId) {
+        try {
+            const res = await window.api.get(`/teacher/lessons/${lessonId}/quiz`);
+            const quiz = res.data;
+            document.getElementById('quiz-questions-container').innerHTML = '';
+            questionCounter = 0;
+            if (quiz && quiz.questions && quiz.questions.length > 0) {
+                document.getElementById('quiz_title').value = quiz.title || '';
+                quiz.questions.forEach(q => addQuestion(q));
+            } else {
+                document.getElementById('quiz_title').value = '';
+                addQuestion();
+            }
+        } catch(e) {
+            // Chưa có quiz — thêm 1 câu hỏi trống
+            document.getElementById('quiz-questions-container').innerHTML = '';
+            questionCounter = 0;
+            addQuestion();
+        }
     }
 
     // Video Upload
@@ -402,20 +738,40 @@ ob_start();
             content_type: type,
             video_url: document.getElementById('video_url').value || '',
             video_filename: document.getElementById('video_filename').value || '',
-            content: document.getElementById('lesson_content').value || '',
+            content: quill.root.innerHTML || '',
+            objectives: document.getElementById('lesson_objectives').value || '',
             ai_summary: document.getElementById('ai_summary').value || '',
             order_index: parseInt(document.getElementById('order_index').value) || 0,
             is_free: document.getElementById('is_free').checked ? 1 : 0
         };
 
+        if (type !== 'quiz' && quill.getText().trim().length === 0) {
+            App.showToast('Vui lòng nhập nội dung chi tiết cho bài học.', 'warning');
+            btn.disabled = false;
+            btn.innerHTML = '💾 Lưu Bài Học';
+            return;
+        }
+
         try {
+            let savedLessonId = null;
             if (mode === 'edit') {
-                const lessonId = document.getElementById('edit_lesson_id').value;
-                await window.api.put(`/teacher/lessons/${lessonId}`, data);
+                savedLessonId = document.getElementById('edit_lesson_id').value;
+                await window.api.put(`/teacher/lessons/${savedLessonId}`, data);
                 App.showToast('✅ Cập nhật bài học thành công!');
             } else {
-                await window.api.post('/teacher/lessons', data);
+                const res = await window.api.post('/teacher/lessons', data);
+                savedLessonId = res.data?.id;
                 App.showToast('✅ Tạo bài học thành công!');
+                // Nếu là quiz — set lesson id rồi chuyển sang quiz builder
+                if (type === 'quiz' && savedLessonId) {
+                    document.getElementById('edit_lesson_id').value = savedLessonId;
+                    document.getElementById('edit_mode').value = 'edit';
+                    btn.disabled = false;
+                    btn.innerHTML = '💾 Lưu Bài Học';
+                    await loadCurriculum();
+                    App.showToast('📝 Bài học đã lưu! Hãy thêm câu hỏi quiz bên dưới.', 'info');
+                    return;
+                }
             }
             await loadCurriculum();
             hideEditor();

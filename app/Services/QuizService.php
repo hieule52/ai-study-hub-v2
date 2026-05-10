@@ -85,4 +85,13 @@ class QuizService
             'details' => $details
         ];
     }
+
+    /**
+     * Lịch sử làm bài của một học viên theo quizId
+     */
+    public function getHistory(int $userId, int $quizId): array
+    {
+        return $this->quizRepo->getResultsByUserAndQuiz($userId, $quizId);
+    }
 }
+

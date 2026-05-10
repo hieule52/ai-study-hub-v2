@@ -1,6 +1,11 @@
-<?php
 $pageTitle = 'Đang Học - AI Study Hub';
 $actor = 'guest';
+$extraHead = '
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+';
 ob_start();
 ?>
 <style>
@@ -235,6 +240,212 @@ ob_start();
         }
         
         .answer-option input[type="radio"] {
+<style>
+
+        /* Sidebar Glassmorphism */
+        .curriculum-sidebar {
+            width: 380px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .chapter-title {
+            padding: 1.25rem 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        .lesson-item {
+            padding: 1rem 1.5rem 1rem 2.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .lesson-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .lesson-item.playing {
+            background: rgba(79, 70, 229, 0.15);
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+            font-weight: 600;
+        }
+
+        .lesson-item .type-icon {
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        .lesson-item.playing .type-icon {
+            opacity: 1;
+        }
+
+        /* AI Floating Widget */
+        .ai-chat-btn {
+            position: fixed;
+            bottom: 40px;
+            right: 420px;
+            background: linear-gradient(135deg, #4f46e5, #ec4899);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 65px;
+            height: 65px;
+            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.5);
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: bounce-glow 3s infinite;
+        }
+
+        @keyframes bounce-glow {
+            0%, 100% { transform: translateY(0); box-shadow: 0 10px 25px rgba(236, 72, 153, 0.5); }
+            50% { transform: translateY(-10px); box-shadow: 0 20px 35px rgba(236, 72, 153, 0.8); }
+        }
+
+        .ai-chat-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .ai-popup {
+            position: fixed;
+            bottom: 120px;
+            right: 420px;
+            width: 380px;
+            height: 600px;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+            border-radius: var(--radius-xl);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(236, 72, 153, 0.1);
+            display: flex;
+            flex-direction: column;
+            z-index: 999;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .ai-popup.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .ai-header {
+            padding: 1.25rem;
+            background: linear-gradient(90deg, rgba(79, 70, 229, 0.2), rgba(236, 72, 153, 0.2));
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ai-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .msg {
+            max-width: 85%;
+            padding: 1rem 1.25rem;
+            border-radius: 1.25rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .msg.user {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        .msg.bot {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .ai-input-area {
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .ai-input-area input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+            padding: 0.75rem 1.25rem;
+        }
+
+        /* Quiz UI Premium */
+        .quiz-container {
+            margin-top: 3rem;
+            padding: 2.5rem;
+            background: linear-gradient(145deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: var(--radius-xl);
+            box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.05);
+        }
+
+        .question-block {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: var(--radius-lg);
+        }
+
+        .answer-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .answer-option:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .answer-option input[type="radio"] {
             margin-right: 1rem;
             transform: scale(1.2);
             accent-color: var(--success);
@@ -249,6 +460,112 @@ ob_start();
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
 
+        /* Custom Content Styling over Quill */
+        .ql-editor {
+            font-family: inherit;
+            font-size: 1.15rem;
+            color: #cbd5e1;
+            line-height: 1.8;
+            padding: 0;
+            white-space: pre-wrap; /* Fix line breaks for pasted text */
+        }
+        .ql-editor h1, .ql-editor h2, .ql-editor h3 {
+            color: #f8fafc;
+            margin-top: 2.5rem;
+            margin-bottom: 1.25rem;
+            font-weight: 800;
+            border: none;
+        }
+        .ql-editor p {
+            margin-bottom: 1.5rem;
+        }
+        .ql-editor code {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+            color: #f472b6; /* Pinkish code */
+        }
+        .ql-editor pre {
+            background: #0f172a;
+            padding: 2rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .ql-editor pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        .ql-editor blockquote {
+            border-left: 5px solid var(--primary);
+            padding: 1rem 2rem;
+            margin: 2rem 0;
+            background: rgba(79, 70, 229, 0.05);
+            border-radius: 0 12px 12px 0;
+            color: #94a3b8;
+            font-style: italic;
+        }
+        .ql-editor img {
+            max-width: 100%;
+            border-radius: 20px;
+            margin: 2.5rem 0;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        /* Quill Alignment Display Fix */
+        .ql-align-center { text-align: center !important; }
+        .ql-align-right { text-align: right !important; }
+        .ql-align-justify { text-align: justify !important; }
+
+        /* Objectives Styling */
+        .objectives-card {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(236, 72, 153, 0.05));
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1.25rem;
+            align-items: flex-start;
+        }
+        .objectives-icon {
+            font-size: 1.8rem;
+            background: rgba(79, 70, 229, 0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .objectives-list {
+            flex: 1;
+        }
+        .objectives-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .objectives-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .objective-tag {
+            background: rgba(255,255,255,0.05);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--text-secondary);
+        }
     </style>
 <?php
 $extraHead = ob_get_clean();
@@ -279,8 +596,11 @@ require __DIR__ . '/../layouts/header.php';
                     <h1 id="lesson_title" style="font-size: 2.5rem; font-weight: 800; letter-spacing: -1px;">...</h1>
                     <button class="btn btn-primary" id="btn_mark_complete" style="display:none; border-radius: 20px;" onclick="markComplete()" data-i18n="lrn_mark_complete">✅ Đánh dấu Đã Học</button>
                 </div>
+
+                <!-- Learning Objectives Container -->
+                <div id="objectives_container"></div>
                 
-                <div class="text-secondary" id="lesson_content" style="font-size: 1.1rem; line-height: 1.8;">
+                <div id="lesson_content">
                     <div style="display: flex; align-items: center; gap: 1rem; margin-top: 2rem; opacity: 0.7;" data-i18n="lrn_select_lesson">
                         <span>👈</span> Chọn một bài học ở danh mục bên phải để bắt đầu.
                     </div>
@@ -295,8 +615,11 @@ require __DIR__ . '/../layouts/header.php';
         <div class="curriculum-sidebar">
             <div style="padding: 2rem 1.5rem; background: rgba(0,0,0,0.2);">
                 <h3 style="font-size: 1.25rem;" data-i18n="lrn_curriculum">Nội Dung Cùng Khóa</h3>
-                <div class="flex items-center gap-2 mt-2" style="font-size: 0.875rem; color: var(--success); font-weight: 600;">
-                    <span id="curriculum-progress" data-i18n="lrn_progress">Tiến độ: --</span>
+                <div class="flex items-center justify-between gap-2 mt-2">
+                    <div style="font-size: 0.875rem; color: var(--success); font-weight: 600;">
+                        <span id="curriculum-progress" data-i18n="lrn_progress">Tiến độ: --</span>
+                    </div>
+                    <button id="btn_review_course" onclick="showReviewModal()" style="display:none;" class="btn btn-sm btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">⭐ Đánh giá</button>
                 </div>
             </div>
 
@@ -337,9 +660,49 @@ require __DIR__ . '/../layouts/header.php';
         </form>
     </div>
 
+    <!-- Review Modal -->
+    <div id="reviewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background: var(--bg-dark); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 500px;">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 1.5rem;">⭐ Đánh giá Khóa Học</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Chúc mừng bạn đã hoàn thành khóa học! Hãy để lại đánh giá của mình nhé.</p>
+            <form id="reviewForm" onsubmit="submitReview(event)">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Đánh giá (1-5 sao)</label>
+                    <select id="reviewRating" class="form-control" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);" required>
+                        <option value="5">⭐⭐⭐⭐⭐ (5 sao)</option>
+                        <option value="4">⭐⭐⭐⭐ (4 sao)</option>
+                        <option value="3">⭐⭐⭐ (3 sao)</option>
+                        <option value="2">⭐⭐ (2 sao)</option>
+                        <option value="1">⭐ (1 sao)</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Nhận xét</label>
+                    <textarea id="reviewComment" class="form-control" rows="4" placeholder="Khóa học rất hay..." style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);"></textarea>
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('reviewModal').style.display='none'">Đóng</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitReview">Gửi Đánh Giá</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 <?php ob_start(); ?>
 <script>
         const user = App.requireAuth();
+
+        // === ROLE GUARD: Block admin/teacher from student learning flow ===
+        if (user && user.role === 'admin') {
+            const redirectUrl = '/admin/preview-course.php' + window.location.search;
+            window.location.replace(redirectUrl);
+            throw new Error('Redirecting admin to preview mode');
+        }
+        if (user && user.role === 'teacher') {
+            const redirectUrl = '/teacher/course-builder.php' + window.location.search;
+            window.location.replace(redirectUrl);
+            throw new Error('Redirecting teacher to course builder');
+        }
 
         const urlParams = new URLSearchParams(window.location.search);
         const courseId = urlParams.get('course_id');
@@ -396,6 +759,15 @@ require __DIR__ . '/../layouts/header.php';
                 document.getElementById('curriculum-progress').innerHTML = `<span data-i18n="lrn_total">Tổng số: </span>${totalLessons}<span data-i18n="lrn_lessons"> bài học</span>`;
                 if (window.I18n) window.I18n.render();
 
+                // Check progress to show review button
+                try {
+                    const enrolledRes = await window.api.get('/student/courses');
+                    const myCourse = enrolledRes.data.find(c => c.id == courseId);
+                    if (myCourse && myCourse.progress_percent === 100) {
+                        document.getElementById('btn_review_course').style.display = 'block';
+                    }
+                } catch(e) { console.log(e); }
+
             } catch (err) {
                 App.showToast(err.message, 'error');
             }
@@ -423,68 +795,131 @@ require __DIR__ . '/../layouts/header.php';
                 const lesson = res.data;
 
                 document.getElementById('lesson_title').innerText = lesson.title;
-                document.getElementById('lesson_content').innerHTML = lesson.content ? `<div style="background: rgba(255,255,255,0.03); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.05);">${lesson.content}</div>` : '<div class="text-muted" data-i18n="lrn_no_desc">Giảng viên chưa cập nhật mô tả chi tiết bài học này.</div>';
-                document.getElementById('btn_mark_complete').style.display = 'block';
-
-                // === VIDEO DISPLAY LOGIC ===
-                if (lesson.video_filename && lesson.content_type === 'video') {
-                    // Secured video: lấy signed token rồi stream
-                    try {
-                        document.getElementById('video_wrapper').innerHTML = `
-                            <div style="text-align: center;">
-                                <div style="font-size: 3rem; animation: spin 2s linear infinite;">⏳</div>
-                                <p class="text-secondary mt-2">Đang tải video bảo mật...</p>
-                            </div>`;
-
-                        const tokenRes = await window.api.get(`/video/token/${lessonId}?course_id=${courseId}`);
-                        const streamUrl = tokenRes.data.stream_url;
-
-                        document.getElementById('video_wrapper').innerHTML = `
-                            <video id="secureVideoPlayer" controls controlsList="nodownload" disablePictureInPicture
-                                   style="width:100%;height:100%;background:#000;"
-                                   oncontextmenu="return false;">
-                                <source src="${streamUrl}" type="video/mp4">
-                                Trình duyệt không hỗ trợ video.
-                            </video>`;
-
-                        // Thêm event listener cho video errors
-                        const videoEl = document.getElementById('secureVideoPlayer');
-                        if (videoEl) {
-                            videoEl.addEventListener('error', () => {
-                                document.getElementById('video_wrapper').innerHTML = `
-                                    <div style="text-align:center;padding:2rem;">
-                                        <div style="font-size:3rem;opacity:0.5;">⚠️</div>
-                                        <p class="text-secondary">Video không thể phát. Vui lòng tải lại trang.</p>
-                                    </div>`;
-                            });
-                        }
-                    } catch(videoErr) {
-                        document.getElementById('video_wrapper').innerHTML = `
-                            <div style="text-align: center;">
-                                <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🔒</div>
-                                <h2 class="text-secondary">${videoErr.message || 'Không thể tải video'}</h2>
-                                <p class="text-muted mt-2">Vui lòng đảm bảo bạn đã đăng ký khóa học này.</p>
-                            </div>`;
-                    }
-                } else if (lesson.video_url) {
-                    // External URL (YouTube, Vimeo, etc.)
-                    const url = lesson.video_url;
-                    if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) {
-                        document.getElementById('video_wrapper').innerHTML = `<iframe src="${url}" width="100%" height="100%" frameborder="0" allowfullscreen style="box-shadow: 0 10px 40px rgba(0,0,0,0.8);"></iframe>`;
-                    } else {
-                        // Direct video URL
-                        document.getElementById('video_wrapper').innerHTML = `
-                            <video controls style="width:100%;height:100%;background:#000;">
-                                <source src="${url}" type="video/mp4">
-                            </video>`;
-                    }
-                } else {
-                    document.getElementById('video_wrapper').innerHTML = `
-                        <div style="text-align: center;">
-                            <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">📝</div>
-                            <h2 class="text-secondary" data-i18n="lrn_text_lesson">Bài học văn bản (Không có Video)</h2>
+                
+                // Show objectives if any
+                const objContainer = document.getElementById('objectives_container');
+                if (lesson.objectives) {
+                    const tags = lesson.objectives.split(',').map(t => `<span class="objective-tag">${t.trim()}</span>`).join('');
+                    objContainer.innerHTML = `
+                        <div class="objectives-card">
+                            <div class="objectives-icon">🎯</div>
+                            <div class="objectives-list">
+                                <div class="objectives-title">Bạn sẽ học được gì:</div>
+                                <div class="objectives-items">${tags}</div>
+                            </div>
                         </div>
                     `;
+                } else {
+                    objContainer.innerHTML = '';
+                }
+
+                // Render HTML Content (from Quill)
+                if (lesson.content) {
+                    document.getElementById('lesson_content').innerHTML = `
+                    <div class="ql-snow">
+                        <div class="ql-editor" style="background: rgba(255,255,255,0.02); padding: 2.5rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.05);">
+                            ${lesson.content}
+                        </div>
+                    </div>`;
+                    // Highlight code blocks
+                    setTimeout(() => {
+                        document.querySelectorAll('pre').forEach((block) => {
+                            hljs.highlightElement(block);
+                        });
+                    }, 100);
+                } else {
+                    document.getElementById('lesson_content').innerHTML = '<div class="text-muted" data-i18n="lrn_no_desc">Giảng viên chưa cập nhật mô tả chi tiết bài học này.</div>';
+                }
+
+                // Completion status
+                const btnMark = document.getElementById('btn_mark_complete');
+                if (lesson.is_completed) {
+                    btnMark.style.display = 'block';
+                    btnMark.innerHTML = '✅ Đã hoàn thành bài học';
+                    btnMark.classList.replace('btn-primary', 'btn-outline');
+                    btnMark.style.color = 'var(--success)';
+                    btnMark.style.borderColor = 'var(--success)';
+                    btnMark.disabled = true;
+                } else {
+                    if (lesson.content_type === 'quiz') {
+                        btnMark.style.display = 'none'; // Require quiz submission
+                    } else {
+                        btnMark.style.display = 'block';
+                        btnMark.innerHTML = '✅ Đánh dấu Đã Học';
+                        btnMark.classList.add('btn-primary');
+                        btnMark.classList.remove('btn-outline');
+                        btnMark.style.color = '';
+                        btnMark.style.borderColor = '';
+                        btnMark.disabled = false;
+                    }
+                }
+
+                // === VIDEO DISPLAY LOGIC ===
+                const videoWrapper = document.getElementById('video_wrapper');
+                
+                if (lesson.content_type === 'video') {
+                    videoWrapper.style.display = 'flex';
+                    if (lesson.video_filename) {
+                        // Secured video: lấy signed token rồi stream
+                        try {
+                            videoWrapper.innerHTML = `
+                                <div style="text-align: center;">
+                                    <div style="font-size: 3rem; animation: spin 2s linear infinite;">⏳</div>
+                                    <p class="text-secondary mt-2">Đang tải video bảo mật...</p>
+                                </div>`;
+
+                            const tokenRes = await window.api.get(`/video/token/${lessonId}?course_id=${courseId}`);
+                            const streamUrl = tokenRes.data.stream_url;
+
+                            videoWrapper.innerHTML = `
+                                <video id="secureVideoPlayer" controls controlsList="nodownload" disablePictureInPicture
+                                       style="width:100%;height:100%;background:#000;"
+                                       oncontextmenu="return false;">
+                                    <source src="${streamUrl}" type="video/mp4">
+                                    Trình duyệt không hỗ trợ video.
+                                </video>`;
+
+                            // Thêm event listener cho video errors
+                            const videoEl = document.getElementById('secureVideoPlayer');
+                            if (videoEl) {
+                                videoEl.addEventListener('error', () => {
+                                    videoWrapper.innerHTML = `
+                                        <div style="text-align:center;padding:2rem;">
+                                            <div style="font-size:3rem;opacity:0.5;">⚠️</div>
+                                            <p class="text-secondary">Video không thể phát. Vui lòng tải lại trang.</p>
+                                        </div>`;
+                                });
+                            }
+                        } catch(videoErr) {
+                            videoWrapper.innerHTML = `
+                                <div style="text-align: center;">
+                                    <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🔒</div>
+                                    <h2 class="text-secondary">${videoErr.message || 'Không thể tải video'}</h2>
+                                    <p class="text-muted mt-2">Vui lòng đảm bảo bạn đã đăng ký khóa học này.</p>
+                                </div>`;
+                        }
+                    } else if (lesson.video_url) {
+                        // External URL (YouTube, Vimeo, etc.)
+                        const url = lesson.video_url;
+                        if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) {
+                            videoWrapper.innerHTML = `<iframe src="${url}" width="100%" height="100%" frameborder="0" allowfullscreen style="box-shadow: 0 10px 40px rgba(0,0,0,0.8);"></iframe>`;
+                        } else {
+                            // Direct video URL
+                            videoWrapper.innerHTML = `
+                                <video controls style="width:100%;height:100%;background:#000;">
+                                    <source src="${url}" type="video/mp4">
+                                </video>`;
+                        }
+                    } else {
+                        videoWrapper.innerHTML = `
+                            <div style="text-align: center;">
+                                <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🎥</div>
+                                <h2 class="text-secondary" data-i18n="lrn_video_placeholder">Trình phát Video sẽ mô phỏng ở đây.</h2>
+                            </div>`;
+                    }
+                } else {
+                    videoWrapper.style.display = 'none';
+                    videoWrapper.innerHTML = '';
                 }
 
                 loadQuizData(lessonId);
@@ -519,7 +954,7 @@ require __DIR__ . '/../layouts/header.php';
                             html += `<div class="question-block" id="qb_${q.id}">
                                 <p style="font-weight: 600; font-size: 1.1rem; margin-bottom: 1rem; color: #fff;">Câu ${qIndex + 1}: ${q.question}</p>
                                 <div class="options-grid">`;
-                            q.answers.forEach(ans => {
+                            q.options.forEach(ans => {
                                 html += `<label class="answer-option">
                                     <input type="radio" name="q_${q.id}" value="${ans.id}" required>
                                     <span style="flex: 1">${ans.answer_text}</span>
@@ -538,9 +973,10 @@ require __DIR__ . '/../layouts/header.php';
                     document.getElementById('quizForm').addEventListener('submit', async (e) => {
                         e.preventDefault();
                         const formData = new FormData(e.target);
-                        const answers = [];
+                        const answers = {};
                         for (let [key, value] of formData.entries()) {
-                            answers.push(parseInt(value));
+                            const qId = key.replace('q_', '');
+                            answers[qId] = parseInt(value);
                         }
 
                         try {
@@ -574,10 +1010,17 @@ require __DIR__ . '/../layouts/header.php';
             try {
                 await window.api.post(`/lessons/${currentLessonId}/complete`, {});
                 const btn = document.getElementById('btn_mark_complete');
-                btn.innerHTML = window.I18n ? window.I18n.get('lrn_btn_completed') : '✅ Đã hoàn thành';
+                btn.style.display = 'block';
+                btn.innerHTML = window.I18n ? window.I18n.get('lrn_btn_completed') : '✅ Đã hoàn thành bài học';
                 btn.classList.replace('btn-primary', 'btn-outline');
                 btn.style.color = 'var(--success)';
                 btn.style.borderColor = 'var(--success)';
+                btn.disabled = true;
+
+                if (res && res.data && res.data.progress === 100) {
+                    document.getElementById('btn_review_course').style.display = 'block';
+                    showReviewModal();
+                }
             } catch (e) {
                 console.log(e);
             }
@@ -665,6 +1108,30 @@ require __DIR__ . '/../layouts/header.php';
             chatBox.scrollTop = chatBox.scrollHeight;
         });
 
+        function showReviewModal() {
+            document.getElementById('reviewModal').style.display = 'flex';
+        }
+
+        async function submitReview(e) {
+            e.preventDefault();
+            const rating = document.getElementById('reviewRating').value;
+            const comment = document.getElementById('reviewComment').value;
+            const btn = document.getElementById('btnSubmitReview');
+            btn.disabled = true;
+            btn.innerText = 'Đang gửi...';
+
+            try {
+                await window.api.post(`/student/courses/${courseId}/reviews`, { rating, comment });
+                App.showToast('Cảm ơn bạn đã đánh giá khóa học!', 'success');
+                document.getElementById('reviewModal').style.display = 'none';
+                document.getElementById('btn_review_course').style.display = 'none';
+            } catch (err) {
+                App.showToast(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Gửi Đánh Giá';
+            }
+        }
     </script>
 <?php
 $extraScripts = ob_get_clean();

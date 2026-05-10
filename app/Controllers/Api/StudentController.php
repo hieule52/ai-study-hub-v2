@@ -88,4 +88,41 @@ class StudentController
             $response->error($e->getMessage(), 400);
         }
     }
+
+    public function submitReview(Request $request, Response $response, string $courseId)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            $userId = $request->user->sub;
+            
+            $rating = (int)$request->input('rating');
+            $comment = $request->input('comment', '');
+
+            if ($rating < 1 || $rating > 5) {
+                $response->error("Đánh giá phải từ 1 đến 5 sao.", 400);
+                return;
+            }
+
+            // Check if 100% completed
+            $stmt = \App\Core\Database::connect()->prepare("SELECT progress_percent FROM enrollments WHERE user_id = ? AND course_id = ?");
+            $stmt->execute([$userId, $courseId]);
+            $progress = $stmt->fetchColumn();
+
+            if ($progress === false || $progress < 100) {
+                $response->error("Bạn cần hoàn thành 100% khóa học mới có thể đánh giá.", 400);
+                return;
+            }
+
+            $stmt = \App\Core\Database::connect()->prepare("
+                INSERT INTO course_reviews (course_id, user_id, rating, comment) 
+                VALUES (?, ?, ?, ?) 
+                ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment)
+            ");
+            $stmt->execute([$courseId, $userId, $rating, $comment]);
+
+            $response->success("Cảm ơn bạn đã đánh giá khóa học!", null, 201);
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 500);
+        }
+    }
 }

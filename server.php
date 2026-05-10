@@ -6,7 +6,7 @@ use Ratchet\WebSocket\WsServer;
 use App\WebSocket\Chat;
 use App\Core\Env;
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 // Load biến môi trường cho Database
 Env::load(__DIR__ . '/.env');
