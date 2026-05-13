@@ -66,16 +66,29 @@ class ApiClient {
      * Handles Fetch responses globally
      */
     async _handleResponse(response) {
-        const data = await response.json().catch(() => ({}));
+        let data = {};
+        const text = await response.text();
+        
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            // Nếu không phải JSON, có thể là lỗi PHP thuần hoặc lỗi DB
+            if (!response.ok) {
+                throw new Error(text || 'Server returned an invalid response.');
+            }
+        }
 
         if (!response.ok) {
-            // Unathorized -> clear token and force login
+            // Unauthorized -> clear token and force login
             if (response.status === 401) {
                 this.clearSession();
-                window.location.href = '/login.php';
+                // Chỉ redirect nếu không phải ở trang login
+                if (!window.location.pathname.includes('login.php')) {
+                    window.location.href = '/login.php';
+                }
             }
             
-            const errMsg = data.message || 'Something went wrong with the server.';
+            const errMsg = data.message || text || 'Something went wrong with the server.';
             throw new Error(window.I18n ? window.I18n.get(errMsg) : errMsg);
         }
 

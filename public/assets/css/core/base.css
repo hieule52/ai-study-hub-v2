@@ -1,0 +1,156 @@
+/* ============================================================
+   CORE — BASE RESET  (AI Study Hub LMS)
+   ⚠️  SINGLE SOURCE OF TRUTH — do NOT duplicate resets elsewhere
+   ============================================================ */
+
+/* ── 1. Universal Box Model Reset ── */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ── 2. HTML root ──
+   KEY: overflow-x hidden ONLY here (not on body as well).
+   Two layers of overflow-x hidden causes scrollbar-width
+   miscalculation → content shifts right.
+   Do NOT add scrollbar-gutter: stable — it reserves extra space
+   on the right that breaks fixed/centered layouts.
+*/
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+
+    overflow-x: hidden; /* Clip horizontal overflow at root */
+    overflow-y: scroll; /* Always show scrollbar slot → no layout shift */
+}
+
+/* ── 3. Body ──
+   Do NOT set overflow-x: hidden here — only html handles clipping.
+   width: 100% ensures body never exceeds html width.
+*/
+body {
+    width: 100%;
+    min-height: 100vh;
+
+    font-family: var(--font-body);
+    background: var(--bg-base);
+    color: var(--text-primary);
+    line-height: 1.65;
+    font-weight: 400;
+    position: relative;
+}
+
+/* ── 4. Atmospheric Background Gradient ── */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -2;
+    background: linear-gradient(
+        to bottom,
+        rgba(4, 6, 14, 0.08),
+        rgba(4, 6, 14, 0.22)
+    );
+}
+
+/* ── 5. Typography ── */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    line-height: 0.94;
+    letter-spacing: -0.045em;
+    color: var(--text-primary);
+    text-wrap: balance;
+}
+
+.text-serif {
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-weight: 500;
+}
+
+.text-gradient {
+    background: linear-gradient(180deg, rgba(255,255,255,1), rgba(255,255,255,0.72));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-block;
+}
+
+/* ── 6. Text Colour Utilities ── */
+.text-primary   { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted     { color: var(--text-muted); }
+.text-success   { color: var(--success); }
+.text-warning   { color: var(--warning); }
+.text-danger    { color: var(--danger); }
+.text-lg  { font-size: 1.125rem; }
+.text-sm  { font-size: 0.875rem; }
+.text-xs  { font-size: 0.75rem; }
+.text-xxs { font-size: 0.65rem; }
+
+/* ── 7. Paragraphs ── */
+p {
+    margin-bottom: 1rem;
+    color: rgba(248, 250, 252, 0.58);
+    line-height: 1.9;
+}
+
+/* ── 8. Links ── */
+a {
+    color: inherit;
+    text-decoration: none;
+    transition: color .35s ease, opacity .35s ease, transform .35s ease;
+}
+
+/* ── 9. Images ── */
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* ── 10. Selection ── */
+::selection {
+    background: rgba(99, 102, 241, 0.22);
+    color: #fff;
+}
+
+/* ── 11. Scrollbar (WebKit) ── */
+::-webkit-scrollbar              { width: 10px; height: 10px; }
+::-webkit-scrollbar-track        { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, rgba(255,255,255,0.16), rgba(255,255,255,0.08));
+}
+
+/* ── 12. Divider ── */
+hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+    margin: 4rem 0;
+}
+
+/* ── 13. Video reset ── */
+video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ── 14. Font weight utils ── */
+.font-bold   { font-weight: 700; }
+.font-medium { font-weight: 500; }

@@ -1,6 +1,6 @@
 /**
- * AI Study Hub LMS - UI Application Core
- * Manages Toast Notifications, Sidebar toggle, and general DOM events.
+ * AI Study Hub LMS — UI Application Core
+ * Bright Modern Edition
  */
 
 const App = {
@@ -13,33 +13,36 @@ const App = {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         
-        // Colors base on type
-        const bg = type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#4f46e5');
-        
+        const bg = type === 'success' ? '#fff' : 'rgba(252,165,165,0.1)';
+        const border = type === 'success' ? 'rgba(0,0,0,0.1)' : 'rgba(252,165,165,0.3)';
+        const color = type === 'success' ? '#0f172a' : '#ef4444';
+
         toast.style.cssText = `
             background: ${bg};
-            color: white;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid ${border};
+            color: ${color};
             padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 100px;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
             transform: translateX(120%);
-            transition: transform 0.3s ease;
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
             font-weight: 500;
-            z-index: 9999;
+            font-size: 0.85rem;
+            z-index: 99999;
+            min-width: 280px;
+            letter-spacing: 0.02em;
         `;
         toast.textContent = message;
 
         toastContainer.appendChild(toast);
-
-        // Animate in
         setTimeout(() => toast.style.transform = 'translateX(0)', 10);
-
-        // Auto remove
         setTimeout(() => {
             toast.style.transform = 'translateX(120%)';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+            setTimeout(() => toast.remove(), 600);
+        }, 4000);
     },
 
     _createToastContainer() {
@@ -48,8 +51,8 @@ const App = {
         container.style.cssText = `
             position: fixed;
             top: 100px;
-            right: 20px;
-            z-index: 9999;
+            right: 40px;
+            z-index: 999999;
             display: flex;
             flex-direction: column;
         `;
@@ -57,82 +60,61 @@ const App = {
         return container;
     },
 
-    /**
-     * Prevent guest users from seeing protected pages
-     */
     requireAuth(allowedRoles = []) {
         const user = window.api.getUser();
-        if (!user) {
-            window.location.href = '/login.php';
-            return;
-        }
-
+        if (!user) { window.location.href = '/login.php'; return; }
         if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-            // Redirect to role-appropriate dashboard instead of history.back()
-            const dashboards = {
-                'admin': '/admin/dashboard.php',
-                'teacher': '/teacher/dashboard.php',
-                'student': '/student/dashboard.php'
-            };
-            const redirectUrl = dashboards[user.role] || '/';
-            window.location.replace(redirectUrl);
+            const dashboards = { 'admin': '/admin/dashboard.php', 'teacher': '/teacher/dashboard.php', 'student': '/student/dashboard.php' };
+            window.location.replace(dashboards[user.role] || '/');
             return null;
         }
         return user;
     },
 
-    /**
-     * Build User Profile Avatar block on Navbar
-     */
     renderUserNav() {
         const user = window.api.getUser();
         const userMenu = document.getElementById('user-menu');
         if (!userMenu) return;
 
         const currentLang = localStorage.getItem('lang') || 'vi';
-        
-        let loginText = currentLang === 'en' ? 'Login' : 'Đăng nhập';
-        let registerText = currentLang === 'en' ? 'Register Now' : 'Đăng ký ngay';
-        let helloText = currentLang === 'en' ? 'Hello' : 'Xin chào';
+        const loginText    = currentLang === 'en' ? 'Login' : 'Đăng nhập';
+        const startText    = currentLang === 'en' ? 'Get Started' : 'Bắt đầu học';
 
         const langToggleBtn = `
-            <div style="display: flex; gap: 0.5rem; margin-right: 1.5rem; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 1.5rem; align-items: center;">
-                <button class="lang-switch-btn" data-lang="vi" onclick="window.I18n && window.I18n.setLocale('vi')" style="background:none; border:none; cursor:pointer; font-weight: ${currentLang==='vi'?'bold':'normal'}; color: var(--${currentLang==='vi'?'primary':'text-secondary'});">VI</button>
-                <span style="color:var(--text-secondary)">|</span>
-                <button class="lang-switch-btn" data-lang="en" onclick="window.I18n && window.I18n.setLocale('en')" style="background:none; border:none; cursor:pointer; font-weight: ${currentLang==='en'?'bold':'normal'}; color: var(--${currentLang==='en'?'primary':'text-secondary'});">EN</button>
+            <div style="display:flex; gap:0.5rem; margin-right:1.5rem; align-items:center;">
+                <button class="lang-switch-btn" data-lang="vi" onclick="window.I18n&&window.I18n.setLocale('vi')"
+                    style="background:none; border:none; cursor:pointer; font-size:0.75rem; font-weight:${currentLang==='vi'?'700':'500'}; color:var(--text-primary); padding:0.2rem; opacity:${currentLang==='vi'?'1':'0.4'}; transition: opacity 0.3s;">VI</button>
+                <span style="color:var(--text-muted); font-size:0.6rem; opacity: 0.3;">|</span>
+                <button class="lang-switch-btn" data-lang="en" onclick="window.I18n&&window.I18n.setLocale('en')"
+                    style="background:none; border:none; cursor:pointer; font-size:0.75rem; font-weight:${currentLang==='en'?'700':'500'}; color:var(--text-primary); padding:0.2rem; opacity:${currentLang==='en'?'1':'0.4'}; transition: opacity 0.3s;">EN</button>
             </div>
         `;
 
         if (user) {
             const username = user.username || user.email.split('@')[0];
-            let avatarHtml = '';
-            if (user.avatar) {
-                avatarHtml = `<img src="${user.avatar}" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">`;
-            } else {
-                avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; border: 2px solid rgba(255,255,255,0.1);">${username.charAt(0).toUpperCase()}</div>`;
-            }
+            const avatarHtml = user.avatar
+                ? `<img src="${user.avatar}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.1);">`
+                : `<div style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-primary); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.75rem;">${username.charAt(0).toUpperCase()}</div>`;
 
             userMenu.innerHTML = langToggleBtn + `
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <span style="font-weight: 500; color: var(--text-primary); display:flex; align-items:center; gap:0.5rem;">${username} ${avatarHtml}</span>
-                    <button class="btn btn-primary" onclick="App.toggleOffcanvasSidebar()" style="padding: 0.5rem; border-radius: 8px; font-size: 1.2rem; line-height: 1; display:flex; align-items:center;">
-                        ☰
-                    </button>
+                <div style="display:flex; align-items:center; gap:0.75rem; cursor: pointer;" onclick="App.toggleOffcanvasSidebar()">
+                    <span style="font-size:0.85rem; font-weight: 600; color: var(--text-primary);">${username}</span>
+                    ${avatarHtml}
                 </div>
             `;
             this.renderOffcanvasSidebar(user);
         } else {
             userMenu.innerHTML = langToggleBtn + `
-                <a href="/login.php" class="nav-link" data-i18n="btn_login">${loginText}</a>
-                <a href="/register.php" class="btn btn-primary" data-i18n="btn_register">${registerText}</a>
+                <a href="/login.php" class="nav-link" style="font-size: 0.85rem; font-weight: 600; margin-right: 0.5rem;">${loginText}</a>
+                <a href="/register.php" class="btn btn-primary" style="border-radius: 100px; padding: 0.6rem 1.5rem; font-size: 0.8rem;">${startText}</a>
             `;
         }
     },
 
     toggleOffcanvasSidebar() {
-        const sidebar = document.getElementById('global-offcanvas');
+        const sidebar  = document.getElementById('global-offcanvas');
         const backdrop = document.getElementById('offcanvas-backdrop');
-        if (sidebar) sidebar.classList.toggle('open');
+        if (sidebar)  sidebar.classList.toggle('open');
         if (backdrop) backdrop.classList.toggle('show');
     },
 
@@ -142,32 +124,25 @@ const App = {
         const sidebar = document.createElement('div');
         sidebar.id = 'global-offcanvas';
         sidebar.style.cssText = `
-            position: fixed;
-            top: 0;
-            right: -320px;
-            width: 320px;
-            height: 100vh;
-            background: var(--bg-surface);
-            border-left: 1px solid var(--primary-glow);
+            position: fixed; top: 0; right: -320px; width: 320px; height: 100vh;
+            background: rgba(13, 15, 23, 0.88);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
             z-index: 10000;
-            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            box-shadow: -5px 0 30px rgba(0,0,0,0.8);
+            transition: right 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column;
+            box-shadow: -20px 0 60px rgba(0,0,0,0.4);
         `;
 
         const style = document.createElement('style');
         style.innerHTML = `
             #global-offcanvas.open { right: 0 !important; }
-            #offcanvas-backdrop {
-                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
-            }
-            #offcanvas-backdrop.show { opacity: 1; pointer-events: all; }
-            .offcanvas-nav { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; }
-            .offcanvas-nav li a {
-                display: block; padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-primary); transition: all 0.2s; text-decoration: none; font-weight: 500;
-            }
-            .offcanvas-nav li a:hover { background: rgba(79, 70, 229, 0.15); color: var(--primary); padding-left: 2rem; }
+            #offcanvas-backdrop { position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:9999;opacity:0;pointer-events:none;transition:opacity 0.6s ease; }
+            #offcanvas-backdrop.show { opacity:1;pointer-events:all; }
+            .offcanvas-nav { list-style:none;padding:1.5rem;margin:0;flex:1;overflow-y:auto; }
+            .offcanvas-nav li a { display:flex;align-items:center;gap:0.75rem;padding:0.85rem 1.25rem;border-radius:16px;margin-bottom:4px;color:rgba(255,255,255,0.55);transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1);text-decoration:none;font-weight:500;font-size:0.9rem; }
+            .offcanvas-nav li a:hover { background:rgba(255,255,255,0.05); color:#fff; transform: translateX(8px); }
         `;
         document.head.appendChild(style);
 
@@ -176,57 +151,68 @@ const App = {
         backdrop.onclick = () => this.toggleOffcanvasSidebar();
         document.body.appendChild(backdrop);
 
-        let menuItems = '';
-        if (user.role === 'admin') {
-            menuItems = `<li><a href="/admin/dashboard.php" data-i18n="nav_admin_dashboard">⚙️ Bảng Điều Khiển Admin</a></li>`;
-        } else if (user.role === 'teacher') {
-            menuItems = `<li><a href="/teacher/dashboard.php" data-i18n="nav_teacher_courses">🧑‍🏫 Quản lý Khóa học</a></li>`;
-        } else {
-            menuItems = `
-                <li><a href="/student/dashboard.php" data-i18n="nav_student_dashboard">📊 Tổng quan học tập</a></li>
-                <li><a href="/student/dashboard.php#enrolled-course-container" data-i18n="nav_student_courses">📚 Khóa học của tôi</a></li>
-                <li><a href="/student/certificates.php">🎓 Chứng chỉ của tôi</a></li>
-                <li><a href="/student/chat.php" data-i18n="nav_student_chat">💬 Trò Chuyện Giảng Viên</a></li>
-                <li><a href="/#courses" data-i18n="std_explore_new">✨ Khám phá Khóa học mới</a></li>
-            `;
-        }
+        const lang = localStorage.getItem('lang') || 'vi';
+        const items = user.role === 'admin' ? [
+            { icon: '⚙️', text: lang==='en'?'Admin Dashboard':'Bảng điều khiển Admin', link: '/admin/dashboard.php' },
+            { icon: '👥', text: lang==='en'?'Manage Users':'Quản lý Người dùng', link: '/admin/users.php' }
+        ] : user.role === 'teacher' ? [
+            { icon: '🧑‍🏫', text: lang==='en'?'Teacher Dashboard':'Bảng điều khiển Giảng viên', link: '/teacher/dashboard.php' },
+            { icon: '📚', text: lang==='en'?'Course Manager':'Quản lý Khóa học', link: '/teacher/dashboard.php#courses-container' }
+        ] : [
+            { icon: '📊', text: lang==='en'?'My Learning':'Tổng quan học tập', link: '/student/dashboard.php' },
+            { icon: '📚', text: lang==='en'?'My Courses':'Khóa học của tôi', link: '/student/my-courses.php' },
+            { icon: '🎓', text: lang==='en'?'Certificates':'Chứng chỉ của tôi', link: '/student/certificates.php' },
+            { icon: '🤖', text: lang==='en'?'AI Tutor':'Gia sư AI', link: '/student/ai-chat.php' }
+        ];
 
         sidebar.innerHTML = `
-            <div style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2);">
-                <h3 style="margin:0;" data-i18n="nav_hub_menu">Hub <span class="text-gradient">Menu</span></h3>
-                <button onclick="App.toggleOffcanvasSidebar()" style="background:none; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
+            <div style="padding:2.5rem 2rem; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <div style="width:36px; height:36px; background:var(--primary); border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:1rem; font-weight:800; box-shadow: 0 8px 16px rgba(99,102,241,0.2);">A</div>
+                    <span style="font-weight:700; font-size:1.1rem; letter-spacing:-0.02em; color: #fff;">AI Study Hub</span>
+                </div>
             </div>
             <ul class="offcanvas-nav">
-                <li><a href="/profile.php" style="color: var(--warning);" data-i18n="nav_profile">👤 Cá Nhân (Edit Profile)</a></li>
-                ${menuItems}
+                <li><a href="/profile.php">👤 ${lang==='en'?'My Profile':'Hồ sơ cá nhân'}</a></li>
+                ${items.map(i => `<li><a href="${i.link}">${i.icon} ${i.text}</a></li>`).join('')}
+                <li><a href="/">🏠 ${lang==='en'?'Back to Home':'Trang chủ'}</a></li>
             </ul>
-            <div style="padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05);">
-                <button onclick="App.logout()" class="btn btn-outline" style="width: 100%;" data-i18n="btn_logout">${localStorage.getItem('lang')==='en'?'Logout from system':'Đăng xuất khỏi hệ thống'}</button>
+            <div style="padding:2rem; border-top:1px solid rgba(255,255,255,0.06);">
+                <button onclick="App.logout()" class="btn btn-outline" style="width:100%; border-radius:100px; font-size:0.85rem; padding: 0.8rem; border-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">${lang==='en'?'Logout':'Đăng xuất'}</button>
             </div>
         `;
         document.body.appendChild(sidebar);
-        if (window.I18n) window.I18n.render();
     },
 
     logout() {
         window.api.clearSession();
         window.location.href = '/login.php';
+    },
+
+    /**
+     * Smart navigation: Check if user is logged in before going to a page
+     */
+    checkAuthAndGo(targetUrl, message = 'Vui lòng đăng nhập để sử dụng tính năng này') {
+        const user = window.api.getUser();
+        if (user) {
+            window.location.href = targetUrl;
+        } else {
+            this.showToast(message, 'info');
+            setTimeout(() => {
+                window.location.href = '/login.php';
+            }, 1200);
+        }
     }
 };
 
 window.App = App;
 
-// Auto setup on load
 document.addEventListener('DOMContentLoaded', () => {
-    // Tự động load thư viện i18n.js nếu chưa có
     if (typeof window.I18n === 'undefined') {
         const script = document.createElement('script');
         script.src = '/assets/js/i18n.js';
-        script.onload = () => {
-            if (window.I18n) window.I18n.render(); 
-        };
+        script.onload = () => { if (window.I18n) window.I18n.render(); };
         document.head.appendChild(script);
     }
-
     App.renderUserNav();
 });

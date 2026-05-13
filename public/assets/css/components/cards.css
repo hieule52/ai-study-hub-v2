@@ -1,0 +1,64 @@
+/* ============================================================
+   COMPONENT — CARDS
+   ============================================================ */
+
+.card {
+    background: var(--glass-bg);
+    border-radius: var(--radius-xl);
+    border: 5px solid var(--glass-border);
+    overflow: hidden;
+    transition: var(--transition);
+    backdrop-filter: blur(16px);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    border-color: var(--glass-border-hi);
+    box-shadow: var(--glass-shadow-lg);
+}
+
+.card-img-placeholder {
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-img-placeholder::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.4));
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    line-height: 1.4;
+    font-family: var(--font-body);
+}
+
+.card-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+@media (max-width:480px) {
+    .card-body {
+        padding: 1rem;
+    }
+}

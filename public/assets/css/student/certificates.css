@@ -1,0 +1,135 @@
+/* ============================================================
+   STUDENT — CERTIFICATES (Cinematic Showcase)
+   ============================================================ */
+
+.certs-header {
+    margin-bottom: 4rem;
+}
+
+.cert-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 2.5rem;
+}
+
+/* ── Certificate Card ── */
+.cert-card {
+    background: var(--glass-bg);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: var(--radius-xl);
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.cert-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    background: var(--glass-bg-strong);
+    border-color: var(--success);
+    box-shadow: 0 30px 70px rgba(16, 185, 129, 0.15);
+}
+
+.cert-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.2), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: var(--transition);
+}
+
+.cert-card:hover::before {
+    transform: scale(1.5);
+    opacity: 0.4;
+}
+
+.cert-icon {
+    font-size: 4rem;
+    margin-bottom: 2rem;
+    display: block;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));
+}
+
+.cert-course-title {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+}
+
+.cert-teacher {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    opacity: 0.8;
+}
+
+.cert-meta {
+    padding: 1.5rem;
+    background: rgba(0,0,0,0.3);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.cert-meta-row {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.cert-meta-row strong {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.cert-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    padding: 0.5rem 1.25rem;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 1.5rem;
+    display: inline-flex;
+    align-self: flex-start;
+}
+
+.cert-actions {
+    display: flex; gap: 1rem;
+    margin-top: auto;
+}
+
+/* ── Empty State ── */
+.empty-certs {
+    padding: 6rem 3rem;
+    text-align: center;
+    background: var(--glass-bg);
+    border: 1px dashed var(--glass-border);
+    border-radius: var(--radius-2xl);
+}
+
+.empty-certs .emoji {
+    font-size: 5rem;
+    display: block;
+    margin-bottom: 2rem;
+    opacity: 0.5;
+}

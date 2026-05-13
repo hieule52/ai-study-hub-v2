@@ -58,5 +58,8 @@ if (file_exists($apiRoutesPath)) {
     $response->error('Missing api routes configuration', 500);
 }
 
+// Ghi log request để debug (có thể xóa sau)
+error_log("API Request: " . $_SERVER['REQUEST_METHOD'] . " " . $uriPath);
+
 // Điều hướng request
 $router->dispatch($request, $response);

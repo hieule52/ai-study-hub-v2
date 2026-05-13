@@ -1,574 +1,14 @@
+<?php
 $pageTitle = 'Đang Học - AI Study Hub';
-$actor = 'guest';
+$actor = 'student';
+$noSidebar = true;
 $extraHead = '
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/student/learning.css?v=' . time() . '">
 ';
-ob_start();
-?>
-<style>
-        body {
-            background: #000; /* Cinematic background */
-        }
-        
-        .learning-layout {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .main-player {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .video-wrapper {
-            width: 100%;
-            background: #000;
-            aspect-ratio: 16/9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .content-area {
-            flex: 1;
-            padding: 3rem 4rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* Sidebar Glassmorphism */
-        .curriculum-sidebar {
-            width: 380px;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            border-left: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-        }
-
-        .chapter-title {
-            padding: 1.25rem 1.5rem;
-            background: rgba(255, 255, 255, 0.02);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 1.1rem;
-        }
-
-        .lesson-item {
-            padding: 1rem 1.5rem 1rem 2.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: var(--text-secondary);
-        }
-
-        .lesson-item:hover {
-            background: rgba(79, 70, 229, 0.1);
-            color: var(--text-primary);
-        }
-
-        .lesson-item.playing {
-            background: linear-gradient(90deg, rgba(79, 70, 229, 0.15) 0%, transparent 100%);
-            color: var(--primary);
-            border-left: 4px solid var(--primary);
-        }
-
-        /* AI Floating Widget */
-        .ai-chat-btn {
-            position: fixed;
-            bottom: 40px;
-            right: 420px;
-            background: linear-gradient(135deg, #4f46e5, #ec4899);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 65px;
-            height: 65px;
-            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.5);
-            cursor: pointer;
-            z-index: 1000;
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            animation: bounce-glow 3s infinite;
-        }
-
-        @keyframes bounce-glow {
-            0%, 100% { transform: translateY(0); box-shadow: 0 10px 25px rgba(236, 72, 153, 0.5); }
-            50% { transform: translateY(-10px); box-shadow: 0 20px 35px rgba(236, 72, 153, 0.8); }
-        }
-
-        .ai-chat-btn:hover {
-            transform: scale(1.1) rotate(15deg);
-        }
-
-        .ai-popup {
-            position: fixed;
-            bottom: 120px;
-            right: 420px;
-            width: 380px;
-            height: 600px;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(236, 72, 153, 0.3);
-            border-radius: var(--radius-xl);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(236, 72, 153, 0.1);
-            display: flex;
-            flex-direction: column;
-            z-index: 999;
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        .ai-popup.open {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: all;
-        }
-
-        .ai-header {
-            padding: 1.25rem;
-            background: linear-gradient(90deg, rgba(79, 70, 229, 0.2), rgba(236, 72, 153, 0.2));
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .ai-messages {
-            flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .msg {
-            max-width: 85%;
-            padding: 1rem 1.25rem;
-            border-radius: 1.25rem;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .msg.user {
-            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-        }
-
-        .msg.bot {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .ai-input-area {
-            padding: 1rem;
-            background: rgba(0,0,0,0.2);
-            border-top: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .ai-input-area input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 2rem;
-            padding: 0.75rem 1.25rem;
-        }
-
-        /* Quiz UI Premium */
-        .quiz-container {
-            margin-top: 3rem;
-            padding: 2.5rem;
-            background: linear-gradient(145deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02));
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: var(--radius-xl);
-            box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.05);
-        }
-
-        .question-block {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: rgba(0,0,0,0.2);
-            border-radius: var(--radius-lg);
-        }
-
-        .answer-option {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            padding: 1rem 1.25rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .answer-option:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(5px);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        .answer-option input[type="radio"] {
-<style>
-
-        /* Sidebar Glassmorphism */
-        .curriculum-sidebar {
-            width: 380px;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            border-left: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-        }
-
-        .chapter-title {
-            padding: 1.25rem 1.5rem;
-            background: rgba(255, 255, 255, 0.02);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 1.1rem;
-        }
-
-        .lesson-item {
-            padding: 1rem 1.5rem 1rem 2.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-            cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: var(--text-secondary);
-        }
-
-        .lesson-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-        }
-
-        .lesson-item.playing {
-            background: rgba(79, 70, 229, 0.15);
-            color: var(--primary);
-            border-left: 4px solid var(--primary);
-            font-weight: 600;
-        }
-
-        .lesson-item .type-icon {
-            font-size: 1.2rem;
-            opacity: 0.7;
-        }
-
-        .lesson-item.playing .type-icon {
-            opacity: 1;
-        }
-
-        /* AI Floating Widget */
-        .ai-chat-btn {
-            position: fixed;
-            bottom: 40px;
-            right: 420px;
-            background: linear-gradient(135deg, #4f46e5, #ec4899);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 65px;
-            height: 65px;
-            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.5);
-            cursor: pointer;
-            z-index: 1000;
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            animation: bounce-glow 3s infinite;
-        }
-
-        @keyframes bounce-glow {
-            0%, 100% { transform: translateY(0); box-shadow: 0 10px 25px rgba(236, 72, 153, 0.5); }
-            50% { transform: translateY(-10px); box-shadow: 0 20px 35px rgba(236, 72, 153, 0.8); }
-        }
-
-        .ai-chat-btn:hover {
-            transform: scale(1.1) rotate(15deg);
-        }
-
-        .ai-popup {
-            position: fixed;
-            bottom: 120px;
-            right: 420px;
-            width: 380px;
-            height: 600px;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(236, 72, 153, 0.3);
-            border-radius: var(--radius-xl);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(236, 72, 153, 0.1);
-            display: flex;
-            flex-direction: column;
-            z-index: 999;
-            overflow: hidden;
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        .ai-popup.open {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: all;
-        }
-
-        .ai-header {
-            padding: 1.25rem;
-            background: linear-gradient(90deg, rgba(79, 70, 229, 0.2), rgba(236, 72, 153, 0.2));
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .ai-messages {
-            flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-        }
-
-        .msg {
-            max-width: 85%;
-            padding: 1rem 1.25rem;
-            border-radius: 1.25rem;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .msg.user {
-            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
-        }
-
-        .msg.bot {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .ai-input-area {
-            padding: 1rem;
-            background: rgba(0,0,0,0.2);
-            border-top: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .ai-input-area input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 2rem;
-            padding: 0.75rem 1.25rem;
-        }
-
-        /* Quiz UI Premium */
-        .quiz-container {
-            margin-top: 3rem;
-            padding: 2.5rem;
-            background: linear-gradient(145deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02));
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            border-radius: var(--radius-xl);
-            box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.05);
-        }
-
-        .question-block {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: rgba(0,0,0,0.2);
-            border-radius: var(--radius-lg);
-        }
-
-        .answer-option {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            padding: 1rem 1.25rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .answer-option:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateX(5px);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        .answer-option input[type="radio"] {
-            margin-right: 1rem;
-            transform: scale(1.2);
-            accent-color: var(--success);
-        }
-
-        .quiz-submit-btn {
-            background: linear-gradient(135deg, var(--success), #059669);
-            width: 100%;
-            padding: 1rem;
-            font-size: 1.1rem;
-            border-radius: var(--radius-lg);
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        /* Custom Content Styling over Quill */
-        .ql-editor {
-            font-family: inherit;
-            font-size: 1.15rem;
-            color: #cbd5e1;
-            line-height: 1.8;
-            padding: 0;
-            white-space: pre-wrap; /* Fix line breaks for pasted text */
-        }
-        .ql-editor h1, .ql-editor h2, .ql-editor h3 {
-            color: #f8fafc;
-            margin-top: 2.5rem;
-            margin-bottom: 1.25rem;
-            font-weight: 800;
-            border: none;
-        }
-        .ql-editor p {
-            margin-bottom: 1.5rem;
-        }
-        .ql-editor code {
-            background: rgba(255,255,255,0.1);
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9em;
-            color: #f472b6; /* Pinkish code */
-        }
-        .ql-editor pre {
-            background: #0f172a;
-            padding: 2rem;
-            border-radius: 16px;
-            overflow-x: auto;
-            margin: 2rem 0;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .ql-editor pre code {
-            background: transparent;
-            padding: 0;
-            color: inherit;
-        }
-        .ql-editor blockquote {
-            border-left: 5px solid var(--primary);
-            padding: 1rem 2rem;
-            margin: 2rem 0;
-            background: rgba(79, 70, 229, 0.05);
-            border-radius: 0 12px 12px 0;
-            color: #94a3b8;
-            font-style: italic;
-        }
-        .ql-editor img {
-            max-width: 100%;
-            border-radius: 20px;
-            margin: 2.5rem 0;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-
-        /* Quill Alignment Display Fix */
-        .ql-align-center { text-align: center !important; }
-        .ql-align-right { text-align: right !important; }
-        .ql-align-justify { text-align: justify !important; }
-
-        /* Objectives Styling */
-        .objectives-card {
-            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(236, 72, 153, 0.05));
-            border: 1px solid rgba(79, 70, 229, 0.2);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            display: flex;
-            gap: 1.25rem;
-            align-items: flex-start;
-        }
-        .objectives-icon {
-            font-size: 1.8rem;
-            background: rgba(79, 70, 229, 0.2);
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .objectives-list {
-            flex: 1;
-        }
-        .objectives-title {
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
-        }
-        .objectives-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .objective-tag {
-            background: rgba(255,255,255,0.05);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            border: 1px solid rgba(255,255,255,0.1);
-            color: var(--text-secondary);
-        }
-    </style>
-<?php
-$extraHead = ob_get_clean();
 require __DIR__ . '/../layouts/header.php';
 ?>
 
@@ -577,9 +17,9 @@ require __DIR__ . '/../layouts/header.php';
         <!-- Left: Video Area -->
         <div class="main-player">
             <!-- Go Back nav -->
-            <div style="padding: 1rem 2rem; background: transparent; position: absolute; top: 0; left: 0; right: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);">
-                <a href="/student/dashboard.php" class="btn btn-outline" style="border-radius: 20px; font-size: 0.9rem; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);" data-i18n="lrn_back_home">&larr; Quay lại Home</a>
-                <span style="font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.8);" id="course_title_span">...</span>
+            <div style="padding:0.875rem 1.5rem;background:linear-gradient(to bottom,rgba(0,0,0,0.75),transparent);position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;">
+                <a href="/student/dashboard.php" class="btn btn-ghost" style="font-size:0.82rem;border-radius:100px;background:rgba(0,0,0,0.4);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);padding:0.45rem 1rem;" data-i18n="lrn_back_home">&larr; Dashboard</a>
+                <span style="font-size:0.85rem;font-weight:600;color:rgba(240,240,244,0.7);text-shadow:0 2px 8px rgba(0,0,0,0.8);" id="course_title_span">...</span>
             </div>
 
             <!-- Video Player -->
@@ -593,16 +33,16 @@ require __DIR__ . '/../layouts/header.php';
             <!-- Content Area -->
             <div class="content-area">
                 <div class="flex justify-between items-center mb-6">
-                    <h1 id="lesson_title" style="font-size: 2.5rem; font-weight: 800; letter-spacing: -1px;">...</h1>
-                    <button class="btn btn-primary" id="btn_mark_complete" style="display:none; border-radius: 20px;" onclick="markComplete()" data-i18n="lrn_mark_complete">✅ Đánh dấu Đã Học</button>
+                    <h1 id="lesson_title" style="font-size:clamp(1.5rem,2.5vw,2rem);font-weight:800;letter-spacing:-0.03em;">...</h1>
+                    <button class="btn btn-outline" id="btn_mark_complete" style="display:none;border-radius:100px;font-size:0.82rem;color:var(--success);border-color:rgba(110,231,183,0.3);white-space:nowrap;" onclick="markComplete()" data-i18n="lrn_mark_complete">✅ Đánh dấu Đã Học</button>
                 </div>
 
                 <!-- Learning Objectives Container -->
                 <div id="objectives_container"></div>
                 
                 <div id="lesson_content">
-                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 2rem; opacity: 0.7;" data-i18n="lrn_select_lesson">
-                        <span>👈</span> Chọn một bài học ở danh mục bên phải để bắt đầu.
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 2rem; opacity: 0.7;">
+                        <span>👉</span> <span data-i18n="lrn_select_hint">Chọn một bài học ở danh mục bên phải để bắt đầu.</span>
                     </div>
                 </div>
 
@@ -613,49 +53,50 @@ require __DIR__ . '/../layouts/header.php';
 
         <!-- Right: Curriculum Sidebar -->
         <div class="curriculum-sidebar">
-            <div style="padding: 2rem 1.5rem; background: rgba(0,0,0,0.2);">
-                <h3 style="font-size: 1.25rem;" data-i18n="lrn_curriculum">Nội Dung Cùng Khóa</h3>
-                <div class="flex items-center justify-between gap-2 mt-2">
-                    <div style="font-size: 0.875rem; color: var(--success); font-weight: 600;">
-                        <span id="curriculum-progress" data-i18n="lrn_progress">Tiến độ: --</span>
+            <div class="sidebar-header">
+                <div>
+                    <p style="font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.3);margin-bottom:0.5rem;" data-i18n="lrn_curriculum">Nội Dung Khóa Học</p>
+                    <div id="curriculum-progress" style="font-size:0.8rem;color:var(--success);font-weight:600;display:flex;align-items:center;gap:0.5rem;">
+                        <span>Tiến độ: --</span>
                     </div>
-                    <button id="btn_review_course" onclick="showReviewModal()" style="display:none;" class="btn btn-sm btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">⭐ Đánh giá</button>
                 </div>
+                <button id="btn_review_course" onclick="showReviewModal()" style="display:none; padding:0.4rem 1rem; font-size:0.75rem; border-radius:100px; color:var(--warning); border-color:rgba(251,191,36,0.3);" class="btn btn-outline">⭐ <span data-i18n="lrn_btn_rate">Đánh giá</span></button>
             </div>
-
-            <div style="flex: 1; overflow-y: auto;" id="curriculumList">
-                <div class="p-4 text-center text-muted" data-i18n="lrn_loading_curriculum">Đang tải giáo trình...</div>
+            <div class="sidebar-content" id="curriculumList">
+                <div class="p-4 text-center text-muted" style="font-size:0.875rem;" data-i18n="lrn_loading_curriculum">Đang tải giáo trình...</div>
             </div>
         </div>
 
     </div>
 
     <!-- AI Chat Popup & Button -->
-    <button class="ai-chat-btn" onclick="toggleAIChat()" title="Gọi trợ lý AI">✨</button>
-    
+    <button class="ai-chat-btn" onclick="toggleAIChat()" title="Gọi trợ lý AI">🤖</button>
+
     <div class="ai-popup" id="aiPopup">
         <!-- AI Header -->
         <div class="ai-header">
-            <div class="flex items-center gap-3">
-                <div style="width: 35px; height: 35px; background: #fff; border-radius: 50%; display: flex; align-items:center; justify-content:center; font-size: 1.2rem; box-shadow: 0 0 10px rgba(255,255,255,0.5);">🧠</div>
+            <div class="ai-header-label">
+                <div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;">🧠</div>
                 <div>
-                    <div style="line-height: 1; margin-bottom: 2px;">Trợ lý AI</div>
-                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.7);">Luôn sẵn sàng hỗ trợ</div>
+                    <div style="font-size:0.85rem;font-weight:600;line-height:1;">AI Tutor</div>
+                    <div style="font-size:0.68rem;color:rgba(240,240,244,0.45);display:flex;align-items:center;gap:0.3rem;margin-top:2px;">
+                        <div class="ai-online-dot"></div> <span data-i18n="lrn_ai_ready">Sẵn sàng hỗ trợ</span>
+                    </div>
                 </div>
             </div>
-            <span style="font-size: 0.65rem; color: #fff; background: linear-gradient(135deg, var(--secondary), var(--warning)); padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: bold; box-shadow: 0 2px 5px rgba(236,72,153,0.3);">PRO VIP</span>
+            <span class="badge" style="font-size:0.62rem;">Contextual AI</span>
         </div>
-        
+
         <!-- AI Messages Body -->
         <div class="ai-messages" id="chatBox">
-            <div class="msg bot">✌️ Chào bạn! Tôi là AI Tutor trực tuyến của bạn. Bạn gặp phần nào khó hiểu trong bài giảng này, cứ mạnh dạn hỏi tôi nhé!</div>
+            <div class="msg bot" data-i18n="lrn_ai_welcome">👋 Chào bạn! Tôi là AI Tutor của bạn. Hỏi tôi bất cứ điều gì về nội dung bài học này nhé!</div>
         </div>
 
         <!-- AI Input -->
         <form class="ai-input-area" id="chatForm">
-            <input type="text" id="chatInput" class="form-control" placeholder="Hỏi AI về nội dung bài..." required style="flex: 1;">
-            <button type="submit" class="btn btn-primary" style="padding: 0; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items:center; justify-content:center; background: var(--secondary);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <input type="text" id="chatInput" placeholder="Hỏi AI về nội dung bài..." required>
+            <button type="submit" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#f0f0f4;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
         </form>
     </div>
@@ -749,7 +190,8 @@ require __DIR__ . '/../layouts/header.php';
                             const lesDiv = document.createElement('div');
                             lesDiv.className = 'lesson-item';
                             lesDiv.id = `nav-lesson-${lesson.id}`;
-                            lesDiv.innerHTML = `<span>📺</span> <span style="flex: 1">${lesson.title}</span>`;
+                            const icon = lesson.content_type === 'quiz' ? '📝' : '🎬';
+                            lesDiv.innerHTML = `<span>${icon}</span> <span style="flex: 1">${lesson.title}</span>`;
                             lesDiv.onclick = () => loadLesson(lesson.id);
                             sidebar.appendChild(lesDiv);
                         });
@@ -780,14 +222,16 @@ require __DIR__ . '/../layouts/header.php';
             // Update UI State
             document.querySelectorAll('.lesson-item').forEach(el => {
                 el.classList.remove('playing');
-                if(el.innerHTML.includes('▶️')) {
-                    el.innerHTML = el.innerHTML.replace('▶️', '📺');
+                if (el.dataset.originalIcon) {
+                    el.querySelector('span').innerText = el.dataset.originalIcon;
                 }
             });
             const activeEl = document.getElementById(`nav-lesson-${lessonId}`);
             if (activeEl) {
                 activeEl.classList.add('playing');
-                activeEl.innerHTML = activeEl.innerHTML.replace('📺', '▶️');
+                const originalIcon = activeEl.querySelector('span').innerText;
+                activeEl.querySelector('span').innerText = '▶️';
+                activeEl.dataset.originalIcon = originalIcon;
             }
 
             try {
@@ -952,7 +396,10 @@ require __DIR__ . '/../layouts/header.php';
                     if (quiz.questions) {
                         quiz.questions.forEach((q, qIndex) => {
                             html += `<div class="question-block" id="qb_${q.id}">
-                                <p style="font-weight: 600; font-size: 1.1rem; margin-bottom: 1rem; color: #fff;">Câu ${qIndex + 1}: ${q.question}</p>
+                                <p class="question-text">
+                                    <span style="opacity: 0.5;">Q${qIndex + 1}</span>
+                                    <span>${q.question}</span>
+                                </p>
                                 <div class="options-grid">`;
                             q.options.forEach(ans => {
                                 html += `<label class="answer-option">
@@ -1135,5 +582,4 @@ require __DIR__ . '/../layouts/header.php';
     </script>
 <?php
 $extraScripts = ob_get_clean();
-?>
-<?php require __DIR__ . '/../layouts/footer.php'; ?>
+require __DIR__ . '/../layouts/footer.php'; ?>

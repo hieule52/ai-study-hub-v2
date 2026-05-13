@@ -77,9 +77,6 @@ class CourseController
     public function show(Request $request, Response $response, string $id)
     {
         try {
-            // Require login before viewing specific courses
-            AuthMiddleware::handle($request, $response);
-
             $course = $this->courseService->getCourseDetail((int)$id);
             $response->success("Chi tiết khóa học", (array)$course);
         } catch (Exception $e) {

@@ -1,0 +1,23 @@
+/* ============================================================
+   COMPONENT — SCROLLER
+   ============================================================ */
+
+.scroller-container {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scroll-snap-type: x mandatory;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scroller-container::-webkit-scrollbar {
+    display: none;
+}
+
+.scroller-item {
+    min-width: 280px;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+}

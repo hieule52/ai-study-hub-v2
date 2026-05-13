@@ -1,0 +1,173 @@
+/* ============================================================
+   CORE — LAYOUT SYSTEM  (AI Study Hub LMS)
+   Containers · Flex · Grid · Spacing utilities
+   ============================================================ */
+
+/* ── Design Tokens — Layout ── */
+:root {
+    --container-width:  1320px;
+    --content-width:    1180px;
+    --text-width:       760px;
+    --section-spacing:  180px;
+    --container-px:     32px;  /* horizontal padding for containers */
+}
+
+/* ============================================================
+   CONTAINERS
+   All containers:  width 100%  +  max-width  +  auto margin
+   This is the ONLY correct pattern — never use padding to fake centering.
+   ============================================================ */
+
+/* Standard page container */
+.container {
+    width: 100%;
+    max-width: var(--container-width);
+    margin-inline: auto;
+    padding-inline: var(--container-px);
+    position: relative;
+}
+
+/* Alias for content sections */
+.content-container {
+    width: 100%;
+    max-width: var(--container-width);
+    margin-inline: auto;
+    padding-inline: var(--container-px);
+    position: relative;
+}
+
+/* Full-bleed wrapper (no max-width, no padding) */
+.cinematic-container {
+    width: 100%;
+    position: relative;
+}
+
+/* Footer container — slightly inset on mobile */
+.footer-container {
+    width: 100%;
+    max-width: var(--container-width);
+    margin-inline: auto;
+    padding-inline: var(--container-px);
+    position: relative;
+}
+
+/* Narrow content widths */
+.content-width {
+    width: 100%;
+    max-width: var(--content-width);
+    margin-inline: auto;
+}
+
+.text-width {
+    width: 100%;
+    max-width: var(--text-width);
+    margin-inline: auto;
+}
+
+/* ============================================================
+   FLEX UTILITIES
+   ============================================================ */
+
+.flex          { display: flex; }
+.flex-column   { flex-direction: column; }
+.items-center  { align-items: center; }
+.items-start   { align-items: flex-start; }
+.items-end     { align-items: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-center  { justify-content: center; }
+.justify-end     { justify-content: flex-end; }
+.flex-1          { flex: 1; }
+.flex-wrap       { flex-wrap: wrap; }
+.w-full          { width: 100%; }
+
+/* ============================================================
+   GAP UTILITIES
+   ============================================================ */
+
+.gap-2  { gap: 0.5rem;  }
+.gap-3  { gap: 0.75rem; }
+.gap-4  { gap: 1rem;    }
+.gap-6  { gap: 1.5rem;  }
+.gap-8  { gap: 2rem;    }
+.gap-10 { gap: 2.5rem;  }
+.gap-12 { gap: 3rem;    }
+
+/* ============================================================
+   MARGIN / PADDING UTILITIES
+   ============================================================ */
+
+.mt-2  { margin-top:    0.5rem;  }
+.mt-4  { margin-top:    1rem;    }
+.mt-6  { margin-top:    1.5rem;  }
+.mt-8  { margin-top:    2rem;    }
+.mt-12 { margin-top:    3rem;    }
+
+.mb-2  { margin-bottom: 0.5rem;  }
+.mb-4  { margin-bottom: 1rem;    }
+.mb-6  { margin-bottom: 1.5rem;  }
+.mb-8  { margin-bottom: 2rem;    }
+
+.p-4   { padding: 1rem;   }
+.p-5   { padding: 1.25rem; }
+.p-6   { padding: 1.5rem;  }
+.p-8   { padding: 2rem;    }
+
+/* ============================================================
+   GRID UTILITIES
+   ============================================================ */
+
+.grid-cols-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+.grid-cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.grid-cols-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+
+.col-span-2  { grid-column: span 2; }
+.col-span-3  { grid-column: span 3; }
+
+/* ============================================================
+   TEXT ALIGNMENT
+   ============================================================ */
+
+.text-center { text-align: center; }
+.text-left   { text-align: left;   }
+.text-right  { text-align: right;  }
+
+/* ============================================================
+   MISC UTILITIES
+   ============================================================ */
+
+.hidden          { display: none !important; }
+.relative        { position: relative;       }
+.overflow-hidden { overflow: hidden;          }
+.opacity-40      { opacity: 0.4;              }
+
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   Consolidated here to avoid scattered @media blocks.
+   ============================================================ */
+
+/* Tablet — ≤ 1024px */
+@media (max-width: 1024px) {
+    .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Mobile — ≤ 768px */
+@media (max-width: 768px) {
+    :root { --container-px: 20px; }   /* Tighten container padding on mobile */
+    .container,
+    .content-container,
+    .footer-container {
+        padding-inline: var(--container-px);
+    }
+}
+
+/* Small mobile — ≤ 480px */
+@media (max-width: 480px) {
+    :root { --container-px: 16px; }
+
+    .grid-cols-4,
+    .grid-cols-3,
+    .grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+}

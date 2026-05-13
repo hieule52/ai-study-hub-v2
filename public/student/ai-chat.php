@@ -204,54 +204,63 @@ require __DIR__ . '/../layouts/header.php';
 ?>
 
 <div class="chat-layout">
-<div class="chat-layout">
-                <div class="chat-main">
-                    
-                    <div class="chat-header">
-                        <div class="flex items-center gap-4">
-                            <div class="ai-avatar-header">🧠</div>
-                            <div>
-                                <h2 style="font-size: 1.4rem; margin-bottom: 0.2rem;">AI Tutor <span style="font-size: 0.8rem; vertical-align: middle; background: var(--warning); color: #000; padding: 2px 8px; border-radius: 12px; font-weight: 800; margin-left: 10px;">Gemini</span></h2>
-                                <p class="text-secondary" style="font-size: 0.9rem;" data-i18n="aichat_subtitle">Hỏi bất cứ điều gì liên quan đến bài tập, code, và lộ trình học tập.</p>
-                            </div>
-                        </div>
-                    </div>
+    <div class="chat-main">
+        
+        <div class="chat-header">
+            <div class="flex items-center gap-4">
+                <div class="ai-avatar-header">🤖</div>
+                <div>
+                    <h2 style="font-family: var(--font-heading); font-size: 1.4rem; margin-bottom: 0.2rem;" data-i18n="aichat_title">Gia sư AI</h2>
+                    <p class="text-secondary" style="font-size: 0.9rem;" data-i18n="aichat_subtitle">Trợ lý học tập thông minh Groq™</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); font-size: 0.7rem; letter-spacing: 0.05em;">GROQ™ POWERED</span>
+            </div>
+        </div>
 
-                    <div class="chat-body" id="chatBox">
-                        <!-- Lời chào đầu tiên của AI -->
-                        <div class="msg-container ai">
-                            <div class="msg-avatar ai">🧠</div>
-                            <div class="msg-bubble" data-i18n="aichat_welcome">
-                                Chào bạn! Mình là AI Tutor siêu tốc độ. Bạn đang cần luyện tập hay ôn lại kiến thức nào? Cứ đưa ra câu hỏi, hoặc paste mảnh code bị lỗi vào đây, mình sẽ giải thích tường tận cho bạn! ✨
-                            </div>
-                        </div>
-                    </div>
+        <div class="chat-body" id="chatBox">
+            <!-- Lời chào đầu tiên của AI -->
+            <div class="msg-container ai">
+                <div class="msg-avatar ai">🤖</div>
+                <div class="msg-bubble" data-i18n="aichat_welcome">
+                    Xin chào! Tôi có thể giúp gì cho bài học hôm nay của bạn?
+                </div>
+            </div>
+        </div>
 
-                    <div class="chat-footer">
-                        <!-- Suggested Prompts -->
-                        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                            <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt1_val') : 'Giải thích cho mình khái niệm Lập trình Hướng đối tượng (OOP) theo cách dễ hiểu nhất.')" data-i18n="aichat_prompt1_btn">Khái niệm OOP?</button>
-                            <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt2_val') : 'Làm sao để sửa lỗi CORS khi gọi API từ Frontend ReactJS?')" data-i18n="aichat_prompt2_btn">Sửa lỗi CORS?</button>
-                            <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt3_val') : 'Tạo cho mình một bài tập Python cơ bản để luyện vòng lặp For.')" data-i18n="aichat_prompt3_btn">Bài tập vòng lặp Python</button>
-                        </div>
+        <div class="chat-footer">
+            <!-- Suggested Prompts -->
+            <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt1') : 'Explain this concept...')" data-i18n="aichat_prompt1">Giải thích khái niệm này...</button>
+                <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt2') : 'Summarize the last lesson')" data-i18n="aichat_prompt2">Tóm tắt bài học vừa rồi</button>
+                <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt3') : 'Create practice exercises')" data-i18n="aichat_prompt3">Tạo bài tập thực hành</button>
+            </div>
 
-                        <!-- Image Preview Container -->
-                        <div id="imagePreviewContainer" style="display: none; position: relative; width: 100px; height: 100px; margin-bottom: 1rem; border-radius: 8px; overflow: hidden; border: 2px solid var(--secondary);">
-                            <img id="imagePreview" src="" style="width: 100%; height: 100%; object-fit: cover;">
-                            <button onclick="removeImage()" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer;">&times;</button>
-                        </div>
+            <!-- Image Preview Container -->
+            <div id="imagePreviewContainer" style="display: none; position: relative; width: 100px; height: 100px; margin-bottom: 1rem; border-radius: 12px; overflow: hidden; border: 2px solid var(--secondary); box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);">
+                <img id="imagePreview" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                <button onclick="removeImage()" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
+            </div>
 
-                        <!-- Chat Form -->
-                        <form id="chatForm">
-                            <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
-                            <div class="input-wrapper">
-                                <button type="button" onclick="document.getElementById('imageInput').click()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding-left: 0.5rem; transition: color 0.3s;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='var(--text-muted)'">📎</button>
-                                <input type="text" id="chatInput" placeholder="Nhập câu hỏi hoặc đính kèm ảnh (Tối đa 2MB)..." autocomplete="off" required data-i18n="aichat_input_placeholder">
-                                <button type="submit" class="btn-send">
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                </button>
-                            </div>
-                        </form>
+            <!-- Chat Form -->
+            <form id="chatForm">
+                <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
+                <div class="input-wrapper">
+                    <button type="button" onclick="document.getElementById('imageInput').click()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.4rem; padding: 0 0.75rem; transition: all 0.3s;" onmouseover="this.style.color='var(--secondary)'; this.style.transform='scale(1.1)'" onmouseout="this.style.color='var(--text-muted)'; this.style.transform='scale(1)'">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    </button>
+                    <input type="text" id="chatInput" placeholder="Nhập câu hỏi hoặc đính kèm ảnh..." autocomplete="off" required data-i18n="aichat_input_placeholder">
+                    <button type="submit" class="btn-send">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+       </form>
                     </div>
 
                 </div>
@@ -262,6 +271,7 @@ require __DIR__ . '/../layouts/header.php';
         document.addEventListener('DOMContentLoaded', () => {
             const user = App.requireAuth(['student', 'teacher', 'admin']);
             if (!user) return;
+            if (window.I18n) window.I18n.render();
         });
 
         function usePrompt(text) {
@@ -348,7 +358,7 @@ require __DIR__ . '/../layouts/header.php';
             
             chatBox.innerHTML += `
                 <div class="msg-container ai" id="container_${thinkingId}">
-                    <div class="msg-avatar ai">🧠</div>
+                    <div class="msg-avatar ai">🤖</div>
                     <div class="msg-bubble thinking-bubble" id="${thinkingId}">
                         <div style="width: 15px; height: 15px; border: 2px solid var(--secondary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div> 
                         ${analyzingMsg}

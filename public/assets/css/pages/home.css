@@ -1,0 +1,431 @@
+/* ============================================================
+   PAGE — HOME  (AI Study Hub LMS)
+   Cinematic Studio · Dark Glass · Editorial
+   ============================================================
+   LOADING: Injected via $extraHead in home.php → renders in <head>
+   SCOPE:   Only affects .home-page and its children + .cinematic-footer
+   ============================================================ */
+
+/* ============================================================
+   § 1 · CINEMATIC VIDEO BACKGROUND
+   Fixed background — sits behind all page content at z-index -1
+   ============================================================ */
+
+.cinematic-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: var(--bg-base);
+}
+
+.cinematic-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.28;
+    transition: opacity 2.5s ease;
+    filter: saturate(0.6) brightness(0.55) contrast(1.15);
+    transform: scale(1.12);
+    z-index: 1;
+}
+
+.cinematic-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(
+        to bottom,
+        rgba(8, 10, 18, 0.30),
+        rgba(8, 10, 18, 0.38)
+    );
+}
+
+/* Radial vignette for atmospheric depth */
+.cinematic-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(6, 8, 14, 0.5) 100%);
+}
+
+/* ============================================================
+   § 2 · HOME PAGE WRAPPER
+   <main class="home-page"> — the direct child of <body>
+   ============================================================ */
+
+.home-page {
+    /* Block element — naturally 100% of body width. No tricks needed. */
+    display: block;
+}
+
+/* ============================================================
+   § 3 · CINEMATIC SECTIONS
+   Full-width section blocks — content width controlled by .container inside
+   ============================================================ */
+
+.cinematic-section {
+    position: relative;
+    /* width is 100% by default for block elements — do NOT set explicit width */
+    padding-block: var(--section-spacing);
+    z-index: 1;
+}
+
+/* ============================================================
+   § 4 · HERO SECTION
+   ============================================================ */
+
+.hero-section {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 140px;
+    padding-bottom: 100px;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 5;
+    width: min(100% - 40px, 760px);
+    margin-inline: auto;
+    text-align: center;
+}
+
+/* ============================================================
+   § 5 · EDITORIAL TYPOGRAPHY
+   ============================================================ */
+
+.editorial-title {
+    font-family: var(--font-heading);
+    font-size: clamp(3rem, 5vw, 5.8rem);
+    font-weight: 700;
+    line-height: 0.92;
+    letter-spacing: -0.045em;
+    color: #fff;
+    margin-bottom: 2rem;
+    max-width: 820px;
+}
+
+.editorial-title em {
+    color: rgba(255, 255, 255, 0.68);
+    font-style: italic;
+    background: none;
+    -webkit-text-fill-color: unset;
+}
+
+.editorial-text {
+    font-family: var(--font-body);
+    font-size: clamp(0.95rem, 1.1vw, 1.1rem);
+    line-height: 1.85;
+    color: rgba(248, 250, 252, 0.42);
+    max-width: 560px;
+    font-weight: 400;
+}
+
+.editorial-label {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(99, 102, 241, 0.65);
+    display: block;
+}
+
+/* Hero spacing rhythm */
+.hero-label    { margin-bottom: 3rem; }
+.hero-heading  { margin-bottom: 2rem; }
+.hero-subtext  { margin-bottom: 3.5rem; }
+
+/* ============================================================
+   § 6 · ASYMMETRIC GRID LAYOUTS
+   ============================================================ */
+
+.asymmetric-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 48px;
+    align-items: center;
+}
+
+.col-left-6  { grid-column: 1 / 7;  }
+.col-right-5 { grid-column: 8 / 13; }
+.col-right-6 { grid-column: 7 / 13; }
+
+/* ============================================================
+   § 7 · COURSE CARDS GRID
+   ============================================================ */
+
+.course-showcase-grid,
+.course-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-top: 5rem;
+    text-align: left;
+}
+
+.course-card-small { margin-top: 4rem; }
+
+/* Editorial card overrides */
+.course-showcase-grid .card,
+.course-gallery-grid .card {
+    border-radius: 24px !important;
+    border: 1px solid rgba(255, 255, 255, 0.04) !important;
+    background: rgba(255, 255, 255, 0.015) !important;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15) !important;
+    overflow: hidden;
+}
+
+.course-showcase-grid .card:hover,
+.course-gallery-grid .card:hover {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    transform: translateY(-4px);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25) !important;
+}
+
+.course-showcase-grid .card-body,
+.course-gallery-grid .card-body {
+    padding: 2rem 2.5rem 2.5rem !important;
+}
+
+.course-showcase-grid .card-body h3,
+.course-gallery-grid .card-body h3 {
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em !important;
+    margin-bottom: 0.75rem !important;
+    line-height: 1.2 !important;
+}
+
+.course-showcase-grid .card-body p,
+.course-gallery-grid .card-body p {
+    color: rgba(248, 250, 252, 0.35) !important;
+    font-size: 0.9rem !important;
+    line-height: 1.7 !important;
+}
+
+/* ============================================================
+   § 8 · SCROLL ANIMATIONS
+   ============================================================ */
+
+.fade-up {
+    opacity: 0;
+    transform: translateY(40px);
+    transition:
+        opacity 1.6s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-up.visible          { opacity: 1; transform: translateY(0); }
+.fade-up:nth-child(2)     { transition-delay: 0.1s; }
+.fade-up:nth-child(3)     { transition-delay: 0.2s; }
+.fade-up:nth-child(4)     { transition-delay: 0.3s; }
+
+/* ============================================================
+   § 9 · GLASS & INTERACTIVE COMPONENTS
+   ============================================================ */
+
+.liquid-glass {
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(16px);
+    transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass:hover {
+    border-color: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    transform: translateY(-4px);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22), 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Guest blur overlay */
+.guest-mask {
+    filter: blur(6px) brightness(0.35);
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
+}
+
+.guest-tip-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: 2.5rem;
+    text-align: center;
+}
+
+/* Section atmosphere helpers */
+.section-dim    { background: rgba(6, 8, 14, 0.3); }
+.section-subtle { background: rgba(99, 102, 241, 0.02); }
+
+/* ============================================================
+   § 10 · FOOTER
+   .cinematic-footer is a sibling of .home-page (not a child).
+   It is a block element → inherits 100% body width naturally.
+   .footer-container sizing handled by layout.css (.container pattern).
+   ============================================================ */
+
+.cinematic-footer {
+    position: relative;
+    /* NO explicit width — block elements are 100% by default */
+    padding: 7rem 0 4rem;
+    margin-top: 8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    background: linear-gradient(
+        to bottom,
+        rgba(4, 6, 14, 0.15),
+        rgba(4, 6, 14, 0.55)
+    );
+    overflow: hidden;
+}
+
+/* Atmospheric radial glow behind footer */
+.cinematic-footer::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.08), transparent 70%);
+    pointer-events: none;
+}
+
+/* Footer container — flex layout ON TOP of .container sizing from layout.css */
+.footer-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8rem;
+}
+
+/* Brand (left side) */
+.footer-brand { max-width: 420px; }
+
+.footer-logo {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: #fff;
+    margin-bottom: 1.5rem;
+}
+
+.footer-logo sup {
+    font-size: 0.45em;
+    opacity: 0.5;
+}
+
+.footer-description {
+    font-size: 1rem;
+    line-height: 1.9;
+    color: rgba(248, 250, 252, 0.42);
+    margin-bottom: 2rem;
+}
+
+.footer-copyright {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.28);
+    letter-spacing: 0.02em;
+}
+
+/* Links (right side) */
+.footer-links-wrapper {
+    display: flex;
+    gap: 7rem;
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.footer-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(99, 102, 241, 0.75);
+    margin-bottom: 1rem;
+}
+
+.footer-links a {
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 0.95rem;
+    transition: all 0.35s ease;
+}
+
+.footer-links a:hover {
+    color: #fff;
+    transform: translateX(3px);
+}
+
+/* ============================================================
+   § 11 · RESPONSIVE
+   All breakpoints consolidated here — one place to maintain.
+   ============================================================ */
+
+/* Tablet — ≤ 992px */
+@media (max-width: 992px) {
+    .asymmetric-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 4rem;
+    }
+
+    .course-showcase-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .course-card-small { margin-top: 0; }
+
+    .cinematic-section { padding: 6rem 0; }
+
+    .editorial-title {
+        font-size: clamp(2rem, 7vw, 3rem);
+        max-width: 100%;
+    }
+
+    .editorial-text { max-width: 100%; }
+
+    .footer-container {
+        flex-direction: column;
+        gap: 4rem;
+    }
+
+    .footer-links-wrapper { gap: 4rem; }
+}
+
+/* Mobile — ≤ 640px */
+@media (max-width: 640px) {
+    .footer-links-wrapper {
+        flex-direction: column;
+        gap: 3rem;
+    }
+
+    .footer-logo { font-size: 1.6rem; }
+}
+
+/* Small mobile — ≤ 480px */
+@media (max-width: 480px) {
+    .cinematic-section { padding: 4rem 0; }
+}

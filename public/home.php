@@ -1,175 +1,370 @@
 <?php
-$pageTitle = 'AI Study Hub - Learning Management System';
-$actor = 'guest';
+$pageTitle  = 'AI Study Hub® — Cinematic AI Learning';
+$actor      = 'guest';
+$extraHead  = '<link rel="stylesheet" href="/assets/css/pages/home.css?v=6">';
 require __DIR__ . '/layouts/header.php';
 ?>
+<main class="home-page">
 
-<!-- Hero Section -->
-<section class="container hero-section">
-    <div class="hero-bg-glow"></div>
-    <h1 class="hero-title" data-i18n="home_hero_title">Đánh Thức Tiềm Năng Học Tập Của Bạn Với <br><span
-            class="text-gradient">Trợ Lý AI Thông
-            Minh</span></h1>
-    <p class="hero-subtitle" data-i18n="home_hero_subtitle">
-        Học tập không giới hạn cùng nền tảng LMS cao cấp kết hợp trò chuyện thông minh qua AI. Giải phóng 100% năng
-        suất.
-    </p>
 
-    <div class="flex justify-center gap-4">
-        <a href="/register.php" class="btn btn-primary" id="btn-start-learning" data-i18n="home_btn_start">Bắt Đầu Học
-            Ngay</a>
-        <a href="#courses" class="btn btn-outline" data-i18n="home_btn_explore">Khám Phá Khóa Học</a>
+    <!-- ── CINEMATIC BG VIDEO ── -->
+    <div class="cinematic-bg">
+        <video autoplay muted loop playsinline class="cinematic-video">
+            <source
+                src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260405_170732_8a9ccda6-5cff-4628-b164-059c500a2b41.mp4"
+                type="video/mp4">
+        </video>
+        <div class="cinematic-overlay"></div>
     </div>
-</section>
 
-<!-- Popular Courses -->
-<section id="courses" class="container" style="padding-bottom: 6rem;">
-    <div class="flex items-center justify-between mb-8">
-        <h2 data-i18n="home_popular_courses">Khóa Học <span class="text-gradient">Nổi Bật</span></h2>
-        <div style="width: 300px;">
-            <input type="text" id="search-course-input" class="form-control" placeholder="🔍 Tìm khóa học..." style="border-radius: 50px;"
-                data-i18n="home_search_placeholder">
+    <!-- ── SECTION 1: CINEMATIC HERO ── -->
+    <section class="hero-section">
+
+        <div class="hero-content flex flex-column items-center">
+            <span class="editorial-label hero-label fade-up" data-i18n="home_label_academic">Đào tạo xuất sắc</span>
+            <h1 class="editorial-title hero-heading fade-up" data-i18n="home_hero_title" style="text-align: center;">
+                Đánh thức<br>
+                <em>tiềm năng</em><br>
+                qua học tập thông minh.
+            </h1>
+            <p class="editorial-text hero-subtext fade-up" data-i18n="home_hero_subtitle" style="text-align: center;">
+                Nền tảng LMS tích hợp AI Tutor giúp bạn học tập tập trung,
+                gia sư thông minh, hỗ trợ giảng viên thời gian thực và phát triển học thuật bền vững.
+            </p>
+            <div class="flex gap-6 fade-up justify-center">
+                <a href="javascript:void(0)" onclick="App.checkAuthAndGo('/student/my-courses.php')" class="btn btn-primary" id="hero-primary-btn" data-i18n="home_btn_start"
+                    style="border-radius:100px; padding: 1.15rem 3.2rem; font-weight:600; font-size: 0.95rem; letter-spacing: 0.02em;">Bắt
+                    đầu ngay</a>
+                <a href="#courses" class="btn btn-outline" data-i18n="home_btn_explore"
+                    style="border-radius:100px; padding: 1.15rem 3.2rem; font-weight:500; font-size: 0.9rem; letter-spacing: 0.02em;">Khám
+                    phá</a>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Render list by JS -->
-    <div class="grid-cols-3" id="course-list">
-        <div class="card p-4 text-center">
-            <p data-i18n="home_loading">Đang tải dữ liệu...</p>
+    <!-- ── SECTION 2: AI LEARNING MANIFESTO ── -->
+    <section class="cinematic-section" style="background: rgba(99, 102, 241, 0.03);">
+        <div class="container">
+            <div class="text-center flex flex-column items-center">
+                <p class="editorial-label fade-up" data-i18n="home_manifesto_label">Tầm nhìn của chúng tôi</p>
+                <h2 class="editorial-title fade-up" data-i18n="home_manifesto_title"
+                    style="font-size: clamp(2.2rem, 5vw, 4.5rem); text-align: center;">
+                    Chúng tôi tin rằng giáo dục cần <br>
+                    <em>chiều sâu, sự tập trung, trí tuệ,</em> <br>
+                    và tính nhân văn sâu sắc.
+                </h2>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+
+    <!-- ── SECTION 3: FEATURED COURSES ── -->
+    <section id="courses" class="cinematic-section">
+        <div class="container text-center">
+            <span class="editorial-label fade-up" data-i18n="home_courses_label">Chương trình đào tạo</span>
+            <h2 class="editorial-title fade-up" data-i18n="home_courses_title" style="text-align: center;">Khóa học
+                <em>Nổi bật</em></h2>
+
+            <div class="course-showcase-grid" id="course-list">
+                <div class="text-center"
+                    style="grid-column: 1 / -1; padding: 4rem; background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.06); border-radius: 24px;">
+                    <p class="text-secondary" data-i18n="home_loading">Đang kết nối dữ liệu...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── SECTION 4: AI TUTOR EXPERIENCE ── -->
+    <section id="ai-tutor" class="cinematic-section" style="background: rgba(15, 23, 42, 0.4);">
+        <div class="container asymmetric-grid">
+            <div class="col-left-6 fade-up">
+                <span class="editorial-label" data-i18n="home_ai_label">Trợ lý học tập thông minh</span>
+                <h2 class="editorial-title" data-i18n="home_ai_title">Gia sư AI <em>Hiểu ngữ cảnh</em> <br>của riêng
+                    bạn.</h2>
+                <p class="editorial-text" data-i18n="home_ai_text">
+                    Đặt câu hỏi bất cứ lúc nào. AI của chúng tôi không chỉ trả lời; nó hiểu nội dung bài học bạn đang
+                    học,
+                    giải thích các đoạn code phức tạp và hỗ trợ học thuật cá nhân hóa 24/7.
+                </p>
+                <div class="mt-8">
+                    <a href="javascript:void(0)" onclick="App.checkAuthAndGo('/student/ai-chat.php')" class="btn btn-outline"
+                        style="border-radius: 100px; padding: 0.9rem 2.5rem; font-weight: 500; border-color: rgba(255,255,255,0.12);"
+                        data-i18n="nav_student_ai">Gia sư AI</a>
+                </div>
+            </div>
+            <div class="col-right-5 fade-up">
+                <div
+                    style="width: 100%; height: 380px; background: url('https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1000&auto=format&fit=crop') center; background-size: cover; border-radius: 32px; box-shadow: 0 24px 64px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.06);">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── SECTION 5: STUDENT EXPERIENCE ── -->
+    <section class="cinematic-section">
+        <div class="container">
+            <div class="asymmetric-grid">
+                <div class="col-left-6 order-2 lg:order-1 fade-up" style="position: relative;">
+                    <div id="stats-container" class="liquid-glass p-8"
+                        style="border-radius: 28px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="flex justify-between mb-4">
+                            <span class="text-xs opacity-40 uppercase" data-i18n="home_student_progress"
+                                style="letter-spacing: 0.1em;">TIẾN ĐỘ HỌC TẬP</span>
+                            <span class="text-xs font-bold" style="color: var(--accent);"><span
+                                    data-i18n="home_student_complete">HOÀN THÀNH</span> <span id="stats-progress-percent">0%</span></span>
+                        </div>
+                        <div class="progress-bar-track mb-6" style="background: rgba(255,255,255,0.05); height: 6px;">
+                            <div id="stats-progress-bar" class="progress-bar-fill"
+                                style="width: 0%; background: var(--accent); box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);">
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1 p-5 rounded-2xl text-center"
+                                style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                                <span id="stats-streak" class="block text-3xl font-bold" style="color: var(--text-primary);">0</span>
+                                <span class="text-xxs opacity-40 uppercase" data-i18n="home_student_streak">Ngày liên
+                                    tiếp</span>
+                            </div>
+                            <div class="flex-1 p-5 rounded-2xl text-center"
+                                style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                                <span id="stats-certs" class="block text-3xl font-bold" style="color: var(--text-primary);">0</span>
+                                <span class="text-xxs opacity-40 uppercase" data-i18n="home_student_certs">Chứng
+                                    chỉ</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="guest-stats-overlay" class="guest-tip-overlay"
+                        style="display:none; background: rgba(11, 15, 26, 0.6); backdrop-filter: blur(8px); border-radius: 28px;">
+                        <a href="/register.php" class="btn btn-primary btn-sm" style="border-radius:100px;"
+                            data-i18n="home_student_guest_tip">Đăng ký để theo dõi tiến độ</a>
+                    </div>
+                </div>
+                <div class="col-right-5 order-1 lg:order-2 fade-up">
+                    <span class="editorial-label" data-i18n="home_student_label">Trải nghiệm học viên</span>
+                    <h2 class="editorial-title" data-i18n="home_student_title">Làm chủ kiến thức <em>là một hành
+                            trình.</em></h2>
+                    <p class="editorial-text" data-i18n="home_student_text" style="color: rgba(240, 240, 244, 0.7);">
+                        Theo dõi sự phát triển của bạn với các phân tích trực quan. Mỗi bài học hoàn thành là một bước
+                        tiến gần hơn đến mục tiêu của bạn.
+                        Duy trì động lực với chuỗi ngày học tập và tiến độ thời gian thực.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── SECTION 6: CERTIFICATE SHOWCASE ── -->
+    <section id="certificates" class="cinematic-section" style="background: rgba(15, 23, 42, 0.3);">
+        <div class="container text-center">
+            <span class="editorial-label fade-up" data-i18n="home_cert_label">Công nhận thành tích</span>
+            <h2 class="editorial-title fade-up" data-i18n="home_cert_title">Hành trình học tập của bạn <br>xứng đáng
+                được <em>ghi nhận.</em></h2>
+            <div class="flex justify-center mt-12 fade-up" style="position: relative;">
+                <!-- REDESIGNED CERTIFICATE (DARK) -->
+                <div id="cert-showcase" class="liquid-glass p-0"
+                    style="width: 100%; max-width: 800px; aspect-ratio: 1.414 / 1; border-radius: 12px; border: 12px solid rgba(255,255,255,0.05); background: #0f172a; box-shadow: 0 40px 100px rgba(0,0,0,0.5); overflow: hidden; position: relative;">
+                    <div style="position: absolute; inset: 0; border: 2px solid rgba(99, 102, 241, 0.2); margin: 20px;">
+                    </div>
+                    
+                    <!-- Earned Certificate State (Default hidden) -->
+                    <div id="cert-earned-content" style="display:none; padding: 4rem; text-align: center; height: 100%; flex-direction: column; justify-content: center;">
+                        <div style="font-size: 3.5rem; margin-bottom: 2rem; filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.4));">🎓</div>
+                        <h4 style="font-family: var(--font-heading); font-size: 1rem; text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 1rem; opacity: 0.6; color: var(--accent);" data-i18n="cert_title_card">Certificate of Completion</h4>
+                        <h3 class="editorial-title" id="cert-user-name" style="font-size: 2.5rem; margin-bottom: 0.5rem; color: #fff;">Lê Diên Hiếu</h3>
+                        <p style="font-size: 1rem; opacity: 0.5; margin-bottom: 1.5rem; color: rgba(255,255,255,0.7);" data-i18n="cert_subtitle">has successfully mastered the curriculum of</p>
+                        <h3 id="cert-course-title" style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--accent); font-weight: 800; line-height: 1.2;">Mastering Cinematic UI Design</h3>
+                        <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 2rem;">
+                            <div style="text-align: left;">
+                                <div style="width: 140px; border-bottom: 2px solid rgba(255,255,255,0.2); margin-bottom: 0.75rem;"></div>
+                                <span style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.4; letter-spacing: 0.1em;" data-i18n="cert_director">Program Director</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.9rem; font-weight: 800; color: #fff; letter-spacing: 0.05em;">AI STUDY HUB®</div>
+                                <span style="font-size: 0.75rem; text-transform: uppercase; opacity: 0.4; letter-spacing: 0.1em;" data-i18n="cert_official">Official Academic Record</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty/Motivation State -->
+                    <div id="cert-empty-content" style="padding: 4rem; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div style="font-size: 4rem; margin-bottom: 2rem; opacity: 0.2;">📜</div>
+                        <h3 style="font-family: var(--font-heading); font-size: 2rem; color: #fff; margin-bottom: 1rem;" data-i18n="home_cert_empty_title">Chứng chỉ đầu tiên đang chờ bạn</h3>
+                        <p style="max-width: 400px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-bottom: 2.5rem;" data-i18n="home_cert_empty_text">Hoàn thành 100% khóa học để ghi nhận thành tựu và nhận chứng chỉ chính thức từ AI Study Hub.</p>
+                        <a href="/student/my-courses.php" class="btn btn-primary" style="border-radius: 100px; padding: 0.8rem 2.5rem;" data-i18n="nav_my_courses">Vào khóa học của tôi</a>
+                    </div>
+                </div>
+                <div id="guest-cert-overlay" class="guest-tip-overlay"
+                    style="display:none; background: rgba(11, 15, 26, 0.7); backdrop-filter: blur(10px);">
+                    <div class="flex flex-column items-center gap-4">
+                        <div
+                            style="background: rgba(255,255,255,0.05); padding: 1.5rem 2.5rem; border-radius: 100px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);">
+                            <span data-i18n="home_cert_guest_tip"
+                                style="font-weight: 700; color: #fff; letter-spacing: 0.02em;">Hoàn thành khóa học để
+                                nhận chứng chỉ</span>
+                        </div>
+                        <a href="/login.php" class="btn btn-primary"
+                            style="border-radius:100px; padding: 0.8rem 2.5rem;">Đăng nhập ngay</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── SECTION 7: FINAL CTA ── -->
+    <section class="cinematic-section text-center"
+        style="padding: 14rem 0; background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.03));">
+        <div class="container flex flex-column items-center">
+            <h2 class="editorial-title fade-up" data-i18n="home_cta_title" style="text-align: center;">Bắt đầu hành
+                trình học tập <br>thông minh <em>ngay hôm nay.</em></h2>
+            <div class="mt-12 fade-up">
+                <a href="/register.php" class="btn btn-primary" id="final-cta-btn" data-i18n="home_cta_btn"
+                    style="border-radius:100px; padding: 1.2rem 4rem; font-size: 1rem; font-weight: 600; letter-spacing: 0.01em;">Tham
+                    gia miễn phí</a>
+            </div>
+        </div>
+    </section>
+
+</main> <!-- End home-page main wrapper -->
 
 <?php ob_start(); ?>
 <script>
-    // Function to enroll and redirect
+    const observerOptions = { threshold: 0.1 };
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, observerOptions);
+
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
     window.enrollAndLearn = async function (courseId) {
-        try {
-            // Ignore errors like "already enrolled"
-            await window.api.post(`/courses/${courseId}/enroll`, {});
-        } catch (e) {
-            console.log(e);
-        }
+        try { await window.api.post(`/courses/${courseId}/enroll`, {}); } catch (e) { }
         window.location.href = `/student/learning.php?course_id=${courseId}`;
     };
 
-    // Fetch courses for guest
     document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            let enrolledCourseIds = [];
-            // Nếu User đã đăng nhập, gọi thêm API lấy danh sách khóa học của họ
-            if (window.api.getToken()) {
-                const user = window.api.getUser();
-                if (user) {
-                    if (user.role === 'admin') {
-                        window.location.href = '/admin/dashboard.php';
-                        return;
-                    }
-                    if (user.role === 'teacher') {
-                        window.location.href = '/teacher/dashboard.php';
-                        return;
-                    }
+        const isGuest = !window.api.getToken();
+        const heroBtn = document.getElementById('hero-primary-btn');
+        const finalBtn = document.getElementById('final-cta-btn');
+
+        // 1. Handle Auth UI State
+        if (isGuest) {
+            document.getElementById('stats-container').classList.add('guest-mask');
+            document.getElementById('guest-stats-overlay').style.display = 'flex';
+        } else {
+            const user = window.api.getUser();
+            const dashboardText = (window.I18n && I18n.get('nav_student_dashboard')) || 'Vào bảng điều khiển';
+            
+            if (heroBtn) {
+                heroBtn.href = '/student/dashboard.php';
+                heroBtn.textContent = dashboardText;
+                heroBtn.removeAttribute('data-i18n');
+            }
+            if (finalBtn) {
+                finalBtn.href = '/student/dashboard.php';
+                finalBtn.textContent = dashboardText;
+                finalBtn.removeAttribute('data-i18n');
+            }
+
+            // Fetch real progress data
+            try {
+                const statsRes = await window.api.get('/student/stats');
+                if (statsRes && statsRes.data) {
+                    const stats = statsRes.data;
+                    const percent = stats.completion_rate || 0;
+                    document.getElementById('stats-progress-percent').textContent = percent + '%';
+                    document.getElementById('stats-progress-bar').style.width = percent + '%';
+                    document.getElementById('stats-streak').textContent = stats.streak || 0;
+                    document.getElementById('stats-certs').textContent = stats.certificates_count || 0;
                 }
 
-                const btnStart = document.getElementById('btn-start-learning');
-                if (btnStart) btnStart.style.display = 'none';
+                // Update Certificate Info
+                document.getElementById('cert-user-name').textContent = user.username || user.email.split('@')[0];
+                
+                // Check real certificates
+                const certRes = await window.api.get('/certificates/my');
+                const earnedContent = document.getElementById('cert-earned-content');
+                const emptyContent = document.getElementById('cert-empty-content');
+                
+                if (certRes && certRes.data && certRes.data.length > 0) {
+                    const latestCert = certRes.data[0];
+                    document.getElementById('cert-course-title').textContent = latestCert.course_title;
+                    earnedContent.style.display = 'flex';
+                    emptyContent.style.display = 'none';
+                } else {
+                    earnedContent.style.display = 'none';
+                    emptyContent.style.display = 'flex';
+                }
+            } catch (err) { console.error('Stats/Cert Loading Error:', err); }
+        }
 
+        // 2. Fetch and Render Courses
+        try {
+            let enrolledIds = [];
+            if (!isGuest) {
                 try {
                     const enrolledRes = await window.api.get('/student/courses');
-                    enrolledCourseIds = enrolledRes.data.map(c => c.id);
-                } catch (e) {
-                    console.warn("Không lấy được tiến độ hoặc chưa có đăng ký.");
-                }
+                    if (enrolledRes && enrolledRes.data) {
+                        enrolledIds = enrolledRes.data.map(c => c.id);
+                    }
+                } catch (e) { }
             }
 
             function renderCourses(courses) {
-                const container = document.getElementById('course-list');
-                if (!courses || courses.length === 0) {
-                    container.innerHTML = '<p class="text-muted" style="grid-column: span 3; text-align: center;" data-i18n="home_no_courses">Không tìm thấy khóa học nào phù hợp.</p>';
-                    if (window.I18n) window.I18n.render();
+                const el = document.getElementById('course-list');
+                if (!courses || !courses.length) {
+                    el.innerHTML = `<p class="text-muted" style="grid-column: 1 / -1; text-align:center;" data-i18n="home_no_courses">Chưa có khóa học nào khả dụng.</p>`;
                     return;
                 }
 
-                container.innerHTML = courses.map(c => {
-                    let buttonHtml = '';
-                    const isEnrolled = enrolledCourseIds.includes(c.id);
+                el.innerHTML = courses.slice(0, 4).map((c, index) => {
+                    const enrolled = enrolledIds.includes(c.id);
+                    const isPremium = c.is_premium == 1 || c.price > 0;
+                    const isLarge = index % 3 === 0;
 
-                    if (isEnrolled) {
-                        buttonHtml = `<button onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="padding: 0.5rem 1rem; cursor: pointer; border: none;" data-i18n="home_btn_join">Tham gia học</button>`;
-                    } else if (c.is_premium == 1 || c.price > 0) {
-                        if (window.api.getToken()) {
-                            buttonHtml = `<button onclick="window.location.href='/student/course-payment.php?course_id=${c.id}&price=${c.price}'" class="btn" style="background: var(--warning); color: #000; font-weight: bold; padding: 0.5rem 1rem; cursor: pointer; border: none;" data-i18n="home_btn_buy">Mua khóa học</button>`;
-                        } else {
-                            buttonHtml = `<button onclick="window.location.href='/login.php'" class="btn" style="background: var(--warning); color: #000; font-weight: bold; padding: 0.5rem 1rem; cursor: pointer; border: none;" data-i18n="home_btn_buy">Mua khóa học</button>`;
-                        }
+                    let btn = '';
+                    if (enrolled) {
+                        btn = `<button onclick="window.enrollAndLearn(${c.id})" class="btn btn-outline" style="width:100%; border-radius:100px; font-weight:500; font-size: 0.85rem;" data-i18n="std_btn_continue">Tiếp tục học</button>`;
+                    } else if (isPremium) {
+                        const link = !isGuest ? `/student/course-payment.php?course_id=${c.id}&price=${c.price}` : '/login.php';
+                        btn = `<button onclick="window.location.href='${link}'" class="btn btn-primary" style="width:100%; border-radius:100px; font-weight:600; font-size: 0.85rem;" data-i18n="home_btn_buy">Mua khóa học</button>`;
                     } else {
-                        if (window.api.getToken()) {
-                            buttonHtml = `<button onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="padding: 0.5rem 1rem; cursor: pointer; border: none;" data-i18n="home_btn_join">Tham gia học</button>`;
-                        } else {
-                            buttonHtml = `<button onclick="window.location.href='/login.php'" class="btn btn-primary" style="padding: 0.5rem 1rem; cursor: pointer; border: none;" data-i18n="home_btn_login_learn">Đăng nhập để Học</button>`;
-                        }
+                        btn = !isGuest
+                            ? `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width:100%; border-radius:100px; font-weight:600; font-size: 0.85rem;" data-i18n="std_btn_free">Ghi danh miễn phí</button>`
+                            : `<button onclick="window.location.href='/login.php'" class="btn btn-outline" style="width:100%; border-radius:100px; font-weight:500; font-size: 0.85rem;" data-i18n="home_btn_login_learn">Đăng nhập để học</button>`;
                     }
 
+                    const price = c.price > 0
+                        ? `<span style="font-weight:800; font-size:1.1rem; color: #fff;">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(c.price)}</span>`
+                        : `<span class="badge badge-free" data-i18n="home_free">Miễn phí</span>`;
+
                     return `
-                        <div class="card glass-panel" style="backdrop-filter: blur(4px);">
-                            <div class="card-img-placeholder" style="position: relative; cursor: pointer; padding: 0; overflow: hidden;" onclick="window.location.href='/course-detail.php?id=${c.id}'">
-                                ${c.thumbnail ? `<img src="${c.thumbnail}" style="width: 100%; height: 100%; object-fit: cover;">` : '<span style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size: 3rem;">📚</span>'}
-                                ${(c.is_premium == 1 || c.price > 0) ? '<span style="position: absolute; top: 10px; right: 10px; background: var(--warning); color: #000; font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 10px; z-index: 2;">PREMIUM</span>' : ''}
+                    <div class="${isLarge ? 'course-card-large' : 'course-card-small'} fade-up">
+                        <div class="card" style="display:flex; flex-direction:column; border-radius: 24px; overflow: hidden; transition: all 0.6s cubic-bezier(0.16,1,0.3,1);">
+                            <div style="cursor:pointer; position:relative; aspect-ratio: 16/9; background: rgba(255,255,255,0.02); overflow: hidden;" onclick="window.location.href='/course-detail.php?id=${c.id}'">
+                                ${c.thumbnail ? `<img src="${c.thumbnail}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">` : '<span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:2.5rem; opacity:0.15;">📚</span>'}
+                                ${isPremium ? '<span class="badge badge-premium" style="position:absolute; top:20px; right:20px; z-index:2; padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;">PREMIUM</span>' : ''}
                             </div>
-                            <div class="card-body">
-                                <h3 class="card-title" style="cursor: pointer;" onclick="window.location.href='/course-detail.php?id=${c.id}'">${c.title}</h3>
-                                <p class="text-secondary" style="font-size: 0.9rem; margin-bottom: 1rem;">
-                                    ${c.description ? c.description.substring(0, 100) + '...' : 'Chưa có mô tả'}
-                                </p>
-                                
-                                <div class="flex justify-between items-center mt-4">
-                                    <div>
-                                        <span style="color: var(--warning); font-weight: bold; font-size: 1.25rem;">
-                                            ${c.price > 0 ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(c.price) : '<span data-i18n="home_free">Miễn phí</span>'}
-                                        </span>
-                                    </div>
-                                    ${buttonHtml}
+                            <div class="card-body" style="flex:1; display:flex; flex-direction:column; padding: 2rem 2.5rem 2.5rem;">
+                                <h3 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 0.75rem; cursor:pointer; line-height:1.2; color: #fff;" onclick="window.location.href='/course-detail.php?id=${c.id}'">${c.title}</h3>
+                                <p style="font-size: 0.85rem; color: rgba(248,250,252,0.35); line-height:1.7; margin-bottom: 1.5rem;">${c.description ? c.description.substring(0, 120) + '...' : 'Chưa có mô tả cho khóa học này.'}</p>
+                                <div style="margin-top: auto;">
+                                    <div style="margin-bottom: 1.25rem;">${price}</div>
+                                    ${btn}
                                 </div>
                             </div>
-                        </div>`;
+                        </div>
+                    </div>`;
                 }).join('');
 
                 if (window.I18n) window.I18n.render();
+                document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
             }
 
-            // Initial load
-            const res = await window.api.get('/courses');
-            const initialCourses = res.data.items ? res.data.items : (res.data || []);
-            renderCourses(initialCourses);
-
-            // Search functionality
-            const searchInput = document.getElementById('search-course-input');
-            let searchTimeout = null;
-
-            if (searchInput) {
-                searchInput.addEventListener('input', (e) => {
-                    const keyword = e.target.value.trim();
-                    if (searchTimeout) clearTimeout(searchTimeout);
-
-                    searchTimeout = setTimeout(async () => {
-                        try {
-                            let url = '/courses';
-                            if (keyword) {
-                                url = `/courses/search?q=${encodeURIComponent(keyword)}`;
-                            }
-                            const searchRes = await window.api.get(url);
-                            const searchCourses = searchRes.data.items ? searchRes.data.items : (searchRes.data || []);
-                            renderCourses(searchCourses);
-                        } catch (err) {
-                            console.error("Lỗi tìm kiếm khóa học", err);
-                        }
-                    }, 500); // Debounce 500ms
-                });
-            }
+            const courseRes = await window.api.get('/courses');
+            const courses = courseRes.data?.items ?? courseRes.data ?? courseRes;
+            renderCourses(Array.isArray(courses) ? courses : []);
 
         } catch (e) {
-            document.getElementById('course-list').innerHTML = '<p class="text-danger" style="grid-column: span 3; text-align: center;">Lỗi kết nối cơ sở dữ liệu khóa học.</p>';
-            console.error(e);
+            console.error('Home Data Loading Error:', e);
+            document.getElementById('course-list').innerHTML = `<p class="text-muted" style="grid-column: 1 / -1; text-align:center;">Lỗi kết nối dữ liệu. Vui lòng thử lại sau.</p>`;
         }
     });
 </script>
