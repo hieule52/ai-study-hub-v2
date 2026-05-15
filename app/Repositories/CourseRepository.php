@@ -57,8 +57,8 @@ class CourseRepository
 
     public function create(array $data): ?Course
     {
-        $sql = "INSERT INTO courses (teacher_id, category_id, level, estimated_duration, title, description, thumbnail, price, is_premium, status) 
-                VALUES (:teacher_id, :category_id, :level, :estimated_duration, :title, :description, :thumbnail, :price, :is_premium, :status)";
+        $sql = "INSERT INTO courses (teacher_id, category_id, level, estimated_duration, title, description, thumbnail, price, is_premium, status, ai_course_summary, ai_keywords, ai_focus) 
+                VALUES (:teacher_id, :category_id, :level, :estimated_duration, :title, :description, :thumbnail, :price, :is_premium, :status, :ai_summary, :ai_keywords, :ai_focus)";
         
         $stmt = $this->db->prepare($sql);
         $success = $stmt->execute([
@@ -71,7 +71,10 @@ class CourseRepository
             'thumbnail' => $data['thumbnail'] ?? null,
             'price' => $data['price'] ?? 0,
             'is_premium' => $data['is_premium'] ?? 0,
-            'status' => $data['status'] ?? 'pending'
+            'status' => $data['status'] ?? 'pending',
+            'ai_summary' => $data['ai_course_summary'] ?? null,
+            'ai_keywords' => $data['ai_keywords'] ?? null,
+            'ai_focus' => $data['ai_focus'] ?? null
         ]);
 
         if ($success) {
@@ -125,7 +128,8 @@ class CourseRepository
         $sql = "UPDATE courses SET title = :title, description = :description, 
                 thumbnail = COALESCE(:thumbnail, thumbnail), price = :price, 
                 is_premium = :is_premium, category_id = :category_id,
-                level = :level, estimated_duration = :estimated_duration
+                level = :level, estimated_duration = :estimated_duration,
+                ai_course_summary = :ai_summary, ai_keywords = :ai_keywords, ai_focus = :ai_focus
                 WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -138,6 +142,9 @@ class CourseRepository
             'category_id' => $data['category_id'] ?? null,
             'level' => $data['level'] ?? 'beginner',
             'estimated_duration' => $data['estimated_duration'] ?? 0,
+            'ai_summary' => $data['ai_course_summary'] ?? null,
+            'ai_keywords' => $data['ai_keywords'] ?? null,
+            'ai_focus' => $data['ai_focus'] ?? null
         ]);
     }
 
@@ -278,26 +285,29 @@ class CourseRepository
 
     public function getTotalRevenue(): float
     {
-        // Tính tổng doanh thu từ VIP payments đã hoàn thành
-        $stmt = $this->db->query("SELECT SUM(amount) FROM vip_payments WHERE status = 'completed'");
+        // Calculate total revenue from enrollments (sum of course prices)
+        $stmt = $this->db->query("
+            SELECT SUM(c.price) 
+            FROM enrollments e 
+            JOIN courses c ON e.course_id = c.id
+        ");
         $total = $stmt->fetchColumn();
         return $total ? (float)$total : 0.0;
     }
 
     public function getMonthlyRevenue(int $months = 6): array
     {
-        // Sử dụng DATE_FORMAT để nhóm theo 'YYYY-MM'
         $sql = "
             SELECT 
-                DATE_FORMAT(created_at, '%Y-%m') as year_month,
-                SUM(amount) as revenue
-            FROM vip_payments
-            WHERE status = 'completed' AND created_at >= DATE_SUB(CURRENT_DATE(), INTERVAL :months MONTH)
+                DATE_FORMAT(e.enrolled_at, '%Y-%m') as year_month,
+                SUM(c.price) as revenue
+            FROM enrollments e
+            JOIN courses c ON e.course_id = c.id
+            WHERE e.enrolled_at >= DATE_SUB(CURRENT_DATE(), INTERVAL :months MONTH)
             GROUP BY year_month
             ORDER BY year_month ASC
         ";
         $stmt = $this->db->prepare($sql);
-        // Từ -5 đến 0 = 6 tháng
         $stmt->bindValue(':months', $months - 1, PDO::PARAM_INT);
         $stmt->execute();
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -305,7 +315,6 @@ class CourseRepository
         $labels = [];
         $data = [];
         
-        // Đúc và điền 0 cho những tháng không có doanh thu
         for ($i = $months - 1; $i >= 0; $i--) {
             $time = strtotime("-$i months");
             $yearMonth = date('Y-m', $time);

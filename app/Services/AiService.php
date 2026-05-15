@@ -8,13 +8,8 @@ use PDO;
 use Exception;
 
 /**
- * AiService - Trợ lý AI thông minh cho LMS
- * 
- * Tính năng:
- * 1. Hiểu nội dung bài học đang xem (lesson context)
- * 2. Kiểm duyệt input/output (content moderation)
- * 3. Hiểu luồng hệ thống LMS và gợi ý học tập
- * 4. Sử dụng Groq API (LLaMA) cho tốc độ nhanh
+ * AiService - Advanced AI Tutor for AI Study Hub LMS
+ * Refined for Production-Ready Cinematic Experience
  */
 class AiService
 {
@@ -22,21 +17,13 @@ class AiService
     private PDO $db;
     private string $groqApiKey;
 
-    // Danh sách từ khóa nguy hiểm (SQL injection, XSS, system exploit)
+    // Security: Block patterns for system safety
     private array $blockedPatterns = [
         '/\b(DROP\s+TABLE|DELETE\s+FROM|TRUNCATE|ALTER\s+TABLE|INSERT\s+INTO)\b/i',
         '/\b(UNION\s+SELECT|OR\s+1\s*=\s*1|;\s*--)\b/i',
         '/<script[\s>]|javascript:|on\w+\s*=/i',
         '/\b(exec|system|shell_exec|passthru|eval)\s*\(/i',
-        '/\b(rm\s+-rf|format\s+c:|del\s+\/f)\b/i',
         '/\bpassword\s*=|secret_key|api_key|jwt_secret/i',
-    ];
-
-    // Từ khóa ngoài phạm vi giáo dục
-    private array $offTopicPatterns = [
-        '/\b(hack|crack|exploit|bypass\s+security|phishing)\b/i',
-        '/\b(torrent|pirate|crack\s+software|keygen)\b/i',
-        '/\b(weapon|drug|bomb|violence|gambling)\b/i',
     ];
 
     public function __construct()
@@ -47,282 +34,150 @@ class AiService
     }
 
     /**
-     * Chat với context bài học — chỉ dùng Groq API
+     * Advanced Contextual Chat with Lesson Awareness
      */
     public function chat(int $userId, string $message, ?string $base64Image = null, ?int $lessonId = null, ?int $courseId = null): array
     {
         if (empty(trim($message)) && empty($base64Image)) {
-            throw new Exception("Tin nhắn không được để trống.");
+            throw new Exception("Vui lòng nhập nội dung câu hỏi.");
         }
 
-        // === BƯỚC 1: Kiểm duyệt input ===
-        $moderationResult = $this->moderateInput($message);
-        if ($moderationResult !== null) {
-            $this->aiRepo->saveInteraction($userId, $message, '[BLOCKED] ' . $moderationResult);
-            return [
-                'original_message' => $message,
-                'ai_response' => $moderationResult,
-                'moderated' => true
-            ];
-        }
+        // 1. Content Moderation
+        $moderation = $this->moderateInput($message);
+        if ($moderation) return ['ai_response' => $moderation, 'moderated' => true];
 
-        // === BƯỚC 2: Lấy context bài học ===
-        $lessonContext = $lessonId ? $this->getLessonContext($lessonId) : null;
-        $courseContext = $courseId ? $this->getCourseContext($courseId) : null;
-        $curriculumContext = $courseId ? $this->getCurriculumContext($courseId) : [];
+        // 2. Fetch Deep Context
+        $lesson = $lessonId ? $this->getDeepLessonContext($lessonId) : null;
+        $course = $courseId ? $this->getCourseContext($courseId) : null;
 
-        // === BƯỚC 2.5: Lấy danh sách toàn bộ khóa học trong hệ thống ===
-        $allCourses = $this->getAllCoursesContext();
+        // 3. Conversation Management
+        $conversationId = $lessonId ? $this->aiRepo->getOrCreateConversation($userId, $lessonId) : null;
+        $history = $conversationId ? $this->aiRepo->getHistory($conversationId, 6) : [];
 
-        // === BƯỚC 3: Lịch sử chat (giới hạn 2 tin để tiết kiệm token) ===
-        $recentHistory = $this->aiRepo->getHistory($userId, 2);
+        // 4. Build Professional Persona Prompt
+        $systemPrompt = $this->buildAdvancedSystemPrompt($lesson, $course);
+        $messages = $this->buildMessages($systemPrompt, $history, $message);
 
-        // === BƯỚC 4: Build system prompt + messages ===
-        $systemPrompt = $this->buildSystemPrompt($lessonContext, $courseContext, $curriculumContext, $allCourses);
-        $messages = $this->buildMessages($systemPrompt, $recentHistory, $message);
-
-        // === BƯỚC 5: Gọi Groq API ===
-        if (empty($this->groqApiKey)) {
-            throw new Exception("Chưa cấu hình GROQ_API_KEY trong .env");
-        }
-
+        // 5. Execute AI Request (Groq LLaMA 3.1)
+        if (empty($this->groqApiKey)) throw new Exception("AI Service configuration missing.");
+        
         $response = $this->callGroqApi($messages);
+        if (!$response) throw new Exception("AI không thể phản hồi lúc này.");
 
-        if (!$response || str_starts_with($response, 'ERROR_')) {
-            $detail = $response ?: 'Không có phản hồi';
-            throw new Exception("AI tạm thời lỗi: " . str_replace('ERROR_JSON: ', '', $detail));
+        // 6. Persist Message
+        if ($conversationId) {
+            $this->aiRepo->saveMessage($conversationId, 'user', $message);
+            $this->aiRepo->saveMessage($conversationId, 'assistant', $response);
         }
-
-        // === BƯỚC 6: Kiểm duyệt output ===
-        $response = $this->moderateOutput($response);
-
-        // === BƯỚC 7: Lưu lịch sử ===
-        $this->aiRepo->saveInteraction($userId, $message, $response);
-
-        // === BƯỚC 8: Gợi ý bài học tiếp theo ===
-        $suggestions = ($lessonId && $courseId) ? $this->getSuggestions($lessonId, $courseId) : [];
 
         return [
             'original_message' => $message,
             'ai_response' => $response,
-            'suggestions' => $suggestions
+            'lesson_id' => $lessonId
         ];
     }
 
-    // =========================================================
-    // CONTENT MODERATION
-    // =========================================================
-
-    private function moderateInput(string $message): ?string
+    private function buildAdvancedSystemPrompt(?array $lesson, ?array $course): string
     {
-        foreach ($this->blockedPatterns as $pattern) {
-            if (preg_match($pattern, $message)) {
-                return "⚠️ Câu hỏi chứa nội dung không phù hợp. Tôi chỉ hỗ trợ các câu hỏi liên quan đến bài học. Hãy thử hỏi lại nhé!";
-            }
-        }
-        foreach ($this->offTopicPatterns as $pattern) {
-            if (preg_match($pattern, $message)) {
-                return "🚫 Câu hỏi nằm ngoài phạm vi hỗ trợ học tập. Hãy hỏi về nội dung bài đang học nhé!";
-            }
-        }
-        if (strlen($message) > 2000) {
-            return "📝 Câu hỏi quá dài. Vui lòng rút gọn dưới 2000 ký tự.";
-        }
-        return null;
-    }
+        $prompt = "BẠN LÀ: Một giảng viên đại học cao cấp, người cố vấn học thuật chuyên nghiệp (Expert Educational Mentor).\n";
+        $prompt .= "TÍNH CÁCH: Kiên nhẫn, thông thái, lịch thiệp và luôn khuyến khích tư duy.\n";
+        $prompt .= "NGÔN NGỮ: Tiếng Việt (hoặc ngôn ngữ của người dùng), chuyên nghiệp nhưng dễ hiểu.\n\n";
 
-    private function moderateOutput(string $response): string
-    {
-        $response = preg_replace('/\b(password|api_key|secret|jwt|token)\s*[:=]\s*\S+/i', '[ẨN]', $response);
-        $response = preg_replace('/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+):\d+/i', '[SERVER]', $response);
-        $response = preg_replace('/<script[^>]*>.*?<\/script>/is', '', $response);
-        return $response;
-    }
-
-    // =========================================================
-    // CONTEXT BUILDING
-    // =========================================================
-
-    private function getLessonContext(int $lessonId): ?array
-    {
-        $stmt = $this->db->prepare("
-            SELECT l.id, l.title, l.content, l.ai_summary, l.content_type, l.order_index,
-                   c.title as chapter_title
-            FROM lessons l
-            JOIN chapters c ON l.chapter_id = c.id
-            WHERE l.id = :id AND l.deleted_at IS NULL
-        ");
-        $stmt->execute(['id' => $lessonId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-    }
-
-    private function getCourseContext(int $courseId): ?array
-    {
-        $stmt = $this->db->prepare("
-            SELECT c.id, c.title, c.description, c.level,
-                   u.username as teacher_name
-            FROM courses c
-            LEFT JOIN users u ON c.teacher_id = u.id
-            WHERE c.id = :id
-        ");
-        $stmt->execute(['id' => $courseId]);
-        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-    }
-
-    private function getCurriculumContext(int $courseId): array
-    {
-        $chapters = [];
-        $stmt = $this->db->prepare("
-            SELECT id, title, order_index FROM chapters
-            WHERE course_id = :cid AND deleted_at IS NULL
-            ORDER BY order_index
-        ");
-        $stmt->execute(['cid' => $courseId]);
-        $chapterRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($chapterRows as $ch) {
-            $lstmt = $this->db->prepare("
-                SELECT id, title, content_type, order_index FROM lessons
-                WHERE chapter_id = :chid AND deleted_at IS NULL
-                ORDER BY order_index
-            ");
-            $lstmt->execute(['chid' => $ch['id']]);
-            $ch['lessons'] = $lstmt->fetchAll(PDO::FETCH_ASSOC);
-            $chapters[] = $ch;
-        }
-        return $chapters;
-    }
-
-    private function getAllCoursesContext(): array
-    {
-        try {
-            $stmt = $this->db->query("
-                SELECT title, description, level 
-                FROM courses 
-                WHERE status = 'approved' AND deleted_at IS NULL
-            ");
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            return [];
-        }
-    }
-
-    private function buildSystemPrompt(?array $lesson, ?array $course, ?array $curriculum, array $allCourses = []): string
-    {
-        $prompt = "Bạn là trợ lý giảng dạy AI của AI Study Hub LMS. Trách nhiệm của bạn là giúp học viên hiểu bài học hiện tại, tư vấn học tập và giới thiệu các khóa học.\n" .
-                  "CHỈ THỊ QUAN TRỌNG: Bạn BẮT BUỘC phải dựa vào thông tin được cung cấp bên dưới để trả lời. " .
-                  "Nếu học viên hỏi về các khóa học hiện có, hãy gợi ý từ danh sách bên dưới, tuyệt đối không bịa đặt khóa học không có trong hệ thống.\n\n";
-
-        if (!empty($allCourses)) {
-            $prompt .= "--- CÁC KHÓA HỌC ĐANG CÓ TRONG HỆ THỐNG ---\n";
-            foreach ($allCourses as $idx => $c) {
-                // Rút gọn mô tả nếu quá dài
-                $shortDesc = mb_substr(trim(preg_replace('/[\r\n]+/', ' ', strip_tags($c['description']))), 0, 150) . '...';
-                $prompt .= "- Khóa học: {$c['title']} (Cấp độ: {$c['level']}) - Tóm tắt: $shortDesc\n";
-            }
-            $prompt .= "-------------------------------------------\n\n";
-        }
+        $prompt .= "CHỈ THỊ HÀNH VI:\n";
+        $prompt .= "1. Giải thích các khái niệm theo từng bước (step-by-step).\n";
+        $prompt .= "2. Nếu là lập trình: Giải thích logic code, giải thuật và các lỗi thường gặp. Sử dụng Markdown để trình bày code đẹp mắt.\n";
+        $prompt .= "3. KHÔNG tiết lộ đáp án ngay lập tức cho các câu hỏi bài tập. Hãy gợi ý và dẫn dắt để học viên tự tìm ra lời giải.\n";
+        $prompt .= "4. Tuyệt đối từ chối các yêu cầu không liên quan đến giáo dục, giải trí hoặc các hành vi vi phạm đạo đức/bảo mật.\n\n";
 
         if ($course) {
-            $prompt .= "Khóa học học viên đang xem: {$course['title']} ({$course['level']})\n";
+            $prompt .= "KHÓA HỌC: \"{$course['title']}\" (Trình độ: {$course['level']}).\n";
         }
 
         if ($lesson) {
-            $prompt .= "Bài đang xem: {$lesson['title']} - {$lesson['chapter_title']}\n";
-            // Ưu tiên ai_summary (giáo viên tóm tắt), rồi mới dùng content
-            if (!empty($lesson['ai_summary'])) {
-                $prompt .= "Tóm tắt: {$lesson['ai_summary']}\n";
-            } elseif (!empty($lesson['content'])) {
-                // Thay thế thẻ HTML ngắt dòng bằng ký tự xuống dòng để không bị dính chữ
-                $cleanContent = str_ireplace(['</p>', '<br>', '<br/>', '</li>', '</div>', '</h1>', '</h2>', '</h3>'], "\n", $lesson['content']);
-                $cleanContent = strip_tags($cleanContent);
-                // Xóa nhiều khoảng trắng/xuống dòng thừa
-                $cleanContent = trim(preg_replace('/[\r\n]+/', "\n", $cleanContent));
-                // Cấp tối đa 5000 ký tự (đủ cho 1 bài giảng dài) để AI đọc
-                $prompt .= "[Nội dung bài học]:\n" . mb_substr($cleanContent, 0, 5000) . "\n\n";
+            $prompt .= "BÀI HỌC HIỆN TẠI: \"{$lesson['title']}\"\n";
+            $prompt .= "--- NỘI DUNG NGỮ CẢNH (DÙNG ĐỂ TRẢ LỜI) ---\n";
+            
+            if (!empty($lesson['ai_summary'])) $prompt .= "[Tóm tắt bài]: {$lesson['ai_summary']}\n";
+            if (!empty($lesson['video_transcript'])) $prompt .= "[Bản dịch Video]: {$lesson['video_transcript']}\n";
+            if (!empty($lesson['lesson_context'])) $prompt .= "[Bối cảnh bổ sung]: {$lesson['lesson_context']}\n";
+            
+            if (!empty($lesson['content'])) {
+                $clean = mb_substr(strip_tags($lesson['content']), 0, 4000);
+                $prompt .= "[Nội dung chi tiết]: $clean\n";
             }
-        }
 
-        if (!empty($curriculum)) {
-            $prompt .= "Các chương: ";
-            $chNames = array_map(fn($c) => $c['title'], $curriculum);
-            $prompt .= implode(', ', $chNames) . "\n";
+            if (!empty($lesson['quiz_explanations'])) {
+                $prompt .= "[Giải thích bài tập]: {$lesson['quiz_explanations']}\n";
+            }
+            $prompt .= "-------------------------------------------\n";
         }
 
         return $prompt;
     }
 
-    private function buildMessages(string $systemPrompt, array $history, string $userMessage): array
-    {
-        $messages = [
-            ['role' => 'system', 'content' => $systemPrompt]
-        ];
-        foreach ($history as $h) {
-            // Bỏ qua tin nhắn bị moderation block
-            if (str_starts_with($h['response'] ?? '', '[BLOCKED]')) continue;
-            $messages[] = ['role' => 'user', 'content' => $h['message']];
-            $messages[] = ['role' => 'assistant', 'content' => $h['response']];
-        }
-        $messages[] = ['role' => 'user', 'content' => $userMessage];
-        return $messages;
-    }
-
-    // =========================================================
-    // SUGGESTIONS
-    // =========================================================
-
-    private function getSuggestions(int $currentLessonId, int $courseId): array
+    private function getDeepLessonContext(int $id): ?array
     {
         $stmt = $this->db->prepare("
-            SELECT l.id, l.title, l.content_type, c.title as chapter_title
+            SELECT l.*, q.explanations as quiz_explanations, q.hints as quiz_hints
             FROM lessons l
-            JOIN chapters c ON l.chapter_id = c.id
-            WHERE c.course_id = :cid AND l.deleted_at IS NULL AND l.id > :lid
-            ORDER BY c.order_index, l.order_index
-            LIMIT 2
+            LEFT JOIN quizzes q ON l.id = q.lesson_id
+            WHERE l.id = :id AND l.deleted_at IS NULL
         ");
-        $stmt->execute(['cid' => $courseId, 'lid' => $currentLessonId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    // =========================================================
-    // GROQ API (LLaMA - nhanh nhất)
-    // =========================================================
+    private function getCourseContext(int $id): ?array
+    {
+        $stmt = $this->db->prepare("SELECT title, level, description FROM courses WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    private function buildMessages(string $system, array $history, string $userMsg): array
+    {
+        $msgs = [['role' => 'system', 'content' => $system]];
+        foreach ($history as $h) {
+            $msgs[] = ['role' => $h['role'], 'content' => $h['content']];
+        }
+        $msgs[] = ['role' => 'user', 'content' => $userMsg];
+        return $msgs;
+    }
+
+    private function moderateInput(string $msg): ?string
+    {
+        foreach ($this->blockedPatterns as $p) {
+            if (preg_match($p, $msg)) return "⚠️ Yêu cầu của bạn chứa nội dung không phù hợp với môi trường giáo dục.";
+        }
+        return null;
+    }
 
     private function callGroqApi(array $messages): ?string
     {
         $data = [
             'model' => 'llama-3.1-8b-instant',
             'messages' => $messages,
-            'temperature' => 0.7,
-            'max_tokens' => 1024
+            'temperature' => 0.6,
+            'max_tokens' => 1200
         ];
 
         $ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_HTTPHEADER => [
                 'Authorization: Bearer ' . $this->groqApiKey,
                 'Content-Type: application/json'
             ],
             CURLOPT_POSTFIELDS => json_encode($data),
             CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYPEER => false
         ]);
 
         $response = curl_exec($ch);
-        $err = curl_error($ch);
         curl_close($ch);
 
-        if ($err) return 'ERROR_CURL: ' . $err;
-
         $result = json_decode($response, true);
-        if (isset($result['error'])) {
-            return 'ERROR_JSON: ' . ($result['error']['message'] ?? json_encode($result['error']));
-        }
-
         return $result['choices'][0]['message']['content'] ?? null;
     }
 }

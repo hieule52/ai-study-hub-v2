@@ -9,7 +9,7 @@ require __DIR__ . '/../layouts/header.php';
 ?>
 
 <!-- ── Page Header ── -->
-<div class="flex items-center justify-between mb-10" style="flex-wrap:wrap;gap:1.5rem;">
+<div class="dashboard-header-flex">
     <div>
         <p class="section-label" data-i18n="nav_student_dashboard">Hệ thống học tập</p>
         <h1 class="dashboard-title">
@@ -18,7 +18,7 @@ require __DIR__ . '/../layouts/header.php';
         </h1>
         <p class="text-secondary mt-2" style="font-size:1.05rem; opacity: 0.7;" data-i18n="std_subtitle">Sẵn sàng để bứt phá giới hạn kiến thức hôm nay?</p>
     </div>
-    <a href="/courses.php" class="btn btn-primary" style="border-radius:100px; padding: 0.8rem 1.5rem; font-weight: 700;">
+    <a href="/courses.php" class="btn btn-primary dashboard-btn-explore">
         <span data-i18n="home_btn_explore">🔍 Khám phá khóa học</span>
     </a>
 </div>
@@ -53,7 +53,7 @@ require __DIR__ . '/../layouts/header.php';
     <div class="flex items-center justify-between mb-6">
         <div>
             <p class="section-label" data-i18n="std_chart_title">Hiệu suất học tập</p>
-            <h3 style="font-weight: 700;">Tiến độ hàng tuần</h3>
+            <h3 class="chart-header-title">Tiến độ hàng tuần</h3>
         </div>
         <div class="badge" style="background: rgba(255,255,255,0.05);">Real-time Stats</div>
     </div>
@@ -69,25 +69,25 @@ require __DIR__ . '/../layouts/header.php';
     <a href="/student/my-courses.php" class="btn btn-ghost" style="font-size: 0.85rem;" data-i18n="std_view_all">Xem tất cả &rarr;</a>
 </div>
 <div class="scroller-container mb-12" id="enrolled-course-container">
-    <div class="text-secondary" style="font-size:0.875rem;" data-i18n="home_loading">Đang tải dữ liệu...</div>
+    <div class="text-secondary loading-msg" data-i18n="home_loading">Đang tải dữ liệu...</div>
 </div>
 
 <!-- ── Divider ── -->
-<div style="height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);margin:4rem 0;"></div>
+<div class="cinematic-divider"></div>
 
 <!-- ── Explore New Courses ── -->
-<div class="section-header" style="flex-wrap:wrap;gap:1.5rem;">
+<div class="dashboard-header-flex">
     <div>
         <p class="section-label" data-i18n="home_courses_label">Cơ hội mới</p>
         <h2 style="font-size:1.6rem;font-weight:800;letter-spacing:-0.03em;" data-i18n="std_explore_new">
             Khóa Học <span class="text-gradient">Nổi Bật</span> 🌟
         </h2>
     </div>
-    <div style="position: relative;">
-        <input type="text" id="courseSearchInput" class="form-control"
-            placeholder="Tìm khóa học..." style="border-radius:100px;width:300px; padding-left: 2.5rem; background: rgba(255,255,255,0.03);"
+    <div class="search-input-wrapper">
+        <input type="text" id="courseSearchInput" class="form-control dashboard-search"
+            placeholder="Tìm khóa học..."
             data-i18n="home_search_placeholder">
-        <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
+        <span class="search-input-icon">🔍</span>
     </div>
 </div>
 <div class="grid-cols-3 mb-12" id="all-course-list">
@@ -195,7 +195,7 @@ require __DIR__ . '/../layouts/header.php';
 
             // ── Chart ─────────────────────────────────────────────
             const statsRes = await window.api.get('/student/stats');
-            const realStats = statsRes.data;
+            const realStats = statsRes.data.chart || statsRes.data; // fallback for safety
             const labels    = Object.keys(realStats).map(d => { const p=d.split('-'); return `${p[2]}/${p[1]}`; });
             const data      = Object.values(realStats);
             const chartLbl  = window.I18n ? window.I18n.get('std_chart_label') : 'Bài học hoàn thành';
@@ -250,7 +250,7 @@ require __DIR__ . '/../layouts/header.php';
                     }
                     const priceHtml = c.price>0
                         ? `<span style="font-weight:700;">${new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(c.price)}</span>`
-                        : `<span class="badge badge-free">Miễn phí</span>`;
+                        : `<span class="badge badge-free" data-i18n="home_free">Miễn phí</span>`;
                     return `
                     <div class="card liquid-glass" style="display:flex;flex-direction:column;">
                         <div class="card-img-placeholder" style="position:relative;height:180px;cursor:pointer;" onclick="window.location.href='/course-detail.php?id=${c.id}'">
@@ -259,7 +259,7 @@ require __DIR__ . '/../layouts/header.php';
                         </div>
                         <div class="card-body" style="flex:1;display:flex;flex-direction:column;">
                             <h3 class="card-title" style="cursor:pointer;" onclick="window.location.href='/course-detail.php?id=${c.id}'">${c.title}</h3>
-                            <p class="text-secondary" style="font-size:0.82rem;flex:1;margin-bottom:1rem;line-height:1.6;">${c.description?c.description.substring(0,90)+'...':'Chưa có mô tả.'}</p>
+                            <p class="text-secondary" style="font-size:0.82rem;flex:1;margin-bottom:1rem;line-height:1.6;" data-i18n="std_no_desc">${c.description?c.description.substring(0,90)+'...':'Chưa có mô tả.'}</p>
                             <div class="flex items-center justify-between mb-3">${priceHtml}</div>
                             ${btn}
                         </div>

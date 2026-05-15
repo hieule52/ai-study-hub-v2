@@ -26,6 +26,10 @@ class AuthMiddleware
         // Đưa thông tin tài khoản đang login vào request để controller dễ lấy
         $request->user = $payload;
 
+        // Cập nhật last_seen (hoạt động gần nhất)
+        $userId = $payload->sub;
+        \App\Core\Database::connect()->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$userId]);
+
         return true;
     }
 }

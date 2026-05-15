@@ -1,347 +1,257 @@
 <?php
 $pageTitle = 'Tạo Khóa Học - AI Study Hub';
 $actor = 'teacher';
-ob_start();
-?>
-<style>
-    .create-course-form {
-        max-width: 900px;
-    }
-    .form-section {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        padding: 2rem;
-        margin-bottom: 2rem;
-    }
-    .form-section-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    .form-section-title span {
-        font-size: 1.4rem;
-    }
-    .thumbnail-preview {
-        width: 100%;
-        max-width: 400px;
-        aspect-ratio: 16/9;
-        border-radius: var(--radius-md);
-        border: 2px dashed rgba(255,255,255,0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        cursor: pointer;
-        transition: var(--transition);
-        background: rgba(0,0,0,0.3);
-        margin-bottom: 1rem;
-    }
-    .thumbnail-preview:hover {
-        border-color: var(--primary);
-        background: rgba(79,70,229,0.05);
-    }
-    .thumbnail-preview img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .thumbnail-preview .placeholder-icon {
-        text-align: center;
-        color: var(--text-muted);
-    }
-    .thumbnail-preview .placeholder-icon span {
-        font-size: 3rem;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-    .level-cards {
-        display: flex;
-        gap: 1rem;
-    }
-    .level-card {
-        flex: 1;
-        padding: 1.25rem;
-        border-radius: var(--radius-md);
-        border: 2px solid rgba(255,255,255,0.05);
-        background: rgba(0,0,0,0.2);
-        cursor: pointer;
-        text-align: center;
-        transition: all 0.2s;
-    }
-    .level-card:hover {
-        border-color: var(--primary);
-        transform: translateY(-2px);
-    }
-    .level-card.selected {
-        border-color: var(--primary);
-        background: rgba(79,70,229,0.1);
-        box-shadow: 0 0 20px rgba(79,70,229,0.1);
-    }
-    .level-card .level-emoji {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    .level-card .level-name {
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 0.25rem;
-    }
-    .level-card .level-desc {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-    .price-toggle {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-    .price-toggle .toggle-btn {
-        flex: 1;
-        padding: 1rem;
-        border-radius: var(--radius-md);
-        border: 2px solid rgba(255,255,255,0.05);
-        background: rgba(0,0,0,0.2);
-        cursor: pointer;
-        text-align: center;
-        transition: all 0.2s;
-        color: var(--text-secondary);
-        font-weight: 600;
-    }
-    .price-toggle .toggle-btn.active {
-        border-color: var(--success);
-        background: rgba(16,185,129,0.1);
-        color: var(--success);
-    }
-    .submit-section {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-        padding-top: 1rem;
-    }
-    .submit-section .btn {
-        padding: 1rem 2.5rem;
-        font-size: 1.05rem;
-        border-radius: var(--radius-lg);
-    }
-</style>
-<?php
-$extraHead = ob_get_clean();
+$noSidebar = true;
+$extraHead = '<link rel="stylesheet" href="/assets/css/teacher/dashboard.css?v=' . time() . '">';
 require __DIR__ . '/../layouts/header.php';
 ?>
 
-<div class="flex items-center justify-between mb-8">
-    <div>
-        <h1 style="font-size: 2rem;">Tạo Khóa Học Mới</h1>
-        <p class="text-secondary mt-2">Điền thông tin để tạo khóa học. Sau khi tạo, bạn sẽ được chuyển đến trang xây dựng nội dung.</p>
-    </div>
-</div>
-
-<div class="create-course-form">
-    <form id="createCourseForm">
-
-        <!-- Section 1: Basic Info -->
-        <div class="form-section">
-            <div class="form-section-title"><span>📝</span> Thông tin cơ bản</div>
-
-            <div class="form-group">
-                <label class="form-label">Tên khóa học <span style="color: var(--danger);">*</span></label>
-                <input type="text" id="title" class="form-control" placeholder="Ví dụ: AI Masterclass 2026 - Từ Zero đến Hero" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Mô tả khóa học <span style="color: var(--danger);">*</span></label>
-                <textarea id="description" class="form-control" rows="4" placeholder="Mô tả nội dung, mục tiêu, đối tượng học viên..." required></textarea>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Danh mục</label>
-                <select id="category_id" class="form-control">
-                    <option value="">-- Chọn danh mục --</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Section 2: Thumbnail -->
-        <div class="form-section">
-            <div class="form-section-title"><span>🖼️</span> Ảnh bìa (Thumbnail)</div>
-            <div class="thumbnail-preview" onclick="document.getElementById('thumbnail').click()">
-                <div class="placeholder-icon" id="thumbnailPlaceholder">
-                    <span>📷</span>
-                    <p style="font-size: 0.9rem;">Click để chọn ảnh (16:9)</p>
-                </div>
-            </div>
-            <input type="file" id="thumbnail" accept="image/*" style="display: none;" onchange="previewThumbnail(this)">
-        </div>
-
-        <!-- Section 3: Level -->
-        <div class="form-section">
-            <div class="form-section-title"><span>📊</span> Cấp độ khóa học</div>
-            <input type="hidden" id="level" value="beginner">
-            <div class="level-cards">
-                <div class="level-card selected" onclick="selectLevel('beginner', this)">
-                    <div class="level-emoji">🌱</div>
-                    <div class="level-name">Cơ bản</div>
-                    <div class="level-desc">Dành cho người mới bắt đầu</div>
-                </div>
-                <div class="level-card" onclick="selectLevel('intermediate', this)">
-                    <div class="level-emoji">🚀</div>
-                    <div class="level-name">Trung cấp</div>
-                    <div class="level-desc">Có kiến thức nền tảng</div>
-                </div>
-                <div class="level-card" onclick="selectLevel('advanced', this)">
-                    <div class="level-emoji">⚡</div>
-                    <div class="level-name">Nâng cao</div>
-                    <div class="level-desc">Chuyên sâu, thực chiến</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 4: Pricing -->
-        <div class="form-section">
-            <div class="form-section-title"><span>💰</span> Giá bán</div>
-            <div class="price-toggle">
-                <div class="toggle-btn" onclick="togglePricing(false, this)">🆓 Miễn phí</div>
-                <div class="toggle-btn active" onclick="togglePricing(true, this)">💎 Có phí</div>
-            </div>
-            <div id="priceInputGroup">
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label class="form-label">Giá bán (VNĐ)</label>
-                    <input type="number" id="price" class="form-control" placeholder="500000" min="0" value="0">
-                </div>
-            </div>
-        </div>
-
-        <!-- Section 5: Duration -->
-        <div class="form-section">
-            <div class="form-section-title"><span>⏱️</span> Thời lượng ước tính</div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label">Tổng thời lượng (phút)</label>
-                <input type="number" id="estimated_duration" class="form-control" placeholder="120" min="0" value="0">
-                <small class="text-muted">Ước tính tổng thời gian học viên cần để hoàn thành khóa học</small>
-            </div>
-        </div>
-
-        <!-- Submit -->
-        <div class="submit-section">
-            <button type="submit" class="btn btn-primary" id="submitBtn">
-                🚀 Tạo Khóa Học & Xây Dựng Nội Dung
+<div class="teacher-layout">
+    <!-- Sidebar -->
+    <aside class="teacher-sidebar">
+        <a href="/teacher/dashboard.php" class="sidebar-nav-item">
+            <i class="fas fa-th-large"></i>
+            <span data-i18n="tc_dash_title">Bảng điều khiển</span>
+        </a>
+        <a href="/teacher/dashboard.php#courses-section" class="sidebar-nav-item">
+            <i class="fas fa-book"></i>
+            <span data-i18n="tc_dash_list_title">Khóa học của tôi</span>
+        </a>
+        <a href="/teacher/students.php" class="sidebar-nav-item">
+            <i class="fas fa-user-graduate"></i>
+            <span data-i18n="nav_teacher_students">Học viên</span>
+        </a>
+        <a href="/teacher/chat.php" class="sidebar-nav-item">
+            <i class="fas fa-comments"></i>
+            <span data-i18n="nav_teacher_chat">Tin nhắn</span>
+        </a>
+        <div style="margin-top: auto; padding: 1rem;">
+            <button onclick="App.logout()" class="btn btn-outline-danger w-full" style="border-radius: var(--radius-md);">
+                Đăng xuất
             </button>
-            <a href="/teacher/dashboard.php" class="btn btn-outline">Hủy</a>
         </div>
-    </form>
+    </aside>
+
+    <main class="teacher-content">
+        <header class="dash-header">
+            <div class="dash-title-group">
+                <h1 id="page-title-text" data-i18n="tc_dash_btn_create">Tạo Khóa Học Mới</h1>
+                <p id="page-subtitle-text">Khởi tạo hành trình tri thức mới của bạn</p>
+            </div>
+        </header>
+
+        <div class="editor-card" style="max-width: 900px; margin: 0;">
+            <form id="createCourseForm">
+                <div class="grid grid-cols-2 gap-8">
+                    <div class="col-span-2 md:col-span-1">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="tc_dash_col_name">Tên khóa học</label>
+                            <input type="text" id="title" class="form-control" placeholder="VD: Làm chủ AI trong 30 ngày" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Mô tả khóa học</label>
+                            <textarea id="description" class="form-control" rows="5" placeholder="Mô tả mục tiêu và nội dung..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Danh mục</label>
+                            <select id="category_id" class="form-control">
+                                <option value="">-- Chọn danh mục --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1">
+                        <div class="form-group">
+                            <label class="form-label">Ảnh bìa (16:9)</label>
+                            <div class="upload-zone" onclick="document.getElementById('thumbnail').click()" id="thumbZone">
+                                <div id="thumbPreview" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+                                    <div class="upload-icon"><i class="fas fa-image"></i></div>
+                                    <p style="font-size: 0.8rem; opacity: 0.5;">Click để chọn ảnh</p>
+                                </div>
+                            </div>
+                            <input type="file" id="thumbnail" accept="image/*" style="display: none;" onchange="previewThumbnail(this)">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="tc_dash_col_price">Học phí (VNĐ)</label>
+                                <input type="number" id="price" class="form-control" value="0" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Cấp độ</label>
+                                <select id="level" class="form-control">
+                                    <option value="beginner">Cơ bản</option>
+                                    <option value="intermediate">Trung cấp</option>
+                                    <option value="advanced">Nâng cao</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Thời lượng ước tính (phút)</label>
+                            <input type="number" id="estimated_duration" class="form-control" value="120" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🤖 AI Learning Context Section -->
+                <div style="margin-top: 2.5rem; padding: 2rem; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: var(--radius-lg);">
+                    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem;">
+                        <div style="font-size:1.5rem;">🧠</div>
+                        <div>
+                            <h4 style="margin:0; font-size:1rem; font-weight:700; color:var(--primary);">AI Learning Context</h4>
+                            <p style="margin:0; font-size:0.75rem; opacity:0.6;">Cung cấp ngữ cảnh để AI Tutor hiểu sâu hơn về khóa học của bạn.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tóm tắt dành cho AI (AI Summary)</label>
+                        <textarea id="ai_course_summary" class="form-control" rows="3" placeholder="Tóm tắt ngắn gọn mục tiêu cốt lõi của khóa học dành cho AI..."></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">Từ khóa trọng tâm (AI Keywords)</label>
+                            <input type="text" id="ai_keywords" class="form-control" placeholder="VD: machine learning, neural networks, python">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Trọng tâm giảng dạy (AI Learning Focus)</label>
+                            <input type="text" id="ai_focus" class="form-control" placeholder="VD: Thực hành dự án thực tế, Tư duy thuật toán">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 3rem; display: flex; gap: 1rem; border-top: 1px solid var(--glass-border); padding-top: 2rem;">
+                    <button type="submit" class="btn btn-primary" id="submitBtn" style="padding: 1rem 2.5rem; border-radius: 100px;">
+                        Tiếp theo: Xây dựng nội dung
+                    </button>
+                    <a href="/teacher/dashboard.php" class="btn btn-ghost" style="padding: 1rem 2rem;">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+    </main>
 </div>
 
-<?php ob_start(); ?>
+<!-- Load Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        App.requireAuth(['teacher']);
-        loadCategories();
+const courseId = new URLSearchParams(window.location.search).get('id');
+let currentThumbnail = null;
 
-        document.getElementById('createCourseForm').addEventListener('submit', handleSubmit);
-    });
-
-    // Load categories
-    async function loadCategories() {
-        try {
-            const res = await window.api.get('/categories');
-            const select = document.getElementById('category_id');
-            if (res.data && res.data.length > 0) {
-                res.data.forEach(cat => {
-                    const opt = document.createElement('option');
-                    opt.value = cat.id;
-                    opt.textContent = `${cat.icon ? '' : ''} ${cat.name}`;
-                    select.appendChild(opt);
-                });
-            }
-        } catch(e) {
-            console.warn('Categories not loaded:', e.message);
-        }
+document.addEventListener('DOMContentLoaded', async () => {
+    App.requireAuth(['teacher', 'admin']);
+    await loadCategories();
+    
+    if (courseId) {
+        await loadCourseData();
     }
+    
+    if (window.I18n) window.I18n.render();
+    document.getElementById('createCourseForm').addEventListener('submit', handleSubmit);
+});
 
-    // Thumbnail preview
-    function previewThumbnail(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const preview = document.querySelector('.thumbnail-preview');
-                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    // Level selection
-    function selectLevel(level, el) {
-        document.getElementById('level').value = level;
-        document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
-    }
-
-    // Price toggle
-    function togglePricing(isPaid, el) {
-        document.querySelectorAll('.price-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
-        el.classList.add('active');
+async function loadCourseData() {
+    try {
+        const res = await window.api.get(`/courses/${courseId}`);
+        const c = res.data;
         
-        const priceGroup = document.getElementById('priceInputGroup');
-        if (isPaid) {
-            priceGroup.style.display = 'block';
-        } else {
-            priceGroup.style.display = 'none';
-            document.getElementById('price').value = 0;
+        document.getElementById('page-title-text').innerText = 'Chỉnh sửa khóa học';
+        document.getElementById('page-subtitle-text').innerText = 'Cập nhật thông tin chi tiết cho khóa học của bạn';
+        document.getElementById('submitBtn').innerHTML = '💾 Lưu thay đổi';
+        
+        document.getElementById('title').value = c.title;
+        document.getElementById('description').value = c.description;
+        document.getElementById('category_id').value = c.category_id || '';
+        document.getElementById('price').value = c.price || 0;
+        document.getElementById('level').value = c.level || 'beginner';
+        document.getElementById('estimated_duration').value = c.estimated_duration || 0;
+        document.getElementById('ai_course_summary').value = c.ai_course_summary || '';
+        document.getElementById('ai_keywords').value = c.ai_keywords || '';
+        document.getElementById('ai_focus').value = c.ai_focus || '';
+        
+        if (c.thumbnail) {
+            currentThumbnail = c.thumbnail;
+            document.getElementById('thumbZone').innerHTML = `<img src="${c.thumbnail}" style="width:100%; height:100%; object-fit:cover; border-radius:var(--radius-md);">`;
         }
+    } catch(e) {
+        App.showToast('Không thể tải dữ liệu khóa học', 'error');
     }
+}
 
-    // Submit form
-    async function handleSubmit(e) {
-        e.preventDefault();
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Đang tạo khóa học...';
+async function loadCategories() {
+    try {
+        const res = await window.api.get('/categories');
+        const select = document.getElementById('category_id');
+        res.data.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.id;
+            opt.textContent = cat.name;
+            select.appendChild(opt);
+        });
+    } catch(e) {}
+}
 
-        try {
-            // Upload thumbnail if selected
-            let thumbnailUrl = null;
-            const fileInput = document.getElementById('thumbnail');
-            if (fileInput.files.length > 0) {
-                App.showToast('Đang tải ảnh bìa...', 'info');
-                const uploadRes = await window.api.uploadFile('/upload/image', fileInput.files[0]);
-                thumbnailUrl = uploadRes.data.url;
-            }
+function previewThumbnail(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('thumbZone').innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover; border-radius:var(--radius-md);">`;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
 
-            const price = parseInt(document.getElementById('price').value) || 0;
+async function handleSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = courseId ? '⏳ Đang cập nhật...' : '⏳ Đang khởi tạo...';
 
-            const res = await window.api.post('/courses', {
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
-                thumbnail: thumbnailUrl,
-                price: price,
-                is_premium: price > 0 ? 1 : 0,
-                category_id: document.getElementById('category_id').value || null,
-                level: document.getElementById('level').value,
-                estimated_duration: parseInt(document.getElementById('estimated_duration').value) || 0
-            });
+    try {
+        let thumbnailUrl = currentThumbnail;
+        const fileInput = document.getElementById('thumbnail');
+        if (fileInput.files.length > 0) {
+            const uploadRes = await window.api.uploadFile('/upload/image', fileInput.files[0]);
+            thumbnailUrl = uploadRes.data.url;
+        }
 
-            App.showToast('🎉 Khóa học đã được tạo thành công!', 'success');
+        const price = parseInt(document.getElementById('price').value) || 0;
+        const payload = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            thumbnail: thumbnailUrl,
+            price: price,
+            is_premium: price > 0 ? 1 : 0,
+            category_id: document.getElementById('category_id').value || null,
+            level: document.getElementById('level').value,
+            estimated_duration: parseInt(document.getElementById('estimated_duration').value) || 0,
+            ai_course_summary: document.getElementById('ai_course_summary').value,
+            ai_keywords: document.getElementById('ai_keywords').value,
+            ai_focus: document.getElementById('ai_focus').value
+        };
 
-            // Redirect to course builder
-            const courseId = res.data.id;
+        if (courseId) {
+            await window.api.put(`/teacher/courses/${courseId}`, payload);
+            App.showToast('Đã cập nhật khóa học!', 'success');
             setTimeout(() => {
-                window.location.href = `/teacher/course-builder.php?course_id=${courseId}`;
+                window.location.href = '/teacher/dashboard.php';
             }, 1000);
-
-        } catch(err) {
-            App.showToast(err.message, 'error');
-            btn.disabled = false;
-            btn.innerHTML = '🚀 Tạo Khóa Học & Xây Dựng Nội Dung';
+        } else {
+            const res = await window.api.post('/courses', payload);
+            App.showToast('Khóa học đã được tạo!', 'success');
+            setTimeout(() => {
+                window.location.href = `/teacher/course-builder.php?course_id=${res.data.id}`;
+            }, 1000);
         }
+    } catch(err) {
+        App.showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = courseId ? '💾 Lưu thay đổi' : 'Tiếp theo: Xây dựng nội dung';
     }
+}
 </script>
-<?php
-$extraScripts = ob_get_clean();
-?>
+
 <?php require __DIR__ . '/../layouts/footer.php'; ?>

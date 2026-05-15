@@ -309,7 +309,7 @@ class TeacherCurriculumController
             RoleMiddleware::handle($request, $response, ['teacher', 'admin']);
 
             $quiz = $this->quizRepo->getFullQuiz((int)$id);
-            $response->success("OK", $quiz); // null nếu chưa có
+            $response->success("OK", $quiz ?? []); // null nếu chưa có
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }
@@ -334,7 +334,14 @@ class TeacherCurriculumController
                 throw new Exception("Cần ít nhất 1 câu hỏi.");
             }
 
-            $result = $this->quizRepo->saveFullQuiz((int)$id, $data['title'], $data['questions']); $this->requireReapprovalByLesson((int)$id);
+            $result = $this->quizRepo->saveFullQuiz(
+                (int)$id, 
+                $data['title'], 
+                $data['questions'],
+                $data['explanations'] ?? null,
+                $data['hints'] ?? null,
+                $data['ai_tags'] ?? null
+            ); $this->requireReapprovalByLesson((int)$id);
             $response->success("Đã lưu bài kiểm tra thành công!", $result);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);

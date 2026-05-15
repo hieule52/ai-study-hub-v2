@@ -47,7 +47,10 @@ class CourseService
             'is_premium' => $is_premium,
             'category_id' => $data['category_id'] ?? null,
             'level' => $data['level'] ?? 'beginner',
-            'estimated_duration' => $data['estimated_duration'] ?? 0
+            'estimated_duration' => $data['estimated_duration'] ?? 0,
+            'ai_course_summary' => $data['ai_course_summary'] ?? null,
+            'ai_keywords' => $data['ai_keywords'] ?? null,
+            'ai_focus' => $data['ai_focus'] ?? null
         ]);
 
         if (!$newCourse) {

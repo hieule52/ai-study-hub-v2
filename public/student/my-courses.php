@@ -8,23 +8,23 @@ require __DIR__ . '/../layouts/header.php';
 ?>
 
 <!-- ── Page Header ── -->
-<div class="flex items-center justify-between mb-10" style="flex-wrap:wrap;gap:1.5rem;">
+<div class="course-page-header">
     <div>
         <p class="section-label" data-i18n="nav_student_dashboard">Student Portal</p>
-        <h1 style="font-size:clamp(2rem,4vw,2.5rem);font-weight:900;letter-spacing:-0.05em;" data-i18n="nav_student_courses">
+        <h1 class="course-page-title" data-i18n="nav_student_courses">
             📚 Khóa học của tôi
         </h1>
         <p class="text-secondary mt-2" style="font-size:1.05rem; opacity: 0.7;" data-i18n="std_my_courses_subtitle">
             Theo dõi và tiếp tục hành trình chinh phục tri thức của bạn
         </p>
     </div>
-    <a href="/courses.php" class="btn btn-primary" style="border-radius:100px; padding: 0.8rem 1.5rem; font-weight: 700;" data-i18n="home_btn_explore">✨ Khám phá thêm</a>
+    <a href="/courses.php" class="btn btn-primary course-page-btn" data-i18n="home_btn_explore">✨ Khám phá thêm</a>
 </div>
 
 <!-- ── Stats Pills ── -->
 <div class="flex gap-4 mb-10" style="flex-wrap:wrap;">
     <div class="stat-pill">
-        <span>📊</span> <span data-i18n="std_total">Tổng</span>: <strong id="count_total" style="color: #fff;">–</strong>
+        <span>📊</span> <span data-i18n="std_total">Tổng</span>: <strong id="count_total" class="text-primary">–</strong>
     </div>
     <div class="stat-pill" style="border-color: rgba(16, 185, 129, 0.2); color: var(--success);">
         <span>✅</span> <span data-i18n="std_completed">Hoàn thành</span>: <strong id="count_done">–</strong>
@@ -73,11 +73,11 @@ require __DIR__ . '/../layouts/header.php';
             if (!courses.length) {
                 container.style.gridTemplateColumns = '1fr';
                 container.innerHTML = `
-                    <div class="card p-12 text-center" style="max-width:520px;margin:4rem auto; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);">
-                        <div style="font-size:4rem;margin-bottom:1.5rem;">📭</div>
-                        <h2 style="margin-bottom:0.75rem; font-weight: 800;" data-i18n="std_no_enrolled">Hành trình chưa bắt đầu</h2>
-                        <p class="text-secondary mb-8" style="font-size: 1.1rem; opacity: 0.7;">Bạn chưa tham gia khóa học nào. Hãy để AI Study Hub giúp bạn tìm thấy đam mê mới!</p>
-                        <a href="/courses.php" class="btn btn-primary" style="border-radius:100px; padding: 1rem 2rem; font-weight: 700;" data-i18n="std_explore_new">✨ Khám phá khóa học ngay</a>
+                    <div class="empty-state-card">
+                        <div class="empty-state-emoji">📭</div>
+                        <h2 class="empty-state-title" data-i18n="std_no_enrolled">Hành trình chưa bắt đầu</h2>
+                        <p class="text-secondary mb-8" style="font-size: 1.1rem; opacity: 0.7;" data-i18n="std_no_enrolled_msg">Bạn chưa tham gia khóa học nào. Hãy để AI Study Hub giúp bạn tìm thấy đam mê mới!</p>
+                        <a href="/courses.php" class="btn btn-primary course-page-btn" data-i18n="std_explore_new">✨ Khám phá khóa học ngay</a>
                     </div>`;
             } else {
                 courses.forEach(c => {
@@ -95,11 +95,11 @@ require __DIR__ . '/../layouts/header.php';
 
                     const thumb = c.thumbnail
                         ? `<img src="${c.thumbnail}" alt="${c.title}">`
-                        : `<div style="height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.03);font-size:4rem;color:rgba(255,255,255,0.1);">📚</div>`;
+                        : `<div class="card-thumb-placeholder">📚</div>`;
 
                     const badge = isDone
-                        ? `<span class="status-badge" style="background:rgba(16,185,129,0.2); color:var(--success); border-color:rgba(16,185,129,0.3);">Hoàn thành</span>`
-                        : (prog > 0 ? `<span class="status-badge" style="background:rgba(99,102,241,0.2); color:var(--primary); border-color:rgba(99,102,241,0.3);">Đang học</span>` : '');
+                        ? `<span class="status-badge" style="background:rgba(16,185,129,0.2); color:var(--success); border-color:rgba(16,185,129,0.3);" data-i18n="std_completed">Hoàn thành</span>`
+                        : (prog > 0 ? `<span class="status-badge" style="background:rgba(99,102,241,0.2); color:var(--primary); border-color:rgba(99,102,241,0.3);" data-i18n="std_learning">Đang học</span>` : '');
 
                     const card = document.createElement('div');
                     card.className = 'my-course-card';
@@ -112,7 +112,7 @@ require __DIR__ . '/../layouts/header.php';
                             <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${c.title}">${c.title}</h3>
                             <div style="flex:1;"></div>
                             <div class="progress-row">
-                                <span data-i18n="std_progress">Tiến độ hiện tại</span>
+                                <span data-i18n="std_progress_current">Tiến độ hiện tại</span>
                                 <span style="color:${isDone?'var(--success)':'var(--text-primary)'};">${prog}%</span>
                             </div>
                             <div class="progress-track">

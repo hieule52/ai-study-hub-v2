@@ -21,7 +21,7 @@ $extraScripts = $extraScripts ?? '';
                     ✦ AI Study Hub<sup>®</sup>
                 </div>
 
-                <p class="footer-description">
+                <p class="footer-description" data-i18n="footer_desc">
                     Nền tảng học tập AI thế hệ mới, mang đến trải nghiệm giáo dục
                     cá nhân hóa và chiều sâu học thuật cho mọi học viên.
                 </p>
@@ -35,19 +35,19 @@ $extraScripts = $extraScripts ?? '';
             <div class="footer-links-wrapper">
 
                 <div class="footer-links">
-                    <span class="footer-label">Khám phá</span>
+                    <span class="footer-label" data-i18n="footer_explore">Khám phá</span>
 
-                    <a href="/">Trang chủ</a>
-                    <a href="/courses.php">Khóa học</a>
-                    <a href="/about.php">Giới thiệu</a>
+                    <a href="/" data-i18n="nav_home">Trang chủ</a>
+                    <a href="/courses.php" data-i18n="nav_courses">Khóa học</a>
+                    <a href="/about.php" data-i18n="nav_about">Giới thiệu</a>
                 </div>
 
                 <div class="footer-links">
-                    <span class="footer-label">Hỗ trợ</span>
+                    <span class="footer-label" data-i18n="footer_support">Hỗ trợ</span>
 
-                    <a href="/login.php">AI Tutor</a>
-                    <a href="/student/chat.php">Tin nhắn</a>
-                    <a href="/terms.php">Điều khoản</a>
+                    <a href="/login.php" data-i18n="nav_student_ai">AI Tutor</a>
+                    <a href="/student/chat.php" data-i18n="nav_student_chat">Tin nhắn</a>
+                    <a href="/terms.php" data-i18n="footer_terms">Điều khoản</a>
                 </div>
 
             </div>
@@ -60,6 +60,7 @@ $extraScripts = $extraScripts ?? '';
 <!-- Scripts -->
 <script src="/assets/js/api.js"></script>
 <script src="/assets/js/app.js"></script>
+<script src="/assets/js/i18n.js"></script>
 <?= $extraScripts ?>
 
 <script>

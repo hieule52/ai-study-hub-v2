@@ -6,6 +6,7 @@ use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
 use App\Core\JWTHandler;
 use App\Repositories\ChatRepository;
+use App\Repositories\NotificationRepository;
 use App\Core\Database;
 use Exception;
 
@@ -15,11 +16,13 @@ class Chat implements MessageComponentInterface
     // resourceId => ['user_id' => int, 'role' => string, 'username' => string]
     protected array $connMeta = [];
     private ChatRepository $chatRepo;
+    private NotificationRepository $notifRepo;
 
     public function __construct()
     {
         $this->clients = new \SplObjectStorage;
         $this->chatRepo = new ChatRepository();
+        $this->notifRepo = new NotificationRepository();
     }
 
     public function onOpen(ConnectionInterface $conn)
@@ -114,6 +117,15 @@ class Chat implements MessageComponentInterface
 
         // Lưu vào database
         $this->chatRepo->saveMessage($senderId, $receiverId, $content);
+
+        // Tạo thông báo mới cho người nhận
+        try {
+            $this->notifRepo->create($receiverId, 'chat', $senderMeta['username'], $content, [
+                'sender_id' => $senderId
+            ]);
+        } catch (Exception $notifEx) {
+            echo "[WS] Không thể tạo thông báo: " . $notifEx->getMessage() . "\n";
+        }
 
         $payload = json_encode([
             'type'          => 'message',

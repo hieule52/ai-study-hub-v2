@@ -70,7 +70,7 @@ class QuizRepository
      * Lưu toàn bộ quiz + câu hỏi + đáp án (tạo mới hoặc thay thế)
      * Xóa quiz cũ của lesson rồi tạo lại hoàn toàn.
      */
-    public function saveFullQuiz(int $lessonId, string $title, array $questions): array
+    public function saveFullQuiz(int $lessonId, string $title, array $questions, ?string $explanations = null, ?string $hints = null, ?string $aiTags = null): array
     {
         $this->db->beginTransaction();
         try {
@@ -79,8 +79,14 @@ class QuizRepository
                      ->execute(['lid' => $lessonId]);
 
             // Tạo quiz mới
-            $stmt = $this->db->prepare("INSERT INTO quizzes (lesson_id, title) VALUES (:lid, :title)");
-            $stmt->execute(['lid' => $lessonId, 'title' => $title]);
+            $stmt = $this->db->prepare("INSERT INTO quizzes (lesson_id, title, explanations, hints, ai_tags) VALUES (:lid, :title, :exp, :hints, :tags)");
+            $stmt->execute([
+                'lid' => $lessonId, 
+                'title' => $title,
+                'exp' => $explanations,
+                'hints' => $hints,
+                'tags' => $aiTags
+            ]);
             $quizId = (int)$this->db->lastInsertId();
 
             foreach ($questions as $q) {
@@ -131,26 +137,30 @@ class QuizRepository
 
     public function create(array $data): ?array
     {
-        $stmt = $this->db->prepare("INSERT INTO quizzes (lesson_id, title) VALUES (:lesson_id, :title)");
+        $stmt = $this->db->prepare("INSERT INTO quizzes (lesson_id, title, explanations, hints, ai_tags) VALUES (:lesson_id, :title, :exp, :hints, :tags)");
         $success = $stmt->execute([
             'lesson_id' => $data['lesson_id'],
-            'title'     => $data['title']
+            'title'     => $data['title'],
+            'exp'       => $data['explanations'] ?? null,
+            'hints'     => $data['hints'] ?? null,
+            'tags'      => $data['ai_tags'] ?? null
         ]);
         
         if ($success) {
-            $stmt2 = $this->db->prepare("SELECT * FROM quizzes WHERE id = :id");
-            $stmt2->execute(['id' => $this->db->lastInsertId()]);
-            return $stmt2->fetch(PDO::FETCH_ASSOC);
+            return $this->findById((int)$this->db->lastInsertId());
         }
         return null;
     }
 
     public function update(int $id, array $data): bool
     {
-        $stmt = $this->db->prepare("UPDATE quizzes SET title = :title WHERE id = :id");
+        $stmt = $this->db->prepare("UPDATE quizzes SET title = :title, explanations = :exp, hints = :hints, ai_tags = :tags WHERE id = :id");
         return $stmt->execute([
             'id'    => $id,
-            'title' => $data['title']
+            'title' => $data['title'],
+            'exp'   => $data['explanations'] ?? null,
+            'hints' => $data['hints'] ?? null,
+            'tags'  => $data['ai_tags'] ?? null
         ]);
     }
 

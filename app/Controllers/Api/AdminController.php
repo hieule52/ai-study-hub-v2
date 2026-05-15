@@ -11,17 +11,21 @@ use App\Middlewares\AuthMiddleware;
 use App\Middlewares\RoleMiddleware;
 use Exception;
 
+use App\Repositories\NotificationRepository;
+
 class AdminController
 {
     private UserRepository $userRepo;
     private CourseRepository $courseRepo;
     private EnrollmentRepository $enrollRepo;
+    private NotificationRepository $notifRepo;
 
     public function __construct()
     {
         $this->userRepo = new UserRepository();
         $this->courseRepo = new CourseRepository();
         $this->enrollRepo = new EnrollmentRepository();
+        $this->notifRepo = new NotificationRepository();
     }
 
     public function getStats(Request $request, Response $response)
@@ -30,11 +34,22 @@ class AdminController
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
 
+            $db = (new \App\Core\Database)::connect();
+
+            // Sum prices from enrollments for total revenue
+            $totalRevenue = (float)$db->query("
+                SELECT SUM(c.price) 
+                FROM enrollments e 
+                JOIN courses c ON e.course_id = c.id
+            ")->fetchColumn();
+
+            $activeCoursesCount = (int)$db->query("SELECT COUNT(*) FROM courses WHERE status = 'approved' AND deleted_at IS NULL")->fetchColumn();
+
             $stats = [
-                'total_revenue' => $this->courseRepo->getTotalRevenue(),
-                'total_vip_users' => $this->userRepo->countVipUsers(),
-                'total_users' => $this->userRepo->countUsers(),
-                'pending_courses' => $this->courseRepo->countPendingCourses()
+                'total_revenue'    => $totalRevenue,
+                'total_vip_users'  => $activeCoursesCount,
+                'total_users'      => $this->userRepo->countUsers(),
+                'pending_courses'  => $this->courseRepo->countPendingCourses()
             ];
 
             $response->success("Admin Stats", $stats);
@@ -145,8 +160,19 @@ class AdminController
         try {
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
+            
+            $course = $this->courseRepo->findById((int)$id);
+            if (!$course) throw new Exception("Không tìm thấy khóa học.");
+
             $success = $this->courseRepo->updateStatus((int)$id, 'approved');
             if ($success) {
+                // Create Notification for Teacher
+                $this->notifRepo->create(
+                    (int)$course['teacher_id'],
+                    'course_approved',
+                    '🎉 Khóa học đã được duyệt!',
+                    "Chúc mừng! Khóa học '{$course['title']}' của bạn đã được phê duyệt và hiển thị công khai."
+                );
                 $response->success("Đã duyệt khóa học thành công!");
             } else {
                 $response->error("Không thể duyệt khóa học.", 500);
@@ -161,9 +187,20 @@ class AdminController
         try {
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
+            
+            $course = $this->courseRepo->findById((int)$id);
+            if (!$course) throw new Exception("Không tìm thấy khóa học.");
+
             // Chuyển lại về draft để người upload có thể sửa lại
             $success = $this->courseRepo->updateStatus((int)$id, 'draft');
             if ($success) {
+                // Create Notification for Teacher
+                $this->notifRepo->create(
+                    (int)$course['teacher_id'],
+                    'warning',
+                    '⚠️ Khóa học cần chỉnh sửa',
+                    "Khóa học '{$course['title']}' đã bị từ chối phê duyệt. Vui lòng kiểm tra lại nội dung và gửi duyệt lại."
+                );
                 $response->success("Đã từ chối và chuyển khóa học về bản nháp.");
             } else {
                 $response->error("Không thể cập nhật trạng thái khóa học.", 500);
@@ -226,24 +263,42 @@ class AdminController
         try {
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
-            
-            $dbData = $this->courseRepo->getMonthlyRevenue(6);
+
+            $db = (new \App\Core\Database)::connect();
+
+            // Build 6-month enrollment chart
+            $labels = [];
+            $data   = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $time  = strtotime("-$i months");
+                $month = date('Y-m', $time);
+                $label = 'Tháng ' . date('n', $time);
+                $labels[] = $label;
+
+                $stmt = $db->prepare("
+                    SELECT COUNT(*) FROM enrollments
+                    WHERE DATE_FORMAT(enrolled_at, '%Y-%m') = :ym
+                ");
+                $stmt->execute(['ym' => $month]);
+                $data[] = (int)$stmt->fetchColumn();
+            }
 
             $chartData = [
-                'labels' => $dbData['labels'],
-                'datasets' => [
-                    [
-                        'label' => 'Doanh Thu (VNĐ) - Dữ liệu thực',
-                        'data' => $dbData['data'],
-                        'borderColor' => '#facc15',
-                        'backgroundColor' => 'rgba(250, 204, 21, 0.2)',
-                        'borderWidth' => 3,
-                        'fill' => true,
-                        'tension' => 0.4
-                    ]
-                ]
+                'labels'   => $labels,
+                'datasets' => [[
+                    'label'           => 'Lượt ghi danh',
+                    'data'            => $data,
+                    'borderColor'     => '#818cf8',
+                    'backgroundColor' => 'rgba(129,140,248,0.15)',
+                    'borderWidth'     => 2,
+                    'fill'            => true,
+                    'tension'         => 0.4,
+                    'pointBackgroundColor' => '#818cf8',
+                    'pointRadius'     => 4
+                ]]
             ];
-            $response->success("Biểu đồ doanh thu thực tế", $chartData);
+
+            $response->success("Biểu đồ ghi danh", $chartData);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }
@@ -301,8 +356,20 @@ class AdminController
         try {
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
+            
             $enrollments = $this->enrollRepo->getAllEnrollments();
-            $response->success("Danh sách ghi danh", $enrollments);
+            
+            $db = (new \App\Core\Database)::connect();
+            $totalRevenue = (float)$db->query("
+                SELECT SUM(c.price) 
+                FROM enrollments e 
+                JOIN courses c ON e.course_id = c.id
+            ")->fetchColumn();
+
+            $response->success("Danh sách ghi danh", [
+                'items' => $enrollments,
+                'total_revenue' => $totalRevenue
+            ]);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }

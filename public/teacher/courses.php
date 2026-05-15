@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Teacher Dashboard - AI Study Hub';
+$pageTitle = 'My Courses - AI Study Hub';
 $actor = 'teacher';
 $noSidebar = true;
 $extraHead = '<link rel="stylesheet" href="/assets/css/teacher/dashboard.css?v=' . time() . '">
@@ -14,8 +14,8 @@ require __DIR__ . '/../layouts/header.php';
     <main class="teacher-content">
         <header class="dash-header">
             <div class="dash-title-group">
-                <h1 data-i18n="tc_dash_title">Teacher Dashboard</h1>
-                <p data-i18n="tc_dash_subtitle">Quản lý khóa học và theo dõi học viên của bạn</p>
+                <h1 data-i18n="tc_dash_list_title">My Courses</h1>
+                <p data-i18n="tc_dash_subtitle">Manage and update your academic content</p>
             </div>
             <div style="display: flex; gap: 1rem; align-items: center;">
                 <div style="position: relative;">
@@ -39,35 +39,12 @@ require __DIR__ . '/../layouts/header.php';
             </div>
         </header>
 
-        <!-- Stats Overview -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-book"></i></div>
-                <span class="stat-label" data-i18n="tc_dash_stat_courses">Khóa học</span>
-                <span class="stat-value" id="stat-courses">0</span>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-users"></i></div>
-                <span class="stat-label" data-i18n="tc_dash_stat_students">Học viên</span>
-                <span class="stat-value" id="stat-students">0</span>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-star"></i></div>
-                <span class="stat-label" data-i18n="tc_dash_stat_rating">Đánh giá trung bình</span>
-                <span class="stat-value" id="stat-rating">0.0</span>
-            </div>
-        </div>
-
-        <!-- Recent Courses -->
-        <section id="courses-container">
-            <div class="dash-section-header">
-                <h2 data-i18n="tc_dash_list_title">Danh sách Khóa học của tôi</h2>
-            </div>
+        <section>
             <div class="course-table-wrap">
                 <table class="course-table">
                     <thead>
                         <tr>
-                            <th data-i18n="tc_dash_col_name">Tên khóa học</th>
+                            <th data-i18n="tc_dash_col_name">Khóa học</th>
                             <th data-i18n="tc_dash_col_price">Học phí</th>
                             <th data-i18n="tc_dash_col_students">Học viên</th>
                             <th data-i18n="tc_dash_col_status">Trạng thái</th>
@@ -94,14 +71,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         const res = await window.api.get('/teacher/dashboard');
-        const { stats, courses } = res.data;
+        const { courses } = res.data;
 
-        // Populate Stats
-        document.getElementById('stat-courses').innerText = stats.total_courses || 0;
-        document.getElementById('stat-students').innerText = stats.total_students || 0;
-        document.getElementById('stat-rating').innerText = stats.avg_rating || '0.0';
-
-        // Populate Courses
         const courseList = document.getElementById('course-list');
         if (courses.length === 0) {
             courseList.innerHTML = `<tr><td colspan="5" class="text-center p-10 opacity-50">${I18n.get('tc_dash_no_courses')}</td></tr>`;
@@ -137,10 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </td>
                     <td>
                         <div class="action-btns">
-                            <a href="/teacher/create-course.php?id=${c.id}" class="btn btn-outline btn-sm" style="border-radius:100px;" title="Chỉnh sửa thông tin">
-                                <i class="fas fa-cog"></i>
-                            </a>
-                            <a href="/teacher/course-builder.php?course_id=${c.id}" class="btn btn-primary btn-sm" style="border-radius:100px;">
+                            <a href="/teacher/course-builder.php?course_id=${c.id}" class="btn btn-outline btn-sm" style="border-radius:100px;">
                                 ${I18n.get('tc_dash_btn_build')}
                             </a>
                             <button onclick="deleteCourse(${c.id})" class="btn btn-ghost btn-sm" style="color: var(--danger);">
@@ -153,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).join('');
 
     } catch (err) {
-        App.showToast(err.message, 'error');
+        console.error(err);
     }
 });
 

@@ -150,6 +150,14 @@ require __DIR__ . '/../layouts/header.php';
         };
     }
 
+    function isOnline(lastSeen) {
+        if (!lastSeen) return false;
+        const lastSeenDate = new Date(lastSeen);
+        const now = new Date();
+        const diffMinutes = (now - lastSeenDate) / 1000 / 60;
+        return diffMinutes < 5; // Online if active in last 5 mins
+    }
+
     async function loadContacts(user) {
         try {
             const res = await window.api.get('/student/courses');
@@ -161,7 +169,8 @@ require __DIR__ . '/../layouts/header.php';
                         id: c.teacher_id,
                         name: c.teacher_name || 'Giảng viên',
                         avatar: c.teacher_avatar || null,
-                        course: c.title
+                        course: c.title,
+                        last_seen: c.teacher_last_seen
                     };
                 }
             });
@@ -180,11 +189,13 @@ require __DIR__ . '/../layouts/header.php';
                 const avatarHtml = t.avatar
                     ? `<img src="${t.avatar}" class="contact-avatar">`
                     : `<div class="contact-avatar" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;">${initial}</div>`;
+                const isUserOnline = isOnline(t.last_seen);
+                const statusColor = isUserOnline ? 'var(--success)' : '#64748b';
                 return `
-                <div class="contact-item" data-id="${t.id}" onclick="selectContact(${t.id}, '${escapeHtml(t.name)}', '${t.avatar || ''}')">
+                <div class="contact-item" data-id="${t.id}" onclick="selectContact(${t.id}, '${escapeHtml(t.name)}', '${t.avatar || ''}', '${t.last_seen || ''}')">
                     <div style="position: relative;">
                         ${avatarHtml}
-                        <div style="position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; background: var(--success); border-radius: 50%; border: 2px solid #0f172a;"></div>
+                        <div style="position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; background: ${statusColor}; border-radius: 50%; border: 2px solid #0f172a;"></div>
                     </div>
                     <div class="contact-info">
                         <div class="contact-name">${escapeHtml(t.name)}</div>
@@ -197,7 +208,7 @@ require __DIR__ . '/../layouts/header.php';
         }
     }
 
-    async function selectContact(teacherId, teacherName, teacherAvatar = '') {
+    async function selectContact(teacherId, teacherName, teacherAvatar = '', lastSeen = '') {
         currentReceiverId = teacherId;
         document.getElementById('chatEmptyState').style.display = 'none';
         document.getElementById('chatActiveState').style.display = 'flex';
@@ -211,16 +222,21 @@ require __DIR__ . '/../layouts/header.php';
             ? `<img src="${teacherAvatar}" class="contact-avatar" style="width:40px; height:40px;">`
             : `<div class="contact-avatar" style="width:40px; height:40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;">${initial}</div>`;
 
+        const isUserOnline = isOnline(lastSeen);
+        const statusColor = isUserOnline ? 'var(--success)' : '#64748b';
+        const statusText = isUserOnline ? 'chat_online' : 'chat_offline';
+
         document.getElementById('chatHeader').innerHTML = `
             ${avatarHtml}
             <div>
                 <h3 style="font-size: 1rem; font-weight: 700;">${escapeHtml(teacherName)}</h3>
-                <div style="font-size: 0.75rem; color: var(--success); display: flex; align-items: center; gap: 4px;">
-                    <div style="width: 6px; height: 6px; background: var(--success); border-radius: 50%;"></div>
-                    Đang trực tuyến
+                <div style="font-size: 0.75rem; color: ${statusColor}; display: flex; align-items: center; gap: 4px;">
+                    <div style="width: 6px; height: 6px; background: ${statusColor}; border-radius: 50%;"></div>
+                    <span data-i18n="${statusText}">${isUserOnline ? 'Đang trực tuyến' : 'Ngoại tuyến'}</span>
                 </div>
             </div>
         `;
+        if (window.I18n) window.I18n.render();
 
         const chatWin = document.getElementById('chatWindow');
         chatWin.innerHTML = '<div class="p-6 text-center opacity-50">Đang tải lịch sử...</div>';

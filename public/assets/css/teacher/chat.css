@@ -1,0 +1,276 @@
+/* ============================================================
+   AI STUDY HUB LMS — ENHANCED TEACHER CHAT STYLES
+   Cinematic · Dark Glass · Premium Editorial
+   ============================================================ */
+
+.chat-container {
+    display: flex;
+    flex: 1;
+    height: 100vh;
+    background: var(--bg-layer1);
+    overflow: hidden;
+    border-left: 1px solid var(--glass-border);
+}
+
+/* ── Contact Sidebar ── */
+.chat-sidebar {
+    width: 420px;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(40px);
+    border-right: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-sidebar-header {
+    padding: 2.5rem 1.5rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.chat-sidebar-header h2 {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.contact-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    margin-bottom: 0.5rem;
+}
+
+.contact-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    transform: translateX(4px);
+}
+
+.contact-item.active {
+    background: var(--primary-dim);
+    border-color: rgba(99, 102, 241, 0.2);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);
+}
+
+.contact-avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    object-fit: cover;
+    background: var(--bg-layer2);
+    border: 1px solid var(--glass-border);
+    position: relative;
+}
+
+.status-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid #0f172a;
+}
+
+.status-online { background: #10b981; box-shadow: 0 0 12px #10b981; }
+.status-offline { background: #64748b; }
+
+.contact-info {
+    flex: 1;
+}
+
+.contact-name {
+    display: block;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    margin-bottom: 0.25rem;
+}
+
+.contact-preview {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+/* ── Main Chat Area ── */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 40%),
+                var(--bg-layer1);
+    position: relative;
+}
+
+.chat-main::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.chat-header {
+    padding: 1.5rem 2.5rem;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    z-index: 10;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 3rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    scroll-behavior: smooth;
+}
+
+/* ── Bubbles ── */
+.message-row {
+    display: flex;
+    width: 100%;
+}
+
+.message-row.sent { justify-content: flex-end; }
+
+.message-bubble {
+    max-width: 75%;
+    padding: 1.25rem 1.75rem;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    animation: messageEntry 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes messageEntry {
+    from { opacity: 0; transform: translateY(10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.sent .message-bubble {
+    background: linear-gradient(135deg, var(--primary), #4f46e5);
+    color: white;
+    border-radius: 24px 24px 4px 24px;
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.25);
+}
+
+.received .message-bubble {
+    background: var(--glass-bg-strong);
+    color: var(--text-primary);
+    border-radius: 24px 24px 24px 4px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.message-time {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-top: 0.5rem;
+    display: block;
+    text-align: right;
+}
+
+/* ── Footer / Input ── */
+.chat-footer {
+    padding: 2rem 4rem 3rem;
+    background: linear-gradient(to top, var(--bg-layer1), transparent);
+}
+
+.chat-input-wrap {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 100px;
+    padding: 0.5rem 0.5rem 0.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.chat-input-wrap:focus-within {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.chat-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1rem;
+    outline: none;
+}
+
+.btn-send {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+.btn-send:hover {
+    transform: scale(1.1) rotate(-10deg);
+    background: #4f46e5;
+}
+
+.chat-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+}
+
+.chat-empty h3 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+/* Custom Scrollbar */
+.chat-messages::-webkit-scrollbar { width: 6px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+.chat-messages::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }

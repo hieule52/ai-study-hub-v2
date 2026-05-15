@@ -48,7 +48,7 @@ class StudentController
 
             $success = $this->enrollRepo->enroll($userId, (int)$courseId);
             if ($success) {
-                $response->success("Đăng ký khóa học thành công!", null, 201);
+                $response->success("Đăng ký khóa học thành công!", [], 201);
             } else {
                 $response->error("Bạn đã tham gia khóa học này rồi.", 400);
             }
@@ -66,7 +66,7 @@ class StudentController
 
             $success = $this->enrollRepo->enroll($userId, (int)$courseId);
             if ($success) {
-                $response->success("Xác nhận giao dịch và mở khóa thành công!", null, 201);
+                $response->success("Xác nhận giao dịch và mở khóa thành công!", [], 201);
             } else {
                 $response->error("Khóa học này đã được kích hoạt trước đó.", 400);
             }
@@ -86,6 +86,26 @@ class StudentController
             $response->success("Learning stats retrieved", $stats);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
+        }
+    }
+
+    public function getMyReview(Request $request, Response $response, string $courseId)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            $userId = $request->user->sub;
+
+            $stmt = \App\Core\Database::connect()->prepare("
+                SELECT rating, comment, created_at 
+                FROM course_reviews 
+                WHERE user_id = ? AND course_id = ?
+            ");
+            $stmt->execute([$userId, $courseId]);
+            $review = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            $response->success("Thông tin đánh giá của bạn", $review ?: []);
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 500);
         }
     }
 
@@ -120,7 +140,7 @@ class StudentController
             ");
             $stmt->execute([$courseId, $userId, $rating, $comment]);
 
-            $response->success("Cảm ơn bạn đã đánh giá khóa học!", null, 201);
+            $response->success("Cảm ơn bạn đã đánh giá khóa học!", [], 201);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 500);
         }

@@ -17,7 +17,7 @@ header('Content-Type: text/html; charset=utf-8');
     <!-- Core design system (always loaded) -->
     <link rel="stylesheet" href="/assets/css/style.css?v=<?= time() ?>">
     <!-- Dashboard layout CSS (only for authenticated roles if sidebar is shown) -->
-    <?php if (in_array($actor, ['student', 'teacher', 'admin']) && !($noSidebar ?? false)): ?>
+    <?php if (in_array($actor, ['student', 'teacher']) && !($noSidebar ?? false)): ?>
     <link rel="stylesheet" href="/assets/css/pages/dashboard.css?v=<?= time() ?>">
     <?php endif; ?>
     <!-- Per-page extra head (CSS, meta, etc.) -->
@@ -58,6 +58,7 @@ header('Content-Type: text/html; charset=utf-8');
                     </a>
 
                     <ul class="nav-menu">
+                        <?php if ($actor !== 'teacher'): ?>
                         <li><a href="/" class="nav-link" data-i18n="nav_home">Trang chủ</a></li>
                         <li><a href="/courses.php" class="nav-link" data-i18n="nav_courses">Khóa học</a></li>
                         <li><a href="/about.php" class="nav-link" data-i18n="nav_about">Giới thiệu</a></li>
@@ -65,6 +66,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 onclick="App.checkAuthAndGo('/student/ai-chat.php', 'Vui lòng đăng nhập để sử dụng Gia sư AI')">Gia sư AI</a></li>
                         <li><a href="javascript:void(0)" class="nav-link" data-i18n="nav_student_certificates"
                                 onclick="App.checkAuthAndGo('/student/certificates.php', 'Vui lòng đăng nhập để xem chứng chỉ')">Chứng chỉ</a></li>
+                        <?php endif; ?>
                     </ul>
 
                     <div class="flex items-center gap-6" id="nav-right">
@@ -90,10 +92,8 @@ header('Content-Type: text/html; charset=utf-8');
                                 </div>
                                 <div class="notif-dropdown" id="notifDropdown">
                                     <div class="notif-dropdown-header">
-                                        <span style="color: var(--text-primary);" data-i18n="nav_hub_menu">Thông báo</span>
-                                        <button onclick="markAllNotifRead()"
-                                            style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:0.75rem; opacity: 0.6;">Mark
-                                            all read</button>
+                                        <span style="color: var(--text-primary); font-weight: 700;" data-i18n="nav_hub_menu">Thông báo</span>
+                                        <button onclick="markAllNotifRead()" class="notif-mark-read" data-i18n="nav_hub_mark_read">Đánh dấu tất cả đã đọc</button>
                                     </div>
                                     <div class="notif-list" id="notifList"></div>
                                 </div>
@@ -105,16 +105,15 @@ header('Content-Type: text/html; charset=utf-8');
             <?php endif; ?>
 
             <?php 
+            $currentPath = $_SERVER['REQUEST_URI'];
+            $isActive = fn(string $path) => (strpos($currentPath, $path) !== false) ? 'active' : '';
             $showDashboardLayout = in_array($actor, ['student', 'teacher', 'admin']) && !($noSidebar ?? false);
             if ($showDashboardLayout): 
             ?>
                 <div class="dashboard-layout">
                     <aside class="sidebar">
                         <ul class="sidebar-nav">
-                            <?php
-                            $currentPath = $_SERVER['REQUEST_URI'];
-                            $isActive = fn(string $path) => (strpos($currentPath, $path) !== false) ? 'active' : '';
-                            ?>
+                            <?php if ($actor === 'student'): ?>
                             <li>
                                 <a href="/student/dashboard.php" class="sidebar-link <?= $isActive('/student/dashboard') ?>"
                                     data-i18n="nav_student_dashboard">
@@ -255,3 +254,4 @@ header('Content-Type: text/html; charset=utf-8');
                 </aside>
                 <main class="main-content">
                 <?php endif; ?>
+            <?php endif; ?>

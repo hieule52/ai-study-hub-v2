@@ -172,6 +172,13 @@ require __DIR__ . '/layouts/header.php';
                         <h3 class="editorial-title" id="cert-user-name" style="font-size: 2.5rem; margin-bottom: 0.5rem; color: #fff;">Lê Diên Hiếu</h3>
                         <p style="font-size: 1rem; opacity: 0.5; margin-bottom: 1.5rem; color: rgba(255,255,255,0.7);" data-i18n="cert_subtitle">has successfully mastered the curriculum of</p>
                         <h3 id="cert-course-title" style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--accent); font-weight: 800; line-height: 1.2;">Mastering Cinematic UI Design</h3>
+                        
+                        <div id="cert-multi-indicator" style="display:none; margin-top: 2rem;">
+                            <a href="/student/certificates.php" class="btn btn-outline" style="border-radius: 100px; font-size: 0.8rem; padding: 0.5rem 1.5rem; border-color: rgba(255,255,255,0.1);">
+                                <span data-i18n="cert_view_more">Xem các chứng chỉ khác</span> (<span id="cert-remaining-count">0</span>)
+                            </a>
+                        </div>
+
                         <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 2rem;">
                             <div style="text-align: left;">
                                 <div style="width: 140px; border-bottom: 2px solid rgba(255,255,255,0.2); margin-bottom: 0.75rem;"></div>
@@ -240,7 +247,20 @@ require __DIR__ . '/layouts/header.php';
     };
 
     document.addEventListener('DOMContentLoaded', async () => {
-        const isGuest = !window.api.getToken();
+        const token = window.api.getToken();
+        const user = window.api.getUser();
+
+        // Tự động chuyển hướng về Dashboard tương ứng nếu đã đăng nhập
+        if (token && user) {
+            let dashboardUrl = '/student/dashboard.php';
+            if (user.role === 'teacher') dashboardUrl = '/teacher/dashboard.php';
+            else if (user.role === 'admin') dashboardUrl = '/admin/dashboard.php';
+            
+            window.location.href = dashboardUrl;
+            return;
+        }
+
+        const isGuest = !token;
         const heroBtn = document.getElementById('hero-primary-btn');
         const finalBtn = document.getElementById('final-cta-btn');
 
@@ -250,15 +270,26 @@ require __DIR__ . '/layouts/header.php';
             document.getElementById('guest-stats-overlay').style.display = 'flex';
         } else {
             const user = window.api.getUser();
-            const dashboardText = (window.I18n && I18n.get('nav_student_dashboard')) || 'Vào bảng điều khiển';
+            let dashboardUrl = '/student/dashboard.php';
+            let dashboardTextKey = 'nav_student_dashboard';
+
+            if (user.role === 'teacher') {
+                dashboardUrl = '/teacher/dashboard.php';
+                dashboardTextKey = 'tc_dash_title';
+            } else if (user.role === 'admin') {
+                dashboardUrl = '/admin/dashboard.php';
+                dashboardTextKey = 'nav_admin_dashboard'; // Giả sử có key này
+            }
+
+            const dashboardText = (window.I18n && I18n.get(dashboardTextKey)) || 'Vào bảng điều khiển';
             
             if (heroBtn) {
-                heroBtn.href = '/student/dashboard.php';
+                heroBtn.href = dashboardUrl;
                 heroBtn.textContent = dashboardText;
                 heroBtn.removeAttribute('data-i18n');
             }
             if (finalBtn) {
-                finalBtn.href = '/student/dashboard.php';
+                finalBtn.href = dashboardUrl;
                 finalBtn.textContent = dashboardText;
                 finalBtn.removeAttribute('data-i18n');
             }
@@ -288,6 +319,12 @@ require __DIR__ . '/layouts/header.php';
                     document.getElementById('cert-course-title').textContent = latestCert.course_title;
                     earnedContent.style.display = 'flex';
                     emptyContent.style.display = 'none';
+
+                    // If multiple certs, show indicator
+                    if (certRes.data.length > 1) {
+                        document.getElementById('cert-multi-indicator').style.display = 'block';
+                        document.getElementById('cert-remaining-count').textContent = certRes.data.length - 1;
+                    }
                 } else {
                     earnedContent.style.display = 'none';
                     emptyContent.style.display = 'flex';

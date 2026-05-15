@@ -1,171 +1,98 @@
 <?php
 $pageTitle = 'Hồ Sơ Cá Nhân - AI Study Hub';
-$actor = 'guest'; // since profile doesn't use dashboard sidebar
-ob_start();
-?>
-    <style>
-        .profile-container {
-            max-width: 800px;
-            margin: 3rem auto;
-            display: grid;
-            gap: 2rem;
-            padding: 0 1rem;
-        }
-
-        .avatar-section {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.8) 100%);
-        }
-
-        .avatar-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: white;
-            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .premium-input {
-            background: rgba(0,0,0,0.2) !important;
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            border-radius: 10px !important;
-            padding: 0.85rem 1rem !important;
-            color: #fff !important;
-            transition: all 0.3s ease !important;
-        }
-        
-        .premium-input:focus {
-            border-color: var(--primary) !important;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
-        }
-
-        .premium-input:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .form-label {
-            font-size: 0.85rem; color: #a0aec0; margin-bottom: 0.5rem; display: block;
-        }
-        
-        .btn-gradient {
-            background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
-            border: none;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-            transition: all 0.3s ease;
-            font-weight: 600;
-        }
-
-        .btn-gradient:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
-        }
-        
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            transition: color 0.3s;
-            margin-bottom: 1rem;
-        }
-        .back-btn:hover { color: var(--primary); }
-    </style>
-<?php
-$extraHead = ob_get_clean();
+$actor = 'guest'; 
+$extraHead = '
+    <link rel="stylesheet" href="/assets/css/pages/profile.css?v=' . time() . '">
+';
 require __DIR__ . '/layouts/header.php';
 ?>
 
     <div class="profile-container">
         
-        <div>
+        <div class="profile-header">
             <a href="javascript:window.history.back()" class="back-btn">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
-                Trở về trang trước
+                <span data-i18n="lrn_back_home">Trở về</span>
             </a>
-            <h1>👤 Cài đặt Tài khoản</h1>
-            <p class="text-secondary">Quản lý định danh và cài đặt bảo mật gốc.</p>
+            <h1 class="profile-title" data-i18n="profile_title">Cài đặt Tài khoản</h1>
+            <p class="text-secondary" data-i18n="profile_subtitle">Quản lý định danh và cài đặt bảo mật gốc.</p>
         </div>
 
         <!-- Identity Section -->
         <div class="card glass-panel avatar-section">
-            <div style="position: relative; cursor: pointer;" onclick="document.getElementById('avatarUpload').click()" title="Nhấn để đổi Ảnh Đại Diện">
-                <div class="avatar-circle" id="user-avatar-char" style="overflow: hidden; display: flex; align-items: center; justify-content: center;">
+            <div style="position: relative; cursor: pointer;" onclick="document.getElementById('avatarUpload').click()" id="avatar-container">
+                <div class="avatar-circle" id="user-avatar-char" style="overflow: hidden;">
                     <span id="avatar-letter">?</span>
                 </div>
-                <div style="position: absolute; bottom: -5px; right: -5px; background: var(--primary); padding: 5px; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                <div class="avatar-upload-btn">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 </div>
             </div>
             <input type="file" id="avatarUpload" style="display:none;" accept="image/png, image/jpeg, image/webp" onchange="handleAvatarUpload(event)">
             
             <div>
-                <h3 style="margin-bottom: 0.2rem;" id="ui-username">...</h3>
-                <div style="color: var(--text-secondary); font-size: 0.9rem;" id="ui-email">...</div>
-                <div style="margin-top: 0.5rem;">
-                    <span id="ui-role" style="font-size: 0.75rem; padding: 0.2rem 0.6rem; background: rgba(99,102,241,0.2); color: var(--primary); border-radius: 12px; font-weight: bold;">ROLE</span>
+                <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.2rem;" id="ui-username">...</h3>
+                <div style="color: var(--text-secondary); font-size: 0.95rem; opacity: 0.7;" id="ui-email">...</div>
+                <div style="margin-top: 1rem;">
+                    <span id="ui-role" style="font-size: 0.7rem; padding: 0.3rem 0.8rem; background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3); border-radius: 100px; font-weight: 800; letter-spacing: 0.05em;">ROLE</span>
                 </div>
             </div>
         </div>
 
         <!-- Update Info Form -->
-        <div class="card glass-panel" style="padding: 2rem;">
-            <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                Thông tin Cá nhân
+        <div class="card glass-panel profile-form-card">
+            <h3 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 12px; font-weight: 800;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span data-i18n="profile_personal">Thông tin Cá nhân</span>
             </h3>
             
             <form id="profileForm" onsubmit="updateProfile(event)">
-                <div class="form-group mb-4">
-                    <label class="form-label">Email (Định danh không thể thay đổi)</label>
+                <div class="form-group mb-6">
+                    <label class="form-label" data-i18n="profile_email_label">Email</label>
                     <input type="email" id="email" class="form-control premium-input" disabled>
                 </div>
                 
-                <div class="form-group mb-4">
-                    <label class="form-label">Tên hiển thị</label>
-                    <input type="text" id="username" class="form-control premium-input" required placeholder="Nhập tên mới...">
+                <div class="form-group mb-8">
+                    <label class="form-label" data-i18n="profile_name_label">Tên hiển thị</label>
+                    <input type="text" id="username" class="form-control premium-input" required placeholder="Nhập tên mới..." data-i18n-placeholder="profile_name_placeholder">
                 </div>
 
                 <div class="flex justify-end">
-                    <button type="submit" class="btn btn-primary btn-gradient" id="btnSaveInfo">💾 Lưu Tên Tương Tác</button>
+                    <button type="submit" class="btn btn-profile-save" id="btnSaveInfo">
+                        <span data-i18n="profile_btn_save">Lưu thay đổi</span>
+                    </button>
                 </div>
             </form>
         </div>
 
         <!-- Change Password Form -->
-        <div class="card glass-panel" style="padding: 2rem; border-color: rgba(239, 68, 68, 0.2);">
-            <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--danger);"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                Bảo mật Đăng nhập
+        <div class="card glass-panel profile-form-card" style="border-color: rgba(239, 68, 68, 0.15);">
+            <h3 style="margin-bottom: 2rem; display: flex; align-items: center; gap: 12px; font-weight: 800;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--danger);"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span data-i18n="profile_security">Bảo mật Đăng nhập</span>
             </h3>
             
             <form id="passwordForm" onsubmit="changePassword(event)">
-                <div class="form-group mb-4">
-                    <label class="form-label">Mật khẩu Hiện tại</label>
-                    <input type="password" id="old_password" class="form-control premium-input" required placeholder="Nhập mật khẩu đang sử dụng...">
+                <div class="form-group mb-6">
+                    <label class="form-label" data-i18n="profile_pass_old">Mật khẩu Hiện tại</label>
+                    <input type="password" id="old_password" class="form-control premium-input" required placeholder="••••••••">
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                     <div class="form-group">
-                        <label class="form-label">Mật khẩu Mới</label>
-                        <input type="password" id="new_password" class="form-control premium-input" required minlength="6" placeholder="Mật khẩu mới...">
+                        <label class="form-label" data-i18n="profile_pass_new">Mật khẩu Mới</label>
+                        <input type="password" id="new_password" class="form-control premium-input" required minlength="6" placeholder="••••••••">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Xác nhận Mật khẩu Mới</label>
-                        <input type="password" id="confirm_password" class="form-control premium-input" required minlength="6" placeholder="Nhập lại mật khẩu...">
+                        <label class="form-label" data-i18n="profile_pass_confirm">Xác nhận Mật khẩu Mới</label>
+                        <input type="password" id="confirm_password" class="form-control premium-input" required minlength="6" placeholder="••••••••">
                     </div>
                 </div>
 
                 <div class="flex justify-end">
-                    <button type="submit" class="btn btn-outline" style="border-color: var(--danger); color: var(--danger);" id="btnSavePass">🔐 Đổi Mật Khẩu</button>
+                    <button type="submit" class="btn btn-outline" style="border-radius: 100px; padding: 0.75rem 2rem; border-color: rgba(239, 68, 68, 0.3); color: var(--danger);" id="btnSavePass">
+                        <span data-i18n="profile_btn_pass">Đổi Mật Khẩu</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -217,7 +144,8 @@ require __DIR__ . '/layouts/header.php';
                 const username = document.getElementById('username').value;
                 await window.api.put('/user/profile', { username });
                 
-                App.showToast("Cập nhật thông tin thành công!", "success");
+                const successMsg = window.I18n ? window.I18n.get('profile_toast_success') : "Cập nhật thông tin thành công!";
+                App.showToast(successMsg, "success");
                 
                 // Cập nhật lại UI Avatar
                 document.getElementById('ui-username').innerText = username;
@@ -238,7 +166,7 @@ require __DIR__ . '/layouts/header.php';
                 App.showToast(e.message, "error");
             } finally {
                 btn.disabled = false;
-                btn.innerText = "💾 Lưu Tên Tương Tác";
+                btn.innerText = window.I18n ? window.I18n.get('profile_btn_save') : "Lưu thay đổi";
             }
         }
 
@@ -263,7 +191,8 @@ require __DIR__ . '/layouts/header.php';
                     new_password: newPass
                 });
                 
-                App.showToast("Thay đổi mật khẩu thành công!", "success");
+                const successMsg = window.I18n ? window.I18n.get('profile_toast_pass_success') : "Thay đổi mật khẩu thành công!";
+                App.showToast(successMsg, "success");
                 
                 // Reset form
                 document.getElementById('passwordForm').reset();
@@ -272,7 +201,7 @@ require __DIR__ . '/layouts/header.php';
                 App.showToast(e.message, "error");
             } finally {
                 btn.disabled = false;
-                btn.innerText = "🔐 Đổi Mật Khẩu";
+                btn.innerText = window.I18n ? window.I18n.get('profile_btn_pass') : "Đổi Mật Khẩu";
             }
         }
 
@@ -322,7 +251,8 @@ require __DIR__ . '/layouts/header.php';
                     App.renderUserNav(); // Cập nhật hình nhỏ góc phải
                 }
 
-                App.showToast("Đổi ảnh đại diện thành công!", "success");
+                const successMsg = window.I18n ? window.I18n.get('profile_toast_avatar_success') : "Đổi ảnh đại diện thành công!";
+                App.showToast(successMsg, "success");
 
             } catch (err) {
                 App.showToast(err.message, "error");

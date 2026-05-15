@@ -8,9 +8,8 @@ use PDO;
 /**
  * NotificationRepository
  *
- * Actual DB schema (aistudyhublms.notifications):
- *   id, user_id, content VARCHAR(255), is_read TINYINT(1), created_at
- *   NO type, NO title, NO message, NO data columns
+ * Upgraded DB schema (aistudyhublms.notifications):
+ *   id, user_id, type, title, content, data (JSON), is_read, created_at
  */
 class NotificationRepository
 {
@@ -23,42 +22,31 @@ class NotificationRepository
 
     /**
      * Tạo thông báo mới
-     * Note: DB chỉ có cột `content`, không có title/type/message riêng
-     * Format: "[icon] title: message"
      */
     public function create(int $userId, string $type, string $title, string $message, ?array $data = null): bool
     {
-        // Map type → icon
-        $icons = [
-            'certificate'    => '🎓',
-            'course_approved'=> '📚',
-            'success'        => '✅',
-            'warning'        => '⚠️',
-            'info'           => 'ℹ️',
-        ];
-        $icon = $icons[$type] ?? 'ℹ️';
-
-        // Gộp thành 1 chuỗi content vì DB chỉ có cột `content`
-        $content = "{$icon} {$title}: {$message}";
+        $dataJson = $data ? json_encode($data) : null;
 
         $stmt = $this->db->prepare("
-            INSERT INTO notifications (user_id, content, is_read)
-            VALUES (:uid, :content, 0)
+            INSERT INTO notifications (user_id, type, title, content, data, is_read)
+            VALUES (:uid, :type, :title, :content, :data, 0)
         ");
         return $stmt->execute([
             'uid'     => $userId,
-            'content' => mb_substr($content, 0, 255), // giới hạn VARCHAR(255)
+            'type'    => $type,
+            'title'   => $title,
+            'content' => mb_substr($message, 0, 255),
+            'data'    => $dataJson
         ]);
     }
 
     /**
      * Lấy thông báo của user (có pagination)
-     * Trả về items theo format chuẩn để header bell hiểu được
      */
     public function findByUser(int $userId, int $limit = 20, int $offset = 0): array
     {
         $stmt = $this->db->prepare("
-            SELECT id, user_id, content, is_read, created_at
+            SELECT id, user_id, type, title, content as message, data, is_read, created_at
             FROM notifications
             WHERE user_id = :uid
             ORDER BY created_at DESC
@@ -70,26 +58,22 @@ class NotificationRepository
         $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Normalize để header bell JS có thể hiểu title/message/type
         return array_map(function($row) {
-            $content = $row['content'] ?? '';
-            // Parse icon và nội dung
-            $type = 'info';
-            if (str_contains($content, '🎓')) $type = 'certificate';
-            elseif (str_contains($content, '📚')) $type = 'course_approved';
-            elseif (str_contains($content, '✅')) $type = 'success';
-            elseif (str_contains($content, '⚠️')) $type = 'warning';
-
-            // Split title: message nếu có dấu ":"
-            $colonPos = strpos($content, ': ', 3);
-            if ($colonPos !== false) {
-                $row['title']   = trim(substr($content, 0, $colonPos));
-                $row['message'] = trim(substr($content, $colonPos + 2));
-            } else {
-                $row['title']   = $content;
-                $row['message'] = '';
+            if ($row['data']) {
+                $row['data'] = json_decode($row['data'], true);
             }
-            $row['type'] = $type;
+            
+            // Map type to icon for frontend legacy support
+            $icons = [
+                'certificate'    => '🎓',
+                'course_approved'=> '📚',
+                'chat'           => '💬',
+                'success'        => '✅',
+                'warning'        => '⚠️',
+                'info'           => 'ℹ️',
+            ];
+            $row['icon'] = $icons[$row['type']] ?? 'ℹ️';
+            
             return $row;
         }, $rows);
     }

@@ -1,123 +1,175 @@
 <?php
-$pageTitle = 'Admin Dashboard - AI Study Hub';
+$pageTitle = 'Admin Dashboard — AI Study Hub';
 $actor = 'admin';
-ob_start();
-?>
-<style>
-        .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
-        .table th { color: var(--text-secondary); font-weight: 500; font-size: 0.875rem; }
-        .badge-role { padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
-        .role-admin { background: rgba(236, 72, 153, 0.1); color: var(--secondary); border: 1px solid var(--secondary); }
-        .role-teacher { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); }
-        .role-student { background: rgba(79, 70, 229, 0.1); color: var(--primary); border: 1px solid var(--primary); }
-    </style>
+$noSidebar = true;
+$extraHead = '
+    <link rel="stylesheet" href="/assets/css/admin/layout.css?v=' . time() . '">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<?php
-$extraHead = ob_get_clean();
+';
 require __DIR__ . '/../layouts/header.php';
 ?>
 
-<div class="flex items-center justify-between mb-8">
-                <div>
-                    <h1 style="font-size: 2rem;">Bảng Điều Khiển Trung Tâm</h1>
-                    <p class="text-secondary mt-2">Dữ liệu theo dõi thời gian thực của toàn bộ hệ thống (REST API v2).</p>
+<div class="admin-body">
+    <?php require __DIR__ . '/../layouts/admin_sidebar.php'; ?>
+
+    <div class="admin-main">
+        <!-- Top Bar -->
+        <div class="admin-topbar">
+            <div class="admin-topbar-left">
+                <h1 class="admin-page-title">Bảng điều khiển</h1>
+                <p class="admin-page-subtitle">Dữ liệu hệ thống cập nhật theo thời gian thực</p>
+            </div>
+            <div class="admin-topbar-right">
+                <div class="admin-user-pill">
+                    <div class="admin-user-avatar" id="adminAvatarInitial">A</div>
+                    <span class="admin-user-name" id="adminUserName">Admin</span>
+                    <span class="admin-user-role">ADMIN</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="admin-content">
+
+            <!-- Stats Grid -->
+            <div class="admin-stats-grid">
+                <div class="admin-stat-card" style="--card-glow: rgba(99,102,241,0.06);">
+                    <div class="admin-stat-icon" style="background: rgba(99,102,241,0.12); color: #818cf8;">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="admin-stat-label">Tổng ghi danh</div>
+                    <div class="admin-stat-value" id="s-revenue" style="color: #818cf8;">—</div>
+                </div>
+
+                <div class="admin-stat-card" style="--card-glow: rgba(16,185,129,0.06);">
+                    <div class="admin-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="admin-stat-label">Khóa học hoạt động</div>
+                    <div class="admin-stat-value" id="s-vip" style="color: #10b981;">—</div>
+                </div>
+
+                <div class="admin-stat-card" style="--card-glow: rgba(16,185,129,0.06);">
+                    <div class="admin-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="admin-stat-label">Tổng người dùng</div>
+                    <div class="admin-stat-value" id="s-users" style="color: #10b981;">—</div>
+                </div>
+
+                <div class="admin-stat-card" style="--card-glow: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.15);">
+                    <div class="admin-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="admin-stat-label">Khóa học chờ duyệt</div>
+                    <div class="admin-stat-value" id="s-pending" style="color: #ef4444;">—</div>
                 </div>
             </div>
 
-            <!-- Stats -->
-            <div class="grid-cols-4 mb-8" id="stats-container">
-                <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Doanh Thu</p>
-                    <h2 id="s-revenue" style="font-size: 1.75rem; color: var(--warning); margin-top: 0.5rem;">0đ</h2>
+            <!-- Revenue Chart -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-card-title">
+                        <i class="fas fa-chart-area" style="color: #818cf8;"></i>
+                        Biểu đồ Lượt Ghi Danh theo Tháng
+                    </div>
+                    <span style="font-size: 0.75rem; opacity: 0.4;">6 tháng gần nhất</span>
                 </div>
-                <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Tài khoản VIP</p>
-                    <h2 id="s-vip" style="font-size: 1.75rem; color: var(--primary); margin-top: 0.5rem;">0</h2>
-                </div>
-                <div class="card p-4">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Tổng Người Dùng</p>
-                    <h2 id="s-users" style="font-size: 1.75rem; color: var(--text-primary); margin-top: 0.5rem;">0</h2>
-                </div>
-                <div class="card p-4" style="border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.05);">
-                    <p class="text-secondary" style="font-size: 0.875rem;">Khóa học chờ duyệt</p>
-                    <h2 id="s-pending" style="font-size: 1.75rem; color: var(--danger); margin-top: 0.5rem;">0</h2>
-                </div>
-            </div>
-
-            <!-- Pending Courses (Removed from dashboard, moved to courses.php) -->
-
-        <!-- Chart Section -->
-            <div class="card glass-panel" style="padding: 1.5rem;" id="charts">
-                <div class="flex justify-between items-center mb-4">
-                    <h3>📊 Biểu đồ Doanh Thu Khóa Học Phân Bổ</h3>
-                </div>
-                <div style="height: 400px; width: 100%;">
+                <div class="admin-chart-container">
                     <canvas id="revenueChart"></canvas>
                 </div>
             </div>
 
-<?php ob_start(); ?>
+            <!-- Quick Actions -->
+            <div style="display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem;">
+                <a href="/admin/courses.php" style="display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem; background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.15); border-radius:16px; text-decoration:none; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(245,158,11,0.12);color:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;"><i class="fas fa-book-open"></i></div>
+                    <div>
+                        <div style="font-weight:800;color:#fff;font-size:0.9rem;">Duyệt khóa học</div>
+                        <div style="font-size:0.75rem;opacity:0.4;margin-top:2px;">Xem & phê duyệt</div>
+                    </div>
+                </a>
+
+                <a href="/admin/users.php" style="display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem; background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.15); border-radius:16px; text-decoration:none; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.12);color:#818cf8;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;"><i class="fas fa-users-cog"></i></div>
+                    <div>
+                        <div style="font-weight:800;color:#fff;font-size:0.9rem;">Quản lý người dùng</div>
+                        <div style="font-size:0.75rem;opacity:0.4;margin-top:2px;">Phân quyền tài khoản</div>
+                    </div>
+                </a>
+
+                <a href="/admin/vip.php" style="display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.15); border-radius:16px; text-decoration:none; transition: all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(16,185,129,0.12);color:#10b981;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;"><i class="fas fa-receipt"></i></div>
+                    <div>
+                        <div style="font-weight:800;color:#fff;font-size:0.9rem;">Doanh thu ghi danh</div>
+                        <div style="font-size:0.75rem;opacity:0.4;margin-top:2px;">Lịch sử & thống kê</div>
+                    </div>
+                </a>
+            </div>
+
+        </div><!-- .admin-content -->
+    </div><!-- .admin-main -->
+</div><!-- .admin-body -->
+
 <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const user = App.requireAuth(['admin']);
-            if (!user) return;
+document.addEventListener('DOMContentLoaded', async () => {
+    const user = App.requireAuth(['admin']);
+    if (!user) return;
 
-            await loadStats();
-            await loadChart();
-        });
+    // Set username
+    const name = user.username || user.email?.split('@')[0] || 'Admin';
+    document.getElementById('adminUserName').innerText = name;
+    document.getElementById('adminAvatarInitial').innerText = name.charAt(0).toUpperCase();
 
-        async function loadStats() {
-            try {
-                const res = await window.api.get('/admin/stats');
-                const data = res.data;
-                document.getElementById('s-revenue').innerText = new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND'}).format(data.total_revenue);
-                document.getElementById('s-vip').innerText = data.total_vip_users;
-                document.getElementById('s-users').innerText = data.total_users;
-                document.getElementById('s-pending').innerText = data.pending_courses;
-            } catch(e) {
-                console.error("Lỗi tải thống kê", e);
-            }
-        }
+    await loadStats();
+    await loadChart();
+});
 
-        // Removed pending courses functions to courses.php
+async function loadStats() {
+    try {
+        const res = await window.api.get('/admin/stats');
+        const d = res.data;
+        document.getElementById('s-revenue').innerText = (d.total_revenue ?? 0).toLocaleString('vi-VN') + ' lượt';
+        document.getElementById('s-vip').innerText     = d.total_vip_users ?? 0;
+        document.getElementById('s-users').innerText   = d.total_users ?? 0;
+        document.getElementById('s-pending').innerText = d.pending_courses ?? 0;
+    } catch(e) { console.error(e); }
+}
 
-
-
-        async function loadChart() {
-            try {
-                const res = await window.api.get('/admin/chart-data');
-                const chartData = res.data;
-                const ctx = document.getElementById('revenueChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: chartData,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { color: '#a0a0a0' }
-                            }
+async function loadChart() {
+    try {
+        const res = await window.api.get('/admin/chart-data');
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: res.data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: 'rgba(255,255,255,0.5)', font: { size: 12 } } }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            color: 'rgba(255,255,255,0.3)',
+                            callback: v => v + ' lượt',
+                            stepSize: 1
                         },
-                        scales: {
-                            y: {
-                                ticks: { color: '#a0a0a0', callback: function(value) { return new Intl.NumberFormat('vi-VN').format(value) + 'đ'; } },
-                                grid: { color: 'rgba(255,255,255,0.05)' }
-                            },
-                            x: {
-                                ticks: { color: '#a0a0a0' },
-                                grid: { color: 'rgba(255,255,255,0.05)' }
-                            }
-                        }
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        border: { color: 'transparent' }
+                    },
+                    x: {
+                        ticks: { color: 'rgba(255,255,255,0.3)' },
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                        border: { color: 'transparent' }
                     }
-                });
-            } catch(e) {
-                console.error("Lỗi tải biểu đồ", e);
+                }
             }
-        }
-    </script>
-<?php
-$extraScripts = ob_get_clean();
-?>
+        });
+    } catch(e) { console.error(e); }
+}
+</script>
+
 <?php require __DIR__ . '/../layouts/footer.php'; ?>

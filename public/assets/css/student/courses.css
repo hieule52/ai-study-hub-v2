@@ -9,6 +9,27 @@
     margin-bottom: 4rem;
 }
 
+.course-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.course-page-title {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-weight: 900;
+    letter-spacing: -0.05em;
+}
+
+.course-page-btn {
+    border-radius: 100px;
+    padding: 0.8rem 1.5rem;
+    font-weight: 700;
+}
+
 .my-course-card {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
@@ -107,4 +128,33 @@
 .progress-fill.done {
     background: var(--success);
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.empty-state-card {
+    max-width: 520px;
+    margin: 4rem auto;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 3rem;
+    text-align: center;
+}
+
+.empty-state-emoji {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state-title {
+    margin-bottom: 0.75rem;
+    font-weight: 800;
+}
+
+.card-thumb-placeholder {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 4rem;
+    color: rgba(255, 255, 255, 0.1);
 }

@@ -72,14 +72,14 @@ require __DIR__ . '/layouts/header.php';
 
         <p class="editorial-label" data-i18n="home_courses_label">Chương trình đào tạo</p>
         <h1 id="cd_title" style="font-size:clamp(2.5rem,5vw,3.5rem); font-weight:900; letter-spacing:-0.05em; line-height:1.05; margin-bottom:2rem;">
-            <span style="opacity:0.2">Đang tải dữ liệu...</span>
+            <span style="opacity:0.2" data-i18n="home_loading">Đang tải dữ liệu...</span>
         </h1>
 
         <div class="flex items-center gap-3 mb-6">
             <span style="font-size: 1.5rem;">📖</span>
-            <h3 style="font-size:1.6rem; font-weight:800; letter-spacing:-0.02em;">Giới thiệu khóa học</h3>
+            <h3 style="font-size:1.6rem; font-weight:800; letter-spacing:-0.02em;" data-i18n="cd_intro">Giới thiệu khóa học</h3>
         </div>
-        <p id="cd_desc" class="editorial-text" style="color: rgba(248, 250, 252, 0.7); margin-bottom: 4rem; max-width: 100%; line-height: 1.8;">
+        <p id="cd_desc" class="editorial-text" style="color: rgba(248, 250, 252, 0.7); margin-bottom: 4rem; max-width: 100%; line-height: 1.8;" data-i18n="cd_desc_loading">
             Vui lòng chờ trong giây lát trong khi chúng tôi chuẩn bị thông tin khóa học cho bạn.
         </p>
 
@@ -89,10 +89,10 @@ require __DIR__ . '/layouts/header.php';
         <!-- Reviews -->
         <div class="flex items-center gap-3 mb-8">
             <span style="font-size: 1.5rem;">⭐</span>
-            <h3 style="font-size:1.6rem; font-weight:800; letter-spacing:-0.02em;">Đánh giá từ Học Viên</h3>
+            <h3 style="font-size:1.6rem; font-weight:800; letter-spacing:-0.02em;" data-i18n="cd_reviews_title">Đánh giá từ Học Viên</h3>
         </div>
         <div id="cd_reviews_list" style="display:flex; flex-direction:column; gap:1.5rem;">
-            <p class="text-muted" style="padding: 2rem; background: rgba(255,255,255,0.02); border-radius: var(--radius-xl); text-align: center;">Đang tải nhận xét...</p>
+            <p class="text-muted" style="padding: 2rem; background: rgba(255,255,255,0.02); border-radius: var(--radius-xl); text-align: center;" data-i18n="cd_reviews_loading">Đang tải nhận xét...</p>
         </div>
     </div>
 
@@ -113,7 +113,7 @@ require __DIR__ . '/layouts/header.php';
                     <span id="cd_rating" style="font-size:1.1rem; font-weight:800; color: var(--warning);">0 ⭐</span>
                     <span id="cd_reviews_count" class="text-muted text-xs" style="font-weight: 600;">(0 REVIEWS)</span>
                 </div>
-                <div class="badge" style="background: rgba(255,255,255,0.05); font-size: 0.65rem;">Official Course</div>
+                <div class="badge" style="background: rgba(255,255,255,0.05); font-size: 0.65rem;" data-i18n="cd_official">Official Course</div>
             </div>
 
             <div id="cd_price" style="font-size:2.8rem; font-weight:900; letter-spacing:-0.05em; margin-bottom:2rem; color:#fff;">
@@ -122,7 +122,7 @@ require __DIR__ . '/layouts/header.php';
 
             <div id="cd_actions" style="display:flex; flex-direction:column; gap:1rem;">
                 <button class="btn btn-primary" style="width:100%; padding:1.2rem; border-radius:100px; font-weight:800;" disabled>
-                    <span style="opacity:0.3">Đang đồng bộ...</span>
+                    <span style="opacity:0.3" data-i18n="cd_syncing">Đang đồng bộ...</span>
                 </button>
             </div>
 
@@ -130,15 +130,15 @@ require __DIR__ . '/layouts/header.php';
                 <div class="flex items-center gap-4 text-muted" style="font-size:0.8rem; font-weight: 500;">
                     <div class="flex-1 text-center">
                         <span style="display: block; font-size: 1.2rem; margin-bottom: 0.25rem;">♾️</span>
-                        Truy cập vĩnh viễn
+                        <span data-i18n="cd_access_forever">Truy cập vĩnh viễn</span>
                     </div>
                     <div class="flex-1 text-center">
                         <span style="display: block; font-size: 1.2rem; margin-bottom: 0.25rem;">🎓</span>
-                        Chứng chỉ uy tín
+                        <span data-i18n="cd_cert">Chứng chỉ uy tín</span>
                     </div>
                     <div class="flex-1 text-center">
                         <span style="display: block; font-size: 1.2rem; margin-bottom: 0.25rem;">🤖</span>
-                        Hỗ trợ AI 24/7
+                        <span data-i18n="cd_ai_support">Hỗ trợ AI 24/7</span>
                     </div>
                 </div>
             </div>
@@ -210,13 +210,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             rvList.innerHTML = rvData.reviews.map(r => `
                 <div class="review-card">
                     <div class="flex justify-between items-center" style="margin-bottom:0.5rem;">
-                        <strong style="font-size:0.9rem;">${r.username || 'Học viên ẩn danh'}</strong>
+                        <strong style="font-size:0.9rem;">${r.username || (window.I18n?window.I18n.get('std_anon'):'Học viên ẩn danh')}</strong>
                         <span style="font-size:0.85rem;">${'⭐'.repeat(r.rating)}</span>
                     </div>
-                    <p class="text-secondary" style="font-size:0.875rem;margin:0;line-height:1.65;">${r.comment || 'Không có nhận xét.'}</p>
+                    <p class="text-secondary" style="font-size:0.875rem;margin:0;line-height:1.65;">${r.comment || (window.I18n?window.I18n.get('std_no_comment'):'Không có nhận xét.')}</p>
                 </div>`).join('');
         }
-    } catch(e) { document.getElementById('cd_title').innerText = 'Lỗi tải dữ liệu khóa học'; }
+        if (window.I18n) window.I18n.render();
+    } catch(e) { document.getElementById('cd_title').innerText = window.I18n?window.I18n.get('cd_load_error'):'Lỗi tải dữ liệu khóa học'; }
 });
 
 window.enrollAndLearn = async function(id) {

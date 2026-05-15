@@ -45,6 +45,7 @@ $router->delete('/api/categories/:id', 'Api\CategoryController@delete');
 // =============================================
 $router->get('/api/student/courses', 'Api\StudentController@getEnrolledCourses');
 $router->get('/api/student/stats', 'Api\StudentController@getStats');
+$router->get('/api/student/courses/:courseId/my-review', 'Api\StudentController@getMyReview');
 $router->post('/api/student/courses/:courseId/reviews', 'Api\StudentController@submitReview');
 
 // Lesson Routes

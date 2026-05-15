@@ -90,9 +90,9 @@ class UserRepository
 
     public function getAllUsers(): array
     {
-        $stmt = $this->db->query("SELECT id, username, email, role, is_vip, status, created_at, last_login 
+        $stmt = $this->db->query("SELECT id, username, email, role, status, created_at, last_login 
                                   FROM users 
-                                  
+                                  WHERE deleted_at IS NULL
                                   ORDER BY id DESC");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -116,7 +116,7 @@ class UserRepository
             $params[':role'] = $role;
         }
 
-        $sql = "SELECT id, username, email, role, is_vip, status, created_at, last_login
+        $sql = "SELECT id, username, email, role, status, created_at, last_login
                 FROM users
                 WHERE " . implode(' AND ', $where) . "
                 ORDER BY id DESC
@@ -180,30 +180,27 @@ class UserRepository
 
     public function countVipUsers(): int
     {
-        $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE is_vip = 1");
-        return (int) $stmt->fetchColumn();
+        // VIP system removed — returns 0
+        return 0;
     }
 
     public function update(int $id, array $data): bool
     {
-        // Cho phép sửa username, email, role, is_vip, status
         $sql = "UPDATE users SET 
                 username = COALESCE(:username, username),
                 email = COALESCE(:email, email),
                 role = COALESCE(:role, role),
-                is_vip = COALESCE(:is_vip, is_vip),
                 status = COALESCE(:status, status),
                 password_hash = COALESCE(:password_hash, password_hash)
                 WHERE id = :id";
         
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
-            'id' => $id,
-            'username' => $data['username'] ?? null,
-            'email' => $data['email'] ?? null,
-            'role' => $data['role'] ?? null,
-            'is_vip' => isset($data['is_vip']) ? (int)$data['is_vip'] : null,
-            'status' => $data['status'] ?? null,
+            'id'            => $id,
+            'username'      => $data['username'] ?? null,
+            'email'         => $data['email'] ?? null,
+            'role'          => $data['role'] ?? null,
+            'status'        => $data['status'] ?? null,
             'password_hash' => $data['password'] ?? null
         ]);
     }
@@ -217,15 +214,8 @@ class UserRepository
 
     public function getVipPayments(int $limit = 50): array
     {
-        $sql = "SELECT vp.*, u.username, u.email 
-                FROM vip_payments vp 
-                JOIN users u ON vp.user_id = u.id 
-                ORDER BY vp.created_at DESC 
-                LIMIT :limit";
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // VIP payments table removed — returns empty array
+        return [];
     }
 
     public function getAuditLogs(int $limit = 50): array

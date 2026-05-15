@@ -14,25 +14,61 @@ class AiRepository
         $this->db = Database::connect();
     }
 
-    public function saveInteraction(int $userId, string $message, string $response): bool
+    /**
+     * Lấy hoặc tạo một cuộc hội thoại cho User tại bài học cụ thể
+     */
+    public function getOrCreateConversation(int $userId, int $lessonId): int
     {
-        $stmt = $this->db->prepare("INSERT INTO ai_messages (user_id, message, response) VALUES (:uid, :msg, :res)");
+        $stmt = $this->db->prepare("SELECT id FROM ai_conversations WHERE user_id = :uid AND lesson_id = :lid LIMIT 1");
+        $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
+        $id = $stmt->fetchColumn();
+
+        if ($id) return (int)$id;
+
+        $stmt = $this->db->prepare("INSERT INTO ai_conversations (user_id, lesson_id) VALUES (:uid, :lid)");
+        $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
+        return (int)$this->db->lastInsertId();
+    }
+
+    /**
+     * Lưu tin nhắn vào hội thoại
+     */
+    public function saveMessage(int $conversationId, string $role, string $content, int $tokens = 0): bool
+    {
+        $stmt = $this->db->prepare("INSERT INTO ai_messages (conversation_id, role, content, token_usage) VALUES (:cid, :role, :content, :tokens)");
         return $stmt->execute([
-            'uid' => $userId,
-            'msg' => $message,
-            'res' => $response
+            'cid'     => $conversationId,
+            'role'    => $role,
+            'content' => $content,
+            'tokens'  => $tokens
         ]);
     }
 
-    public function getHistory(int $userId, int $limit = 50): array
+    /**
+     * Lấy lịch sử hội thoại
+     */
+    public function getHistory(int $conversationId, int $limit = 10): array
     {
-        $stmt = $this->db->prepare("SELECT * FROM ai_messages WHERE user_id = :uid ORDER BY id DESC LIMIT :limit");
-        $stmt->bindValue(':uid', $userId, PDO::PARAM_INT);
+        $stmt = $this->db->prepare("
+            SELECT role, content 
+            FROM ai_messages 
+            WHERE conversation_id = :cid 
+            ORDER BY id DESC 
+            LIMIT :limit
+        ");
+        $stmt->bindValue(':cid', $conversationId, PDO::PARAM_INT);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         
-        // Đảo ngược lại để chat render từ trên xuống dưới
-        $results = $stmt->fetchAll();
-        return array_reverse($results);
+        return array_reverse($stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    /**
+     * Xóa lịch sử hội thoại của bài học
+     */
+    public function clearHistory(int $userId, int $lessonId): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM ai_conversations WHERE user_id = :uid AND lesson_id = :lid");
+        return $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
     }
 }

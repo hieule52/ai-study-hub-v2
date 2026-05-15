@@ -59,7 +59,7 @@ class VideoService
         
         $this->tokenSecret = $_ENV['VIDEO_TOKEN_SECRET'] ?? 'default_video_secret_key';
         $this->tokenExpiry = (int)($_ENV['VIDEO_TOKEN_EXPIRY'] ?? 14400); // 4 giờ
-        $this->maxSizeMB = (int)($_ENV['VIDEO_MAX_SIZE_MB'] ?? 200);
+        $this->maxSizeMB = (int)($_ENV['VIDEO_MAX_SIZE_MB'] ?? 500);
     }
 
     /**

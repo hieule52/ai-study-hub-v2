@@ -17,9 +17,9 @@ require __DIR__ . '/../layouts/header.php';
         <!-- Left: Video Area -->
         <div class="main-player">
             <!-- Go Back nav -->
-            <div style="padding:0.875rem 1.5rem;background:linear-gradient(to bottom,rgba(0,0,0,0.75),transparent);position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;">
-                <a href="/student/dashboard.php" class="btn btn-ghost" style="font-size:0.82rem;border-radius:100px;background:rgba(0,0,0,0.4);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);padding:0.45rem 1rem;" data-i18n="lrn_back_home">&larr; Dashboard</a>
-                <span style="font-size:0.85rem;font-weight:600;color:rgba(240,240,244,0.7);text-shadow:0 2px 8px rgba(0,0,0,0.8);" id="course_title_span">...</span>
+            <div class="player-nav">
+                <a href="/student/dashboard.php" class="btn btn-ghost player-nav-btn" data-i18n="lrn_back_home">&larr; Dashboard</a>
+                <span class="player-course-title" id="course_title_span">...</span>
             </div>
 
             <!-- Video Player -->
@@ -84,7 +84,10 @@ require __DIR__ . '/../layouts/header.php';
                     </div>
                 </div>
             </div>
-            <span class="badge" style="font-size:0.62rem;">Contextual AI</span>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <button class="btn-clear-ai" onclick="clearAIChat()" title="Xóa hội thoại"><i class="fas fa-trash-alt"></i></button>
+                <span class="badge" style="font-size:0.62rem;">Contextual AI</span>
+            </div>
         </div>
 
         <!-- AI Messages Body -->
@@ -102,32 +105,52 @@ require __DIR__ . '/../layouts/header.php';
     </div>
 
     <!-- Review Modal -->
-    <div id="reviewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center;">
-        <div style="background: var(--bg-dark); padding: 2rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 500px;">
-            <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 1.5rem;">⭐ Đánh giá Khóa Học</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Chúc mừng bạn đã hoàn thành khóa học! Hãy để lại đánh giá của mình nhé.</p>
+    <div id="reviewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(10px);">
+        <div class="review-modal-card" style="background: rgba(23, 23, 23, 0.95); padding: 2.5rem; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center;">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">🏆</div>
+            <h3 style="margin-bottom: 0.5rem; color: #fff; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em;">Khóa học Hoàn tất!</h3>
+            <p style="color: rgba(255,255,255,0.6); margin-bottom: 2rem; font-size: 0.95rem;">Chúc mừng bạn đã chinh phục thành công khóa học này. Hãy chia sẻ cảm nhận của bạn nhé!</p>
+            
             <form id="reviewForm" onsubmit="submitReview(event)">
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Đánh giá (1-5 sao)</label>
-                    <select id="reviewRating" class="form-control" style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);" required>
-                        <option value="5">⭐⭐⭐⭐⭐ (5 sao)</option>
-                        <option value="4">⭐⭐⭐⭐ (4 sao)</option>
-                        <option value="3">⭐⭐⭐ (3 sao)</option>
-                        <option value="2">⭐⭐ (2 sao)</option>
-                        <option value="1">⭐ (1 sao)</option>
-                    </select>
+                <input type="hidden" id="reviewRating" value="5">
+                
+                <div class="star-rating-wrapper" style="display: flex; justify-content: center; gap: 0.75rem; margin-bottom: 2rem;">
+                    <span class="star-item active" data-value="1" onclick="setRating(1)">★</span>
+                    <span class="star-item active" data-value="2" onclick="setRating(2)">★</span>
+                    <span class="star-item active" data-value="3" onclick="setRating(3)">★</span>
+                    <span class="star-item active" data-value="4" onclick="setRating(4)">★</span>
+                    <span class="star-item active" data-value="5" onclick="setRating(5)">★</span>
                 </div>
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-secondary);">Nhận xét</label>
-                    <textarea id="reviewComment" class="form-control" rows="4" placeholder="Khóa học rất hay..." style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);"></textarea>
+
+                <div style="margin-bottom: 2rem; text-align: left;">
+                    <label style="display: block; margin-bottom: 0.75rem; color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Nhận xét của bạn</label>
+                    <textarea id="reviewComment" class="form-control" rows="4" placeholder="Bạn thấy khóa học này thế nào? Nội dung có hữu ích không?..." style="background: rgba(255,255,255,0.03); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1rem; width: 100%; resize: none; outline: none; transition: all 0.3s;" onfocus="this.style.borderColor='var(--primary)'; this.style.background='rgba(255,255,255,0.05)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.background='rgba(255,255,255,0.03)'"></textarea>
                 </div>
-                <div class="flex gap-3 justify-end">
-                    <button type="button" class="btn btn-outline" onclick="document.getElementById('reviewModal').style.display='none'">Đóng</button>
-                    <button type="submit" class="btn btn-primary" id="btnSubmitReview">Gửi Đánh Giá</button>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button type="button" class="btn btn-ghost" style="flex: 1; border-radius: 12px;" onclick="document.getElementById('reviewModal').style.display='none'">Bỏ qua</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitReview" style="flex: 2; border-radius: 12px; font-weight: 600; padding: 0.8rem;">Gửi Đánh Giá</button>
                 </div>
             </form>
         </div>
     </div>
+
+    <style>
+        .star-item {
+            font-size: 2.5rem;
+            color: rgba(255,255,255,0.15);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .star-item:hover {
+            transform: scale(1.2);
+            color: var(--warning);
+        }
+        .star-item.active {
+            color: #fbbf24;
+            text-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+        }
+    </style>
 
 <?php ob_start(); ?>
 <script>
@@ -201,12 +224,27 @@ require __DIR__ . '/../layouts/header.php';
                 document.getElementById('curriculum-progress').innerHTML = `<span data-i18n="lrn_total">Tổng số: </span>${totalLessons}<span data-i18n="lrn_lessons"> bài học</span>`;
                 if (window.I18n) window.I18n.render();
 
-                // Check progress to show review button
+                // Check progress and existing review to show review button
                 try {
                     const enrolledRes = await window.api.get('/student/courses');
                     const myCourse = enrolledRes.data.find(c => c.id == courseId);
+                    
                     if (myCourse && myCourse.progress_percent === 100) {
-                        document.getElementById('btn_review_course').style.display = 'block';
+                        const reviewRes = await window.api.get(`/student/courses/${courseId}/my-review`);
+                        const myReview = reviewRes.data;
+
+                        const btnReview = document.getElementById('btn_review_course');
+                        btnReview.style.display = 'block';
+
+                        if (myReview && myReview.rating) {
+                            // Already reviewed
+                            btnReview.innerHTML = `${'⭐'.repeat(myReview.rating)} <span data-i18n="lrn_reviewed">Đã đánh giá</span>`;
+                            btnReview.dataset.reviewed = "true";
+                            
+                            // Pre-fill modal for potential editing (optional)
+                            setRating(myReview.rating);
+                            document.getElementById('reviewComment').value = myReview.comment || '';
+                        }
                     }
                 } catch(e) { console.log(e); }
 
@@ -261,7 +299,7 @@ require __DIR__ . '/../layouts/header.php';
                 if (lesson.content) {
                     document.getElementById('lesson_content').innerHTML = `
                     <div class="ql-snow">
-                        <div class="ql-editor" style="background: rgba(255,255,255,0.02); padding: 2.5rem; border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="ql-editor lesson-content-wrapper">
                             ${lesson.content}
                         </div>
                     </div>`;
@@ -345,12 +383,30 @@ require __DIR__ . '/../layouts/header.php';
                     } else if (lesson.video_url) {
                         // External URL (YouTube, Vimeo, etc.)
                         const url = lesson.video_url;
-                        if (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')) {
-                            videoWrapper.innerHTML = `<iframe src="${url}" width="100%" height="100%" frameborder="0" allowfullscreen style="box-shadow: 0 10px 40px rgba(0,0,0,0.8);"></iframe>`;
+                        let embedUrl = url;
+
+                        // YouTube logic
+                        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                            let videoId = '';
+                            if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
+                            else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
+                            
+                            if (videoId) {
+                                embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
+                            }
+                        } 
+                        // Vimeo logic
+                        else if (url.includes('vimeo.com')) {
+                            const vimeoId = url.split('/').pop().split('?')[0];
+                            if (vimeoId) embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1`;
+                        }
+
+                        if (embedUrl !== url || url.includes('embed')) {
+                            videoWrapper.innerHTML = `<iframe src="${embedUrl}" width="100%" height="100%" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="box-shadow: 0 10px 40px rgba(0,0,0,0.8);"></iframe>`;
                         } else {
                             // Direct video URL
                             videoWrapper.innerHTML = `
-                                <video controls style="width:100%;height:100%;background:#000;">
+                                <video controls autoplay style="width:100%;height:100%;background:#000;">
                                     <source src="${url}" type="video/mp4">
                                 </video>`;
                         }
@@ -455,7 +511,7 @@ require __DIR__ . '/../layouts/header.php';
         async function markComplete() {
             if (!currentLessonId) return;
             try {
-                await window.api.post(`/lessons/${currentLessonId}/complete`, {});
+                const res = await window.api.post(`/lessons/${currentLessonId}/complete`, {});
                 const btn = document.getElementById('btn_mark_complete');
                 btn.style.display = 'block';
                 btn.innerHTML = window.I18n ? window.I18n.get('lrn_btn_completed') : '✅ Đã hoàn thành bài học';
@@ -465,8 +521,14 @@ require __DIR__ . '/../layouts/header.php';
                 btn.disabled = true;
 
                 if (res && res.data && res.data.progress === 100) {
-                    document.getElementById('btn_review_course').style.display = 'block';
-                    showReviewModal();
+                    const btnReview = document.getElementById('btn_review_course');
+                    if (btnReview.style.display !== 'block' || btnReview.dataset.reviewed !== "true") {
+                        btnReview.style.display = 'block';
+                        // Delay a bit for better UX
+                        setTimeout(() => {
+                            showReviewModal();
+                        }, 1000);
+                    }
                 }
             } catch (e) {
                 console.log(e);
@@ -485,15 +547,23 @@ require __DIR__ . '/../layouts/header.php';
         }
 
         function formatAiResponse(text) {
-            // Bold: **text**
-            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            // Bullet points
-            text = text.replace(/^[-•]\s+(.+)$/gm, '<span style="display:block;padding-left:1rem;">• $1</span>');
-            // Numbered list
-            text = text.replace(/^(\d+)\.\s+(.+)$/gm, '<span style="display:block;padding-left:1rem;">$1. $2</span>');
-            // Emoji headers
-            text = text.replace(/\n/g, '<br>');
-            return text;
+            if (typeof marked !== 'undefined') {
+                return marked.parse(text);
+            }
+            // Fallback simple formatting
+            return text.replace(/\n/g, '<br>');
+        }
+
+        async function clearAIChat() {
+            if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử hội thoại của bài học này?')) return;
+            try {
+                await window.api.delete('/ai/history', { lesson_id: currentLessonId });
+                document.getElementById('chatBox').innerHTML = `<div class="msg bot" data-i18n="lrn_ai_welcome">👋 Lịch sử đã được dọn dẹp. Tôi đã sẵn sàng hỗ trợ bạn từ đầu!</div>`;
+                if (window.I18n) window.I18n.render();
+                App.showToast('Đã xóa lịch sử chat', 'success');
+            } catch (e) {
+                App.showToast(e.message, 'error');
+            }
         }
 
         document.getElementById('chatForm').addEventListener('submit', async (e) => {
@@ -527,26 +597,14 @@ require __DIR__ . '/../layouts/header.php';
                     course_id: courseId
                 });
 
-                let html = formatAiResponse(res.data.ai_response);
-
-                // Hiển thị gợi ý bài tiếp theo
-                if (res.data.suggestions && res.data.suggestions.length > 0) {
-                    html += `<div style="margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid rgba(255,255,255,0.1);">`;
-                    html += `<small style="color:var(--primary);">📚 Gợi ý bài tiếp:</small>`;
-                    res.data.suggestions.forEach(s => {
-                        const icon = s.content_type === 'video' ? '🎬' : '📝';
-                        html += `<div style="margin-top:4px;cursor:pointer;color:rgba(255,255,255,0.7);font-size:0.85rem;" 
-                                      onclick="loadLesson(${s.id})">${icon} ${escapeHtml(s.title)}</div>`;
-                    });
-                    html += `</div>`;
-                }
-
-                // Nếu bị moderated
-                if (res.data.moderated) {
-                    document.getElementById(thinkingId).style.borderColor = 'rgba(251,146,60,0.3)';
-                }
-
-                document.getElementById(thinkingId).innerHTML = html;
+                const botMsgDiv = document.getElementById(thinkingId);
+                const html = formatAiResponse(res.data.ai_response);
+                botMsgDiv.innerHTML = `<div class="ai-markdown-content">${html}</div>`;
+                
+                // Highlight code blocks
+                botMsgDiv.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
             } catch (err) {
                 const errMsg = window.I18n ? window.I18n.get('lrn_ai_error') : 'Lỗi kết nối tới AI: ';
                 document.getElementById(thinkingId).innerHTML = '❌ ' + errMsg + (err.message || '');
@@ -557,6 +615,19 @@ require __DIR__ . '/../layouts/header.php';
 
         function showReviewModal() {
             document.getElementById('reviewModal').style.display = 'flex';
+        }
+
+        function setRating(val) {
+            document.getElementById('reviewRating').value = val;
+            const stars = document.querySelectorAll('.star-item');
+            stars.forEach(s => {
+                const sVal = parseInt(s.dataset.value);
+                if (sVal <= val) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
         }
 
         async function submitReview(e) {
@@ -571,7 +642,11 @@ require __DIR__ . '/../layouts/header.php';
                 await window.api.post(`/student/courses/${courseId}/reviews`, { rating, comment });
                 App.showToast('Cảm ơn bạn đã đánh giá khóa học!', 'success');
                 document.getElementById('reviewModal').style.display = 'none';
-                document.getElementById('btn_review_course').style.display = 'none';
+                
+                // Update button state
+                const btnReview = document.getElementById('btn_review_course');
+                btnReview.innerHTML = `${'⭐'.repeat(rating)} <span data-i18n="lrn_reviewed">Đã đánh giá</span>`;
+                btnReview.dataset.reviewed = "true";
             } catch (err) {
                 App.showToast(err.message, 'error');
             } finally {

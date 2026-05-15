@@ -202,6 +202,81 @@ const App = {
                 window.location.href = '/login.php';
             }, 1200);
         }
+    },
+
+    // ── Notifications ───────────────────────────────────────────
+    async initNotifications() {
+        const user = window.api.getUser();
+        if (!user) return;
+        
+        try {
+            const res = await window.api.get('/notifications');
+            if (res && res.data) {
+                this.updateNotifBadge(res.data.unread);
+                this.renderNotifs(res.data.items);
+            }
+        } catch (e) { console.error('Notif error:', e); }
+    },
+
+    updateNotifBadge(count) {
+        const badge = document.getElementById('notifBadge');
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count > 9 ? '9+' : count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    },
+
+    toggleNotifDropdown() {
+        const dropdown = document.getElementById('notifDropdown');
+        if (!dropdown) return;
+        dropdown.classList.toggle('show');
+        if (dropdown.classList.contains('show')) {
+            this.initNotifications(); // Refresh when open
+        }
+    },
+
+    renderNotifs(items) {
+        const list = document.getElementById('notifList');
+        if (!list) return;
+        if (!items || items.length === 0) {
+            list.innerHTML = `<div style="padding:2rem; text-align:center; opacity:0.4; font-size:0.8rem;">Chưa có thông báo mới</div>`;
+            return;
+        }
+
+        list.innerHTML = items.map(item => {
+            const time = new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const unreadClass = item.is_read ? '' : 'unread';
+            const icon = item.icon || 'ℹ️';
+            
+            // Custom click logic for chat
+            let clickAttr = '';
+            if (item.type === 'chat' && item.data && item.data.sender_id) {
+                const url = window.api.getUser().role === 'teacher' ? '/teacher/chat.php' : '/student/chat.php';
+                clickAttr = `onclick="window.location.href='${url}?user_id=${item.data.sender_id}'"`;
+            }
+
+            return `
+                <div class="notif-item ${unreadClass}" ${clickAttr} style="cursor:pointer;">
+                    <div class="notif-icon">${icon}</div>
+                    <div class="notif-content">
+                        <div class="notif-title">${item.title}</div>
+                        <div class="notif-message">${item.message}</div>
+                        <div class="notif-time">${time}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    async markAllNotifRead() {
+        try {
+            await window.api.put('/notifications/read-all');
+            this.updateNotifBadge(0);
+            this.initNotifications();
+        } catch (e) { console.error(e); }
     }
 };
 
@@ -215,4 +290,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.head.appendChild(script);
     }
     App.renderUserNav();
+    App.initNotifications();
+    
+    // Auto-refresh notifications every 30 seconds
+    setInterval(() => App.initNotifications(), 30000);
+    
+    // Global handlers for navbar
+    window.toggleNotifDropdown = () => App.toggleNotifDropdown();
+    window.markAllNotifRead = () => App.markAllNotifRead();
+
+    // Close dropdown on click outside
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#notifBell') && !e.target.closest('#notifDropdown')) {
+            document.getElementById('notifDropdown')?.classList.remove('show');
+        }
+    });
 });

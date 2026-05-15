@@ -16,6 +16,21 @@
     margin-bottom: 0.5rem;
 }
 
+.dashboard-header-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.dashboard-btn-explore {
+    border-radius: 100px;
+    padding: 0.8rem 1.5rem;
+    font-weight: 700;
+}
+
 /* ── Stat Cards ── */
 .stat-grid {
     display: grid;
@@ -97,6 +112,16 @@
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
 }
 
+.chart-header-title {
+    font-weight: 700;
+}
+
+.cinematic-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    margin: 4rem 0;
+}
+
 /* ── Course Scroller ── */
 .scroller-container {
     display: flex;
@@ -172,7 +197,30 @@
 
 /* ── Utils ── */
 .text-gradient {
-    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.4) 100%);
+    background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.4) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.search-input-wrapper {
+    position: relative;
+}
+
+.search-input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+}
+
+.dashboard-search {
+    border-radius: 100px;
+    width: 300px;
+    padding-left: 2.5rem !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.loading-msg {
+    font-size: 0.875rem;
 }

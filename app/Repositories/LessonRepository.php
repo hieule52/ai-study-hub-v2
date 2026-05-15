@@ -90,8 +90,8 @@ class LessonRepository
 
     public function create(array $data): ?array
     {
-        $sql = "INSERT INTO lessons (chapter_id, title, content_type, video_url, video_filename, video_size, duration, content, objectives, ai_summary, order_index, is_free) 
-                VALUES (:chapter_id, :title, :content_type, :video_url, :video_filename, :video_size, :duration, :content, :objectives, :ai_summary, :order_index, :is_free)";
+        $sql = "INSERT INTO lessons (chapter_id, title, content_type, video_url, video_filename, video_size, duration, content, objectives, ai_summary, video_transcript, lesson_context, key_topics, order_index, is_free) 
+                VALUES (:chapter_id, :title, :content_type, :video_url, :video_filename, :video_size, :duration, :content, :objectives, :ai_summary, :video_transcript, :lesson_context, :key_topics, :order_index, :is_free)";
         $stmt = $this->db->prepare($sql);
         $success = $stmt->execute([
             'chapter_id' => $data['chapter_id'],
@@ -104,6 +104,9 @@ class LessonRepository
             'content' => $data['content'] ?? '',
             'objectives' => $data['objectives'] ?? null,
             'ai_summary' => $data['ai_summary'] ?? null,
+            'video_transcript' => $data['video_transcript'] ?? null,
+            'lesson_context' => $data['lesson_context'] ?? null,
+            'key_topics' => $data['key_topics'] ?? null,
             'order_index' => $data['order_index'] ?? 0,
             'is_free' => $data['is_free'] ?? 0
         ]);
@@ -120,7 +123,9 @@ class LessonRepository
                 video_url = :video_url, video_filename = COALESCE(:video_filename, video_filename),
                 video_size = CASE WHEN :video_size > 0 THEN :video_size2 ELSE video_size END,
                 duration = CASE WHEN :duration > 0 THEN :duration2 ELSE duration END,
-                content = :content, objectives = :objectives, ai_summary = :ai_summary, order_index = :order_index, is_free = :is_free
+                content = :content, objectives = :objectives, ai_summary = :ai_summary,
+                video_transcript = :video_transcript, lesson_context = :lesson_context, key_topics = :key_topics,
+                order_index = :order_index, is_free = :is_free
                 WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -136,6 +141,9 @@ class LessonRepository
             'content' => $data['content'] ?? '',
             'objectives' => $data['objectives'] ?? null,
             'ai_summary' => $data['ai_summary'] ?? null,
+            'video_transcript' => $data['video_transcript'] ?? null,
+            'lesson_context' => $data['lesson_context'] ?? null,
+            'key_topics' => $data['key_topics'] ?? null,
             'order_index' => $data['order_index'] ?? 0,
             'is_free' => $data['is_free'] ?? 0
         ]);

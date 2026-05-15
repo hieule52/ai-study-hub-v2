@@ -1,134 +1,82 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/AI_Study_Hub-LMS-4F46E5?style=for-the-badge&logo=codeigniter&logoColor=white" alt="Logo">
-  <h1>🎓 AI STUDY HUB LMS</h1>
-  <p><strong>Nền tảng Học tập Trực tuyến Thông minh tích hợp Trợ lý Trí tuệ Nhân tạo</strong></p>
+  <img src="https://img.shields.io/badge/AI_Study_Hub-LMS_v2-4F46E5?style=for-the-badge&logo=codeigniter&logoColor=white" alt="Logo">
+  <h1>🎓 AI STUDY HUB LMS — CINEMATIC EDITION</h1>
+  <p><strong>Nền tảng Học tập Trực tuyến Thế hệ mới với Trải nghiệm Điện ảnh & Trợ lý AI</strong></p>
 
   <p>
-    <img src="https://img.shields.io/badge/PHP-8.0+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
+    <img src="https://img.shields.io/badge/PHP-8.1+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
     <img src="https://img.shields.io/badge/MySQL-8.0+-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
-    <img src="https://img.shields.io/badge/Vanilla_JS-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JS">
-    <img src="https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap">
-    <img src="https://img.shields.io/badge/AI-Groq_LLaMA-FF6B35?style=for-the-badge&logo=meta&logoColor=white" alt="AI">
-    <img src="https://img.shields.io/badge/WebSocket-Ratchet-010101?style=for-the-badge" alt="WebSocket">
+    <img src="https://img.shields.io/badge/Vanilla_CSS-Premium-F16529?style=for-the-badge&logo=css3&logoColor=white" alt="CSS">
+    <img src="https://img.shields.io/badge/AI-LLaMA_3.1-FF6B35?style=for-the-badge&logo=meta&logoColor=white" alt="AI">
+    <img src="https://img.shields.io/badge/Architecture-Modular_MVC-00599C?style=for-the-badge" alt="Architecture">
   </p>
 </div>
 
 ---
 
-## 📖 Giới Thiệu (Project Rationale)
+## 📖 Giới Thiệu (The Vision)
 
-**AI Study Hub LMS** được xây dựng nhằm giải quyết những hạn chế của các hệ thống quản lý học tập (LMS) truyền thống như: thiếu sự hỗ trợ cá nhân hóa, tỷ lệ tương tác của học viên thấp, và quy trình vận hành thủ công kém hiệu quả.
+**AI Study Hub LMS** không chỉ là một hệ thống quản lý học tập; đó là một **Learning Studio** cao cấp được thiết kế theo ngôn ngữ "Cinematic Dark Glass". Chúng tôi tập trung vào việc xóa bỏ sự nhàm chán của các LMS truyền thống bằng cách kết hợp:
 
-Nền tảng kết hợp kiến trúc **MVC + Repository + Service Pattern** mạnh mẽ bằng PHP thuần, cùng với **Trợ lý AI trực tuyến (Groq API - LLaMA 3.1)**. Hệ thống giúp học viên được giải đáp thắc mắc 24/7 theo đúng ngữ cảnh bài giảng, hỗ trợ giảng viên dễ dàng quản lý học liệu và giúp quản trị viên tự động hóa quy trình ghi danh thông qua hệ thống thanh toán tự động.
-
----
-
-## ⭐ Các Tính Năng Nổi Bật
-
-### 🤖 Trợ Lý Trí Tuệ Nhân Tạo (AI Tutor)
-- **Hỗ trợ theo ngữ cảnh**: AI đọc và hiểu tài liệu của bài học hiện tại để giải thích bám sát chương trình giảng dạy.
-- **Chatbot Lập trình**: Có khả năng giải thích code, sửa lỗi, tạo bài tập thực hành.
-- **Kiểm duyệt nội dung**: Ngăn chặn XSS, SQL Injection và từ chối trả lời các câu hỏi nằm ngoài phạm vi giáo dục.
-
-### 💳 Hệ Thống Thanh Toán Tự Động
-- Tích hợp mã QR qua VietQR.
-- Cơ chế **Google Apps Script Polling** tự động dò tìm giao dịch qua Google Sheets và kích hoạt khóa học trong vòng 5-10 giây mà không cần con người can thiệp.
-
-### 🌍 Đa Ngôn Ngữ Toàn Diện (i18n)
-- Giao diện người dùng hỗ trợ cả **Tiếng Việt** và **Tiếng Anh**.
-- Chuyển đổi ngôn ngữ mượt mà theo thời gian thực (Real-time).
-
-### 💬 Tương Tác Thời Gian Thực & Video Streaming
-- Nhắn tin trực tiếp giữa Học viên và Giảng viên qua **WebSocket (Ratchet)**.
-- **Bảo mật Video**: Video bài giảng được mã hóa bằng Signed Token (HMAC-SHA256), chống tải lậu và hỗ trợ HTTP Range Streaming.
+1.  **Thẩm mỹ Điện ảnh (Cinematic Aesthetics)**: Giao diện tối hiện đại, sử dụng hiệu ứng Glassmorphism (kính mờ), chuyển động mượt mà và hệ thống Typography editorial.
+2.  **Trí tuệ Nhân tạo Cá nhân hóa**: Tích hợp LLaMA 3.1 bám sát nội dung từng bài giảng để hỗ trợ học viên 24/7.
+3.  **Vận hành Hiệu suất cao**: Kiến trúc mã nguồn được tối ưu hóa sâu (Database Indexing, Repository Pattern) đảm bảo hệ thống luôn mượt mà dù quy mô dữ liệu lớn.
 
 ---
 
-## 👥 Phân Quyền Hệ Thống
+## ✨ Các Tính Năng Đột Phá
 
-| Vai trò | Tính năng truy cập |
-| :--- | :--- |
-| **Học viên (Student)** | - Học qua Video/Text và làm Quiz trắc nghiệm.<br>- Đặt câu hỏi với AI Tutor ngay trong bài học.<br>- Theo dõi tiến độ, nhận Chứng chỉ tự động.<br>- Mua khóa học qua cổng thanh toán VietQR. |
-| **Giảng viên (Teacher)** | - Dashboard quản lý doanh thu, học viên.<br>- Course Builder: Tạo chương, bài học, tải lên Video.<br>- Trò chuyện hỗ trợ học viên trực tiếp. |
-| **Quản trị viên (Admin)** | - Duyệt/Từ chối khóa học từ Giảng viên.<br>- Quản lý người dùng (Ban/Unban, đổi Role).<br>- Theo dõi Audit Logs và thống kê toàn hệ thống. |
+### 🎬 Giao diện Cinematic Dark Glass
+- **Premium UI/UX**: Được xây dựng hoàn toàn bằng Vanilla CSS để đạt tới độ tinh tế cao nhất, không phụ thuộc vào các framework UI đại trà.
+- **Micro-animations**: Các hiệu ứng hover, chuyển trang và tương tác card mang lại cảm giác sống động và cao cấp.
+- **Responsive Admin Portal**: Cổng quản trị hoàn toàn mới, tách biệt logic navigation, tối ưu cho việc điều hành trên mọi thiết bị.
+
+### 🤖 Trợ Lý AI Tutor (Context-Aware)
+- **Học tập thông minh**: AI tự động đọc hiểu toàn bộ nội dung bài giảng hiện tại để giải đáp thắc mắc chính xác cho học viên.
+- **Coding Buddy**: Hỗ trợ giải thích mã nguồn, debug và tạo bài tập code thực tế ngay trong khung chat.
+
+### 📊 Hệ Thống Quản Trị Module (Admin Control Center)
+- **Doanh thu ghi danh**: Thay thế các mô hình thương mại điện tử phức tạp bằng luồng thống kê doanh thu ghi danh trực tiếp, trực quan.
+- **Course Review System**: Quy trình duyệt khóa học chuyên nghiệp với chế độ **Preview Mode** (xem trước cinematic) dành riêng cho Admin.
+- **Audit Logs**: Theo dõi toàn bộ biến động hệ thống với các Action Badges (INSERT, UPDATE, DELETE) màu sắc rõ ràng.
+
+### 🔒 Bảo mật & Tối ưu hóa
+- **Signed Video Tokens**: Bảo vệ video bài giảng bằng HMAC-SHA256, chống download trái phép.
+- **DB Optimization**: Hệ thống Indexing tổ hợp (Composite Indexes) giúp các thao tác lọc dữ liệu và thống kê diễn ra gần như tức thì.
 
 ---
 
-## 🏗️ Kiến Trúc Hệ Thống
+## 🏗️ Kiến Trúc Hệ Thống (Technical Blueprint)
 
-Hệ thống được phát triển theo mô hình **MVC kết hợp Service & Repository Pattern**, sử dụng JWT để bảo mật các API.
+Dự án áp dụng mô hình **MVC + Repository + Service Pattern** để đảm bảo khả năng mở rộng và bảo trì dễ dàng.
 
 ```mermaid
 graph TD
-    Client[Trình duyệt Web (Frontend)] -->|HTTP/REST| Router[Core Router / index.php]
-    Client <-->|WebSocket :8080| Ratchet[server.php - Ratchet]
+    Client[Web Frontend - Cinematic Glass] -->|JWT Auth| API[RESTful API Layer]
+    API --> Controller[Admin/Teacher/Student Controllers]
+    Controller --> Service[Business Logic Services]
+    Service --> AI[Groq LLaMA 3.1 API]
+    Service --> Repo[Repository Pattern]
+    Repo --> DB[(MySQL 8.0 Optimized)]
     
-    Router --> Middleware[Auth & Role Middleware]
-    Middleware --> Controller[API Controllers]
-    
-    Controller --> Service[Services Layer]
-    Service <--> External[External APIs: Groq LLaMA, VietQR]
-    
-    Service --> Repo[Repository Layer]
-    Repo <--> DB[(MySQL Database 8.0+)]
-    
-    Service --> FileSys[Secure File System]
+    Socket[WebSocket Server] <--> Client
 ```
 
 ---
 
-## 🔄 Hành Vi Của Hệ Thống (User Workflows)
+## 👥 Phân Quyền & Vai Trò
 
-Hệ thống được thiết kế với các luồng hoạt động rõ ràng, tự động hóa tối đa để mang lại trải nghiệm học tập xuyên suốt.
-
-### 1. Luồng Khám Phá & Ghi Danh Khóa Học (Student Flow)
-1. **Khách truy cập (Guest)**: Xem danh sách khóa học (Miễn phí & Premium) trên trang chủ. Có thể xem chi tiết giới thiệu khóa học, đánh giá sao, bình luận từ học viên khác mà không cần đăng nhập.
-2. **Xác thực**: Khi nhấn "Đăng ký khóa học" (hoặc Mua), hệ thống yêu cầu đăng nhập. Nếu chưa có tài khoản, quy trình đăng ký diễn ra nhanh chóng với JWT cấp quyền tức thì.
-3. **Thanh toán tự động**: Với khóa học Premium, hệ thống sinh mã VietQR. Ngay khi học viên quét mã thanh toán thành công qua ứng dụng ngân hàng, Google Sheets Webhook/Polling sẽ xác thực giao dịch trong 5-10 giây và tự động mở khóa bài giảng, chuyển hướng học viên vào lớp học.
-
-### 2. Luồng Học Tập & Tương Tác Trí Tuệ Nhân Tạo
-1. **Theo dõi nội dung**: Học viên truy cập `Learning Dashboard` để xem các bài học dưới dạng Video Streaming (bảo mật, chống tải lậu) hoặc bài đọc văn bản.
-2. **Kiểm tra kiến thức (Quiz)**: Làm bài kiểm tra trắc nghiệm cuối bài học để củng cố kiến thức, hệ thống chấm điểm tự động.
-3. **Trợ lý AI Tutor**: Bất cứ lúc nào gặp khó khăn, học viên có thể hỏi trực tiếp AI ngay trong giao diện học. AI sẽ nhận **ngữ cảnh (context)** của toàn bộ bài học hiện tại (bao gồm text bài học hoặc script của video) để trả lời chính xác, giải thích chi tiết đoạn code hoặc lý thuyết đang học.
-4. **Cấp chứng chỉ**: Sau khi tiến độ đạt 100%, hệ thống tự động phát hành chứng chỉ điện tử cho học viên.
-
-### 3. Luồng Giảng Dạy & Quản Lý (Teacher Flow)
-1. **Course Builder**: Giảng viên tạo khóa học mới, thiết lập giá tiền, tải lên ảnh bìa. Khóa học sẽ được chuyển trạng thái "Chờ duyệt" (Pending).
-2. **Cấu hình bài giảng**: Giảng viên tải lên các video bảo mật qua API của hệ thống (file lưu ở Storage ngoài webroot), tạo các bài Quiz (Câu hỏi + Đáp án đúng).
-3. **Tương tác học viên**: Nhận tin nhắn từ học viên qua WebSocket và trả lời trực tiếp trên giao diện Chat Box của giảng viên. Xem thống kê tiến độ của từng học viên.
-
-### 4. Luồng Quản Trị Hệ Thống (Admin Flow)
-1. **Kiểm duyệt nội dung**: Nhận thông báo có khóa học mới, kiểm tra nội dung và nhấn "Duyệt" (Approve) để xuất bản khóa học lên trang chủ.
-2. **Quản lý rủi ro**: Theo dõi Audit Logs các hành động nhạy cảm trong hệ thống. Quản lý trạng thái tài khoản (Ban/Unban) khi có dấu hiệu vi phạm.
+| Vai trò | Điểm nhấn tính năng |
+| :--- | :--- |
+| **Học viên** | Học tập với AI, làm Quiz, nhận Chứng chỉ tự động và thanh toán học phí qua VietQR. |
+| **Giảng viên** | Studio tạo bài giảng cinematic, quản lý học viên, thống kê doanh thu và hỗ trợ qua Chat. |
+| **Quản trị viên** | Kiểm soát toàn hệ thống, duyệt khóa học qua Preview Mode, quản lý logs và tài khoản. |
 
 ---
 
-## 🛠️ Công Nghệ Sử Dụng
+## 🚀 Hướng Dẫn Cài Đặt (Quick Start)
 
-### Backend
-- **Core**: PHP 8.0+ (Custom MVC Framework)
-- **Database**: MySQL 8.0+ (PDO, Prepared Statements)
-- **Authentication**: JWT (JSON Web Tokens)
-- **Real-time**: Ratchet (WebSocket Server cho PHP)
-
-### Frontend
-- **UI/UX**: HTML5, CSS3, Vanilla JS, Bootstrap 5.3
-- **Tools**: Chart.js (Thống kê), FontAwesome (Icons)
-
-### Tích Hợp (Third-party)
-- **AI**: Groq API (Mô hình LLaMA 3.1 8B)
-- **Payment**: VietQR + Google Sheets API (Polling)
-
----
-
-## 🚀 Hướng Dẫn Cài Đặt
-
-### 1. Yêu Cầu Môi Trường
-- XAMPP / WAMP / LAMP stack (PHP 8.0+, MySQL 8.0+)
-- Composer 2.x
-
-### 2. Cài Đặt Khởi Tạo
-Clone dự án về máy và cài đặt thư viện:
+### 1. Khởi tạo Dự án
 ```bash
 git clone https://github.com/hieule52/ai-study-hub-v2.git
 cd AIStudyHubLMS
@@ -136,61 +84,26 @@ composer install
 composer dump-autoload
 ```
 
-### 3. Cấu Hình Biến Môi Trường
-Copy file cấu hình và thiết lập các API keys:
-```bash
-cp .env.example .env
-```
-Mở file `.env` và cập nhật:
-```env
-DB_HOST=localhost
-DB_NAME=lms_v2_db
-DB_USER=root
-DB_PASS=
+### 2. Cấu hình Môi trường
+Tạo file `.env` từ mẫu `.env.example` và thiết lập các thông số:
+- **DB_***: Thông tin kết nối MySQL.
+- **GROQ_API_KEY**: Key để kích hoạt Trợ lý AI.
+- **JWT_SECRET**: Khóa bảo mật cho hệ thống đăng nhập.
 
-JWT_SECRET=your_super_secret_key_min_32_chars
-GROQ_API_KEY=gsk_your_groq_api_key
-
-VIDEO_STORAGE_PATH=storage/videos
-VIDEO_TOKEN_SECRET=video_security_secret
-```
-
-### 4. Cơ Sở Dữ Liệu
-Import file SQL vào MySQL:
-```bash
-mysql -u root -p lms_v2_db < database/aistudyhublms.sql
-```
-
-### 5. Khởi Chạy Server
-Khởi chạy đồng thời 2 server (1 cho Web, 1 cho WebSocket):
-```bash
-# Terminal 1: WebSocket Server (Chat)
-php server.php
-
-
-# Terminal 2: Web Server
-php -S localhost:8000 -t public
-
-```
-Truy cập hệ thống tại: `http://localhost:8000`
+### 3. Database & Servers
+1. Import `database/aistudyhublms.sql` vào MySQL.
+2. Chạy Server Web: `php -S localhost:8000 -t public`
+3. Chạy Server Real-time: `php server.php`
 
 ---
 
-## 🔒 Cơ Chế Bảo Mật Tích Hợp
+## 📄 Bản Quyền & Phát triển
 
-- **Xác thực JWT (JSON Web Tokens)**: Thời gian sống ngắn, truyền qua Bearer Header, chống CSRF.
-- **Chống SQL Injection**: Sử dụng hoàn toàn kỹ thuật PDO Prepared Statements.
-- **Bảo mật File**: Video được lưu trữ ngoài thư mục `public/`. URL tải video là dạng sinh token tự động kèm thời gian hết hạn bằng `HMAC-SHA256`.
-- **Soft Deletes**: Dữ liệu quan trọng chỉ bị ẩn chứ không xóa vĩnh viễn khỏi DB.
+Dự án được thực hiện bởi **Lê Diên Hiếu** với mục tiêu nâng tầm trải nghiệm giáo dục số tại Việt Nam.
 
----
-
-## 📄 Bản Quyền & Tác Giả
-
-Dự án được phát triển bởi **Lê Diên Hiếu** (`lehieu2900.in@gmail.com`). 
-
-*Giấy phép hoạt động (License)*: **MIT License**. Bạn có quyền tự do chỉnh sửa và sử dụng cho mục đích cá nhân hoặc thương mại.
+- **Email**: `lehieu2900.in@gmail.com`
+- **License**: MIT License (Tự do sử dụng & phát triển thêm).
 
 <div align="center">
-  <p><em>Được tạo ra với ❤️ để thay đổi cách chúng ta học tập.</em></p>
+  <p><em>"Building the future of learning, one frame at a time."</em></p>
 </div>

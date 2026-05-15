@@ -72,14 +72,15 @@ require __DIR__ . '/../layouts/header.php';
 
 <div class="verify-wrapper">
     <div style="width: 100%; max-width: 650px;">
-        <h1 style="text-align:center; margin-bottom: 2rem;">🔍 Xác Minh Chứng Chỉ</h1>
+        <h1 style="text-align:center; margin-bottom: 2rem;" data-i18n="cert_verify_title">🔍 Xác Minh Chứng Chỉ</h1>
 
         <!-- Input UUID -->
         <div class="verify-uuid-input">
             <input type="text" id="uuidInput" class="form-control" 
                    placeholder="Nhập UUID chứng chỉ (VD: a1b2c3d4-...)"
-                   style="flex:1; font-family: monospace; font-size: 0.9rem;">
-            <button onclick="verifyCert()" class="btn btn-primary" id="verifyBtn">Xác Minh</button>
+                   style="flex:1; font-family: monospace; font-size: 0.9rem;"
+                   data-i18n="cert_verify_uuid_placeholder">
+            <button onclick="verifyCert()" class="btn btn-primary" id="verifyBtn" data-i18n="cert_verify_btn">Xác Minh</button>
         </div>
 
         <!-- Result -->
@@ -104,7 +105,8 @@ require __DIR__ . '/../layouts/header.php';
         if (!uuid) { App.showToast('Vui lòng nhập UUID chứng chỉ', 'error'); return; }
 
         const btn = document.getElementById('verifyBtn');
-        btn.innerHTML = '⏳ Đang kiểm tra...';
+        const loadingText = window.I18n ? window.I18n.get('btn_loading') : '⏳ Đang kiểm tra...';
+        btn.innerHTML = loadingText;
         btn.disabled = true;
 
         const resultEl = document.getElementById('certResult');
@@ -116,10 +118,11 @@ require __DIR__ . '/../layouts/header.php';
             const data = await res.json();
 
             if (!res.ok || !data.data?.valid) {
+                const invalidTitle = window.I18n ? window.I18n.get('cert_verify_invalid') : 'Chứng chỉ không hợp lệ';
                 resultEl.innerHTML = `
                     <div class="cert-card cert-invalid">
                         <div class="cert-seal">❌</div>
-                        <h2 style="color: var(--danger); margin-bottom: 1rem;">Chứng chỉ không hợp lệ</h2>
+                        <h2 style="color: var(--danger); margin-bottom: 1rem;">${invalidTitle}</h2>
                         <p class="text-secondary">${data.message || 'Chứng chỉ này không tồn tại hoặc đã bị thu hồi.'}</p>
                     </div>`;
                 return;
@@ -130,30 +133,37 @@ require __DIR__ . '/../layouts/header.php';
                 year: 'numeric', month: 'long', day: 'numeric'
             });
 
+            const validTitle = window.I18n ? window.I18n.get('cert_verify_valid') : 'Chứng Chỉ Hợp Lệ ✓';
+            const studentLbl = window.I18n ? window.I18n.get('cert_verify_student') : 'Học viên';
+            const courseLbl = window.I18n ? window.I18n.get('cert_verify_course') : 'Khóa học';
+            const teacherLbl = window.I18n ? window.I18n.get('cert_verify_teacher') : 'Giảng viên';
+            const dateLbl = window.I18n ? window.I18n.get('cert_verify_date') : 'Ngày cấp';
+            const scoreLbl = window.I18n ? window.I18n.get('cert_verify_score') : 'Điểm cuối';
+
             resultEl.innerHTML = `
                 <div class="cert-card">
                     <div class="cert-seal">🎓</div>
-                    <h2 style="color: var(--success); margin-bottom: 0.5rem;">Chứng Chỉ Hợp Lệ ✓</h2>
+                    <h2 style="color: var(--success); margin-bottom: 0.5rem;">${validTitle}</h2>
                     <p class="text-secondary" style="margin-bottom: 2rem; font-size: 0.9rem;">Chứng chỉ này đã được xác minh bởi AI Study Hub LMS</p>
                     
                     <div style="text-align: left;">
                         <div class="cert-field">
-                            <label>Học viên</label>
+                            <label>${studentLbl}</label>
                             <span>👤 ${escapeHtml(c.student_name)}</span>
                         </div>
                         <div class="cert-field">
-                            <label>Khóa học</label>
+                            <label>${courseLbl}</label>
                             <span>📚 ${escapeHtml(c.course_title)}</span>
                         </div>
                         <div class="cert-field">
-                            <label>Giảng viên</label>
+                            <label>${teacherLbl}</label>
                             <span>👨‍🏫 ${escapeHtml(c.teacher_name)}</span>
                         </div>
                         <div class="cert-field">
-                            <label>Ngày cấp</label>
+                            <label>${dateLbl}</label>
                             <span>📅 ${issuedDate}</span>
                         </div>
-                        ${c.score !== null ? `<div class="cert-field"><label>Điểm cuối</label><span>⭐ ${c.score}/100</span></div>` : ''}
+                        ${c.score !== null ? `<div class="cert-field"><label>${scoreLbl}</label><span>⭐ ${c.score}/100</span></div>` : ''}
                         <div class="cert-field">
                             <label>UUID</label>
                             <span style="font-family:monospace; font-size:0.75rem; color:var(--text-secondary);">${escapeHtml(c.uuid)}</span>
