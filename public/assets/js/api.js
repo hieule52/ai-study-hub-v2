@@ -83,8 +83,8 @@ class ApiClient {
             if (response.status === 401) {
                 this.clearSession();
                 // Chỉ redirect nếu không phải ở trang login
-                if (!window.location.pathname.includes('login.php')) {
-                    window.location.href = '/login.php';
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
                 }
             }
             

@@ -38,16 +38,16 @@ $extraScripts = $extraScripts ?? '';
                     <span class="footer-label" data-i18n="footer_explore">Khám phá</span>
 
                     <a href="/" data-i18n="nav_home">Trang chủ</a>
-                    <a href="/courses.php" data-i18n="nav_courses">Khóa học</a>
-                    <a href="/about.php" data-i18n="nav_about">Giới thiệu</a>
+                    <a href="/courses" data-i18n="nav_courses">Khóa học</a>
+                    <a href="/about" data-i18n="nav_about">Giới thiệu</a>
                 </div>
 
                 <div class="footer-links">
                     <span class="footer-label" data-i18n="footer_support">Hỗ trợ</span>
 
-                    <a href="/login.php" data-i18n="nav_student_ai">AI Tutor</a>
-                    <a href="/student/chat.php" data-i18n="nav_student_chat">Tin nhắn</a>
-                    <a href="/terms.php" data-i18n="footer_terms">Điều khoản</a>
+                    <a href="/login" data-i18n="nav_student_ai">AI Tutor</a>
+                    <a href="/student/chat" data-i18n="nav_student_chat">Tin nhắn</a>
+                    <a href="/terms" data-i18n="footer_terms">Điều khoản</a>
                 </div>
 
             </div>

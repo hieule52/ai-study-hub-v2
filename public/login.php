@@ -45,7 +45,7 @@ require __DIR__ . '/layouts/header.php';
 
             <div class="auth-footer">
                 <span data-i18n="text_no_account">Bạn mới đến đây?</span> 
-                <a href="/register.php" data-i18n="link_register_now">Đăng ký thành viên</a>
+                <a href="/register" data-i18n="link_register_now">Đăng ký thành viên</a>
             </div>
         </div>
     </div>
@@ -72,9 +72,9 @@ require __DIR__ . '/layouts/header.php';
                 
                 setTimeout(() => {
                     const roles = { 
-                        'admin': '/admin/dashboard.php', 
-                        'teacher': '/teacher/dashboard.php', 
-                        'student': '/student/dashboard.php' 
+                        'admin': '/admin/dashboard', 
+                        'teacher': '/teacher/dashboard', 
+                        'student': '/student/dashboard' 
                     };
                     window.location.href = roles[res.data.user.role] || '/';
                 }, 1000);

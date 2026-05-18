@@ -50,7 +50,7 @@ require __DIR__ . '/../layouts/header.php';
                         <span class="emoji">🎯</span>
                         <h3 style="margin-bottom: 0.5rem;">Chưa có chứng chỉ nào</h3>
                         <p class="text-secondary">Hoàn thành 100% một khóa học và nhận chứng chỉ ngay!</p>
-                        <a href="/student/dashboard.php" class="btn btn-primary" style="margin-top: 1.5rem; display: inline-flex;">
+                        <a href="/student/dashboard" class="btn btn-primary" style="margin-top: 1.5rem; display: inline-flex;">
                             📚 Đến khóa học của tôi
                         </a>
                     </div>`;
@@ -61,7 +61,7 @@ require __DIR__ . '/../layouts/header.php';
                 const issueDate = new Date(c.issued_at).toLocaleDateString('vi-VN', {
                     year: 'numeric', month: 'long', day: 'numeric'
                 });
-                const verifyUrl = `/certificate/verify.php?uuid=${encodeURIComponent(c.uuid)}`;
+                const verifyUrl = `/certificate/verify?uuid=${encodeURIComponent(c.uuid)}`;
                 const score = c.score !== null ? `<div class="cert-meta-row">⭐ Điểm: <strong>${c.score}/100</strong></div>` : '';
 
                 return `

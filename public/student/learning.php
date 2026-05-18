@@ -18,7 +18,7 @@ require __DIR__ . '/../layouts/header.php';
         <div class="main-player">
             <!-- Go Back nav -->
             <div class="player-nav">
-                <a href="/student/dashboard.php" class="btn btn-ghost player-nav-btn" data-i18n="lrn_back_home">&larr; Dashboard</a>
+                <a href="/student/dashboard" class="btn btn-ghost player-nav-btn" data-i18n="lrn_back_home">&larr; Dashboard</a>
                 <span class="player-course-title" id="course_title_span">...</span>
             </div>
 
@@ -158,18 +158,19 @@ require __DIR__ . '/../layouts/header.php';
 
         // === ROLE GUARD: Block admin/teacher from student learning flow ===
         if (user && user.role === 'admin') {
-            const redirectUrl = '/admin/preview-course.php' + window.location.search;
-            window.location.replace(redirectUrl);
+            const _cid = <?= json_encode($_GET['course_id'] ?? null) ?> ?? new URLSearchParams(window.location.search).get('course_id');
+            window.location.replace('/admin/preview/' + _cid);
             throw new Error('Redirecting admin to preview mode');
         }
         if (user && user.role === 'teacher') {
-            const redirectUrl = '/teacher/course-builder.php' + window.location.search;
-            window.location.replace(redirectUrl);
+            const _cid = <?= json_encode($_GET['course_id'] ?? null) ?> ?? new URLSearchParams(window.location.search).get('course_id');
+            window.location.replace('/teacher/course-builder/' + _cid);
             throw new Error('Redirecting teacher to course builder');
         }
 
         const urlParams = new URLSearchParams(window.location.search);
-        const courseId = urlParams.get('course_id');
+        // Support clean URL (/student/learning/8) and legacy (?course_id=8)
+        const courseId = <?= json_encode($_GET['course_id'] ?? null) ?> ?? urlParams.get('course_id');
         let currentLessonId = null;
         let currentQuizId = null;
 

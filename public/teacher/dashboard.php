@@ -33,7 +33,7 @@ require __DIR__ . '/../layouts/header.php';
                     </div>
                 </div>
 
-                <a href="/teacher/create-course.php" class="btn btn-primary" style="padding: 1rem 2rem; border-radius: 100px;">
+                <a href="/teacher/create-course" class="btn btn-primary" style="padding: 1rem 2rem; border-radius: 100px;">
                     <span data-i18n="tc_dash_btn_create">+ Tạo khóa học mới</span>
                 </a>
             </div>
@@ -137,10 +137,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </td>
                     <td>
                         <div class="action-btns">
-                            <a href="/teacher/create-course.php?id=${c.id}" class="btn btn-outline btn-sm" style="border-radius:100px;" title="Chỉnh sửa thông tin">
+                            <a href="/teacher/create-course?id=${c.id}" class="btn btn-outline btn-sm" style="border-radius:100px;" title="Chỉnh sửa thông tin">
                                 <i class="fas fa-cog"></i>
                             </a>
-                            <a href="/teacher/course-builder.php?course_id=${c.id}" class="btn btn-primary btn-sm" style="border-radius:100px;">
+                            <a href="/teacher/course-builder/${c.id}" class="btn btn-primary btn-sm" style="border-radius:100px;">
                                 ${I18n.get('tc_dash_btn_build')}
                             </a>
                             <button onclick="deleteCourse(${c.id})" class="btn btn-ghost btn-sm" style="color: var(--danger);">

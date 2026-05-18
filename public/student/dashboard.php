@@ -18,7 +18,7 @@ require __DIR__ . '/../layouts/header.php';
         </h1>
         <p class="text-secondary mt-2" style="font-size:1.05rem; opacity: 0.7;" data-i18n="std_subtitle">Sẵn sàng để bứt phá giới hạn kiến thức hôm nay?</p>
     </div>
-    <a href="/courses.php" class="btn btn-primary dashboard-btn-explore">
+    <a href="/courses" class="btn btn-primary dashboard-btn-explore">
         <span data-i18n="home_btn_explore">🔍 Khám phá khóa học</span>
     </a>
 </div>
@@ -66,7 +66,7 @@ require __DIR__ . '/../layouts/header.php';
         <p class="section-label" data-i18n="nav_student_courses">Hành trình của bạn</p>
         <h2 style="font-size:1.6rem;font-weight:800;letter-spacing:-0.03em;" data-i18n="std_learning">🚀 Tiếp tục học tập</h2>
     </div>
-    <a href="/student/my-courses.php" class="btn btn-ghost" style="font-size: 0.85rem;" data-i18n="std_view_all">Xem tất cả &rarr;</a>
+    <a href="/student/courses" class="btn btn-ghost" style="font-size: 0.85rem;" data-i18n="std_view_all">Xem tất cả &rarr;</a>
 </div>
 <div class="scroller-container mb-12" id="enrolled-course-container">
     <div class="text-secondary loading-msg" data-i18n="home_loading">Đang tải dữ liệu...</div>
@@ -120,8 +120,8 @@ require __DIR__ . '/../layouts/header.php';
     document.addEventListener('DOMContentLoaded', async () => {
         const user = App.requireAuth(['student']);
         if (!user) return;
-        if (user.role === 'admin')   { window.location.replace('/admin/dashboard.php'); return; }
-        if (user.role === 'teacher') { window.location.replace('/teacher/dashboard.php'); return; }
+        if (user.role === 'admin')   { window.location.replace('/admin/dashboard'); return; }
+        if (user.role === 'teacher') { window.location.replace('/teacher/dashboard'); return; }
 
         document.getElementById('student-name').textContent = user.username || user.email.split('@')[0];
 
@@ -153,7 +153,7 @@ require __DIR__ . '/../layouts/header.php';
                     let certBtn = '';
                     if (isDone) {
                         if (hasCert) {
-                            certBtn = `<button onclick="window.location.href='/student/certificates.php'" class="btn btn-outline" style="width:100%;border-radius:100px;font-size:0.8rem;color:var(--success);border-color:rgba(110,231,183,0.3);">🎓 Xem Chứng Chỉ</button>`;
+                            certBtn = `<button onclick="window.location.href='/student/certificates'" class="btn btn-outline" style="width:100%;border-radius:100px;font-size:0.8rem;color:var(--success);border-color:rgba(110,231,183,0.3);">🎓 Xem Chứng Chỉ</button>`;
                         } else {
                             certBtn = `<button onclick="claimCert(${c.id})" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.8rem;background:rgba(251,191,36,0.15);color:var(--warning);border:1px solid rgba(251,191,36,0.3);">🏆 Nhận Chứng Chỉ</button>`;
                         }
@@ -178,7 +178,7 @@ require __DIR__ . '/../layouts/header.php';
                             </div>
                         </div>
                         <div style="display:flex;flex-direction:column;gap:0.5rem;">
-                            <a href="/student/learning.php?course_id=${c.id}" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.82rem;padding:0.55rem;" data-i18n="${prog>0?'std_btn_continue':'std_btn_start'}">${prog>0?'Tiếp tục học':'Vào học ngay'}</a>
+                            <a href="/student/learning/${c.id}" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.82rem;padding:0.55rem;" data-i18n="${prog>0?'std_btn_continue':'std_btn_start'}">${prog>0?'Tiếp tục học':'Vào học ngay'}</a>
                             ${certBtn}
                         </div>
                     `;
@@ -242,9 +242,9 @@ require __DIR__ . '/../layouts/header.php';
                     const isPremium  = c.is_premium==1 || c.price>0;
                     let btn = '';
                     if (isEnrolled) {
-                        btn = `<button onclick="window.location.href='/student/learning.php?course_id=${c.id}'" class="btn btn-outline" style="width:100%;border-radius:100px;font-size:0.82rem;color:var(--success);border-color:rgba(110,231,183,0.3);" data-i18n="std_owned">Đã sở hữu ✅</button>`;
+                        btn = `<button onclick="window.location.href='/student/learning/${c.id}'" class="btn btn-outline" style="width:100%;border-radius:100px;font-size:0.82rem;color:var(--success);border-color:rgba(110,231,183,0.3);" data-i18n="std_owned">Đã sở hữu ✅</button>`;
                     } else if (isPremium) {
-                        btn = `<button onclick="window.location.href='/student/course-payment.php?course_id=${c.id}&price=${c.price}'" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.82rem;" data-i18n="std_btn_buy">💳 Mua khóa học</button>`;
+                        btn = `<button onclick="window.location.href='/student/payment/${c.id}?price=${c.price}'" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.82rem;" data-i18n="std_btn_buy">💳 Mua khóa học</button>`;
                     } else {
                         btn = `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.82rem;" data-i18n="std_btn_free">Đăng ký Miễn Phí</button>`;
                     }
@@ -253,12 +253,12 @@ require __DIR__ . '/../layouts/header.php';
                         : `<span class="badge badge-free" data-i18n="home_free">Miễn phí</span>`;
                     return `
                     <div class="card liquid-glass" style="display:flex;flex-direction:column;">
-                        <div class="card-img-placeholder" style="position:relative;height:180px;cursor:pointer;" onclick="window.location.href='/course-detail.php?id=${c.id}'">
+                        <div class="card-img-placeholder" style="position:relative;height:180px;cursor:pointer;" onclick="window.location.href='/course/${c.id}'">
                             ${c.thumbnail?`<img src="${c.thumbnail}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`:'<span style="position:relative;z-index:1;font-size:2.5rem;">📚</span>'}
                             ${isPremium?'<span class="badge badge-premium" style="position:absolute;top:10px;right:10px;z-index:2;">PREMIUM</span>':''}
                         </div>
                         <div class="card-body" style="flex:1;display:flex;flex-direction:column;">
-                            <h3 class="card-title" style="cursor:pointer;" onclick="window.location.href='/course-detail.php?id=${c.id}'">${c.title}</h3>
+                            <h3 class="card-title" style="cursor:pointer;" onclick="window.location.href='/course/${c.id}'">${c.title}</h3>
                             <p class="text-secondary" style="font-size:0.82rem;flex:1;margin-bottom:1rem;line-height:1.6;" data-i18n="std_no_desc">${c.description?c.description.substring(0,90)+'...':'Chưa có mô tả.'}</p>
                             <div class="flex items-center justify-between mb-3">${priceHtml}</div>
                             ${btn}

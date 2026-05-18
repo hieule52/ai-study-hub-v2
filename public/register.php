@@ -92,7 +92,7 @@ require __DIR__ . '/layouts/header.php';
 
             <div class="auth-footer">
                 <span data-i18n="text_already_have_account">Đã có tài khoản?</span> 
-                <a href="/login.php" data-i18n="link_login_now">Đăng nhập tại đây</a>
+                <a href="/login" data-i18n="link_login_now">Đăng nhập tại đây</a>
             </div>
         </div>
     </div>
@@ -137,7 +137,7 @@ require __DIR__ . '/layouts/header.php';
                 App.showToast(I18n.get('toast_register_success'), 'success');
                 
                 setTimeout(() => {
-                    const dashboard = selectedRole === 'teacher' ? '/teacher/dashboard.php' : '/student/dashboard.php';
+                    const dashboard = selectedRole === 'teacher' ? '/teacher/dashboard' : '/student/dashboard';
                     window.location.href = dashboard;
                 }, 1500);
             } else {

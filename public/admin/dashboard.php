@@ -84,7 +84,7 @@ require __DIR__ . '/../layouts/header.php';
 
             <!-- Quick Actions -->
             <div style="display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem;">
-                <a href="/admin/courses.php"
+                <a href="/admin/courses"
                     style="display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem; background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.15); border-radius:16px; text-decoration:none; transition: all 0.3s;"
                     onmouseover="this.style.transform='translateY(-3px)'"
                     onmouseout="this.style.transform='translateY(0)'">
@@ -97,7 +97,7 @@ require __DIR__ . '/../layouts/header.php';
                     </div>
                 </a>
 
-                <a href="/admin/users.php"
+                <a href="/admin/users"
                     style="display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem; background:rgba(99,102,241,0.05); border:1px solid rgba(99,102,241,0.15); border-radius:16px; text-decoration:none; transition: all 0.3s;"
                     onmouseover="this.style.transform='translateY(-3px)'"
                     onmouseout="this.style.transform='translateY(0)'">
@@ -110,7 +110,7 @@ require __DIR__ . '/../layouts/header.php';
                     </div>
                 </a>
 
-                <a href="/admin/vip.php"
+                <a href="/admin/vip"
                     style="display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem; background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.15); border-radius:16px; text-decoration:none; transition: all 0.3s;"
                     onmouseover="this.style.transform='translateY(-3px)'"
                     onmouseout="this.style.transform='translateY(0)'">

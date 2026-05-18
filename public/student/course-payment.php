@@ -80,13 +80,14 @@ require __DIR__ . '/../layouts/header.php';
         if (!user) return;
 
         const urlParams = new URLSearchParams(window.location.search);
-        const courseId = urlParams.get('course_id');
+        // Support clean URL (/student/payment/8?price=...) and legacy (?course_id=8)
+        const courseId = <?= json_encode($_GET['course_id'] ?? null) ?> ?? urlParams.get('course_id');
         const price = urlParams.get('price');
 
         if (!courseId || !price) {
             const errMsg = window.I18n ? window.I18n.get('pay_err_invalid') : 'Thông tin hóa đơn không hợp lệ.';
             App.showToast(errMsg, 'error');
-            setTimeout(() => window.location.href = '/student/dashboard.php', 2000);
+            setTimeout(() => window.location.href = '/student/dashboard', 2000);
             return;
         }
 
@@ -150,7 +151,7 @@ require __DIR__ . '/../layouts/header.php';
                 const toastSuccess = window.I18n ? window.I18n.get('pay_toast_success') : 'Giao dịch xác nhận thành công!';
                 App.showToast(toastSuccess, 'success');
                 setTimeout(() => {
-                    window.location.href = `/student/learning.php?course_id=${cid}`;
+                    window.location.href = `/student/learning/${cid}`;
                 }, 2500);
             } catch (e) {
                 const toastErr = window.I18n ? window.I18n.get('pay_toast_err') : 'Lỗi khi mở khóa: ';

@@ -1,0 +1,16 @@
+.git
+.gitignore
+node_modules/
+vendor/
+.env
+.env.example
+docker-compose.yml
+Dockerfile
+.dockerignore
+public/uploads/*
+!public/uploads/.gitkeep
+storage/private/videos/*
+!storage/private/videos/.gitkeep
+storage/logs/*
+ai_study_hub_lms.postman_collection.json
+readme.md

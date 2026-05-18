@@ -9,19 +9,19 @@ $isActive = fn(string $path) => (strpos($currentPath, $path) !== false) ? 'activ
         </div>
     </div>
 
-    <a href="/teacher/dashboard.php" class="sidebar-nav-item <?= $isActive('/teacher/dashboard.php') ?>">
+    <a href="/teacher/dashboard" class="sidebar-nav-item <?= $isActive('/teacher/dashboard') ?>">
         <i class="fas fa-th-large"></i>
         <span data-i18n="tc_dash_title">Bảng điều khiển</span>
     </a>
-    <a href="/teacher/courses.php" class="sidebar-nav-item <?= $isActive('/teacher/courses.php') ?>">
+    <a href="/teacher/courses" class="sidebar-nav-item <?= $isActive('/teacher/courses') ?>">
         <i class="fas fa-book"></i>
         <span data-i18n="tc_dash_list_title">Khóa học của tôi</span>
     </a>
-    <a href="/teacher/students.php" class="sidebar-nav-item <?= $isActive('/teacher/students.php') ?>">
+    <a href="/teacher/students" class="sidebar-nav-item <?= $isActive('/teacher/students') ?>">
         <i class="fas fa-user-graduate"></i>
         <span data-i18n="nav_teacher_students">Học viên</span>
     </a>
-    <a href="/teacher/chat.php" class="sidebar-nav-item <?= $isActive('/teacher/chat.php') ?>">
+    <a href="/teacher/chat" class="sidebar-nav-item <?= $isActive('/teacher/chat') ?>">
         <i class="fas fa-comments"></i>
         <span data-i18n="nav_teacher_chat">Tin nhắn</span>
     </a>

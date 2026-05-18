@@ -67,7 +67,7 @@ require __DIR__ . '/layouts/header.php';
     <div class="container">
         <h2 class="editorial-title" data-i18n="about_cta_title">Sẵn sàng để bứt phá?</h2>
         <p class="editorial-text mx-auto mt-4 mb-8" data-i18n="about_cta_text">Trở thành một phần của cộng đồng học tập thông minh nhất.</p>
-        <a href="/register.php" class="btn btn-primary" data-i18n="about_cta_btn" style="border-radius: 100px; padding: 1rem 3.5rem; font-weight: 600;">Đăng ký ngay</a>
+        <a href="/register" class="btn btn-primary" data-i18n="about_cta_btn" style="border-radius: 100px; padding: 1rem 3.5rem; font-weight: 600;">Đăng ký ngay</a>
     </div>
 </section>
 

@@ -60,21 +60,21 @@ header('Content-Type: text/html; charset=utf-8');
                     <ul class="nav-menu">
                         <?php if ($actor !== 'teacher'): ?>
                         <li><a href="/" class="nav-link" data-i18n="nav_home">Trang chủ</a></li>
-                        <li><a href="/courses.php" class="nav-link" data-i18n="nav_courses">Khóa học</a></li>
-                        <li><a href="/about.php" class="nav-link" data-i18n="nav_about">Giới thiệu</a></li>
+                        <li><a href="/courses" class="nav-link" data-i18n="nav_courses">Khóa học</a></li>
+                        <li><a href="/about" class="nav-link" data-i18n="nav_about">Giới thiệu</a></li>
                         <li><a href="javascript:void(0)" class="nav-link" data-i18n="nav_student_ai"
-                                onclick="App.checkAuthAndGo('/student/ai-chat.php', 'Vui lòng đăng nhập để sử dụng Gia sư AI')">Gia sư AI</a></li>
+                                onclick="App.checkAuthAndGo('/student/ai-chat', 'Vui lòng đăng nhập để sử dụng Gia sư AI')">Gia sư AI</a></li>
                         <li><a href="javascript:void(0)" class="nav-link" data-i18n="nav_student_certificates"
-                                onclick="App.checkAuthAndGo('/student/certificates.php', 'Vui lòng đăng nhập để xem chứng chỉ')">Chứng chỉ</a></li>
+                                onclick="App.checkAuthAndGo('/student/certificates', 'Vui lòng đăng nhập để xem chứng chỉ')">Chứng chỉ</a></li>
                         <?php endif; ?>
                     </ul>
 
                     <div class="flex items-center gap-6" id="nav-right">
                         <div id="user-menu" class="flex items-center gap-6">
                             <?php if ($actor === 'guest'): ?>
-                                <a href="/login.php" class="nav-link" data-i18n="nav_login"
+                                <a href="/login" class="nav-link" data-i18n="nav_login"
                                     style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Đăng nhập</a>
-                                <a href="/register.php" class="btn btn-primary" data-i18n="nav_start"
+                                <a href="/register" class="btn btn-primary" data-i18n="nav_start"
                                     style="border-radius: 100px; padding: 0.6rem 1.5rem; font-size: 0.8rem; font-weight: 700;">Bắt
                                     đầu học</a>
                             <?php endif; ?>
@@ -106,7 +106,7 @@ header('Content-Type: text/html; charset=utf-8');
 
             <?php 
             $currentPath = $_SERVER['REQUEST_URI'];
-            $isActive = fn(string $path) => (strpos($currentPath, $path) !== false) ? 'active' : '';
+            $isActive = fn(string $p) => (strpos($currentPath, $p) !== false) ? 'active' : '';
             $showDashboardLayout = in_array($actor, ['student', 'teacher', 'admin']) && !($noSidebar ?? false);
             if ($showDashboardLayout): 
             ?>
@@ -115,7 +115,7 @@ header('Content-Type: text/html; charset=utf-8');
                         <ul class="sidebar-nav">
                             <?php if ($actor === 'student'): ?>
                             <li>
-                                <a href="/student/dashboard.php" class="sidebar-link <?= $isActive('/student/dashboard') ?>"
+                                <a href="/student/dashboard" class="sidebar-link <?= $isActive('/student/dashboard') ?>"
                                     data-i18n="nav_student_dashboard">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -128,7 +128,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 </a>
                             </li>
                             <li>
-                                <a href="/student/my-courses.php" class="sidebar-link <?= $isActive('/student/my-courses') ?>"
+                                <a href="/student/courses" class="sidebar-link <?= $isActive('/student/courses') ?>"
                                     data-i18n="nav_student_courses">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -139,7 +139,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 </a>
                             </li>
                             <li>
-                                <a href="/student/ai-chat.php" class="sidebar-link <?= $isActive('/student/ai-chat') ?>"
+                                <a href="/student/ai-chat" class="sidebar-link <?= $isActive('/student/ai-chat') ?>"
                                     data-i18n="nav_student_ai">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -153,7 +153,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 </a>
                             </li>
                             <li>
-                                <a href="/student/chat.php" class="sidebar-link <?= $isActive('/student/chat') ?>"
+                                <a href="/student/chat" class="sidebar-link <?= $isActive('/student/chat') ?>"
                                     data-i18n="nav_student_chat">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -163,7 +163,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 </a>
                             </li>
                             <li>
-                                <a href="/student/certificates.php"
+                                <a href="/student/certificates"
                                     class="sidebar-link <?= $isActive('/student/certificates') ?>"
                                     data-i18n="nav_student_certificates">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -176,7 +176,7 @@ header('Content-Type: text/html; charset=utf-8');
                             </li>
                         <?php elseif ($actor === 'teacher'): ?>
                             <li>
-                                <a href="/teacher/dashboard.php" class="sidebar-link <?= $isActive('/teacher/dashboard') ?>"
+                                <a href="/teacher/dashboard" class="sidebar-link <?= $isActive('/teacher/dashboard') ?>"
                                     data-i18n="nav_teacher_dashboard">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -189,7 +189,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 </a>
                             </li>
                             <li>
-                                <a href="/teacher/dashboard.php#courses-container" class="sidebar-link"
+                                <a href="/teacher/dashboard#courses-container" class="sidebar-link"
                                     data-i18n="nav_teacher_courses">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -200,7 +200,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 </a>
                             </li>
                             <li>
-                                <a href="/teacher/students.php" class="sidebar-link <?= $isActive('/teacher/students') ?>"
+                                <a href="/teacher/students" class="sidebar-link <?= $isActive('/teacher/students') ?>"
                                     data-i18n="nav_teacher_students">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -213,7 +213,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 </a>
                             </li>
                             <li>
-                                <a href="/teacher/chat.php" class="sidebar-link <?= $isActive('/teacher/chat') ?>"
+                                <a href="/teacher/chat" class="sidebar-link <?= $isActive('/teacher/chat') ?>"
                                     data-i18n="nav_teacher_chat">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -224,7 +224,7 @@ header('Content-Type: text/html; charset=utf-8');
                             </li>
                         <?php elseif ($actor === 'admin'): ?>
                             <li>
-                                <a href="/admin/dashboard.php" class="sidebar-link <?= $isActive('/admin/dashboard') ?>"
+                                <a href="/admin/dashboard" class="sidebar-link <?= $isActive('/admin/dashboard') ?>"
                                     data-i18n="nav_admin_dashboard">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -237,7 +237,7 @@ header('Content-Type: text/html; charset=utf-8');
                                 </a>
                             </li>
                             <li>
-                                <a href="/admin/users.php" class="sidebar-link <?= $isActive('/admin/users') ?>"
+                                <a href="/admin/users" class="sidebar-link <?= $isActive('/admin/users') ?>"
                                     data-i18n="nav_admin_users">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -250,8 +250,8 @@ header('Content-Type: text/html; charset=utf-8');
                                 </a>
                             </li>
                         <?php endif; ?>
-                    </ul>
-                </aside>
-                <main class="main-content">
-                <?php endif; ?>
+                        </ul>
+                    </aside>
+                    <main class="main-content">
+                    <?php endif; ?>
             <?php endif; ?>

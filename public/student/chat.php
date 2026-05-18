@@ -122,7 +122,8 @@ require __DIR__ . '/../layouts/header.php';
     });
 
     function connectWS(token) {
-        socket = new WebSocket(`ws://localhost:8080?token=${token}`);
+        const wsHost = window.location.hostname;
+        socket = new WebSocket(`ws://${wsHost}:8080?token=${token}`);
         
         socket.onopen = () => {
             console.log('[WS] Connected');

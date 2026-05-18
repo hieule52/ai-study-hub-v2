@@ -33,7 +33,7 @@ require __DIR__ . '/../layouts/header.php';
                     </div>
                 </div>
 
-                <a href="/teacher/create-course.php" class="btn btn-primary" style="padding: 1rem 2rem; border-radius: 100px;">
+                <a href="/teacher/create-course" class="btn btn-primary" style="padding: 1rem 2rem; border-radius: 100px;">
                     <span data-i18n="tc_dash_btn_create">+ Tạo khóa học mới</span>
                 </a>
             </div>

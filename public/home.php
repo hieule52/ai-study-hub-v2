@@ -32,7 +32,7 @@ require __DIR__ . '/layouts/header.php';
                 gia sư thông minh, hỗ trợ giảng viên thời gian thực và phát triển học thuật bền vững.
             </p>
             <div class="flex gap-6 fade-up justify-center">
-                <a href="javascript:void(0)" onclick="App.checkAuthAndGo('/student/my-courses.php')" class="btn btn-primary" id="hero-primary-btn" data-i18n="home_btn_start"
+                <a href="javascript:void(0)" onclick="App.checkAuthAndGo('/student/courses')" class="btn btn-primary" id="hero-primary-btn" data-i18n="home_btn_start"
                     style="border-radius:100px; padding: 1.15rem 3.2rem; font-weight:600; font-size: 0.95rem; letter-spacing: 0.02em;">Bắt
                     đầu ngay</a>
                 <a href="#courses" class="btn btn-outline" data-i18n="home_btn_explore"
@@ -86,7 +86,7 @@ require __DIR__ . '/layouts/header.php';
                     giải thích các đoạn code phức tạp và hỗ trợ học thuật cá nhân hóa 24/7.
                 </p>
                 <div class="mt-8">
-                    <a href="javascript:void(0)" onclick="App.checkAuthAndGo('/student/ai-chat.php')" class="btn btn-outline"
+                    <a href="javascript:void(0)" onclick="App.checkAuthAndGo('/student/ai-chat')" class="btn btn-outline"
                         style="border-radius: 100px; padding: 0.9rem 2.5rem; font-weight: 500; border-color: rgba(255,255,255,0.12);"
                         data-i18n="nav_student_ai">Gia sư AI</a>
                 </div>
@@ -134,7 +134,7 @@ require __DIR__ . '/layouts/header.php';
                     </div>
                     <div id="guest-stats-overlay" class="guest-tip-overlay"
                         style="display:none; background: rgba(11, 15, 26, 0.6); backdrop-filter: blur(8px); border-radius: 28px;">
-                        <a href="/register.php" class="btn btn-primary btn-sm" style="border-radius:100px;"
+                        <a href="/register" class="btn btn-primary btn-sm" style="border-radius:100px;"
                             data-i18n="home_student_guest_tip">Đăng ký để theo dõi tiến độ</a>
                     </div>
                 </div>
@@ -174,7 +174,7 @@ require __DIR__ . '/layouts/header.php';
                         <h3 id="cert-course-title" style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--accent); font-weight: 800; line-height: 1.2;">Mastering Cinematic UI Design</h3>
                         
                         <div id="cert-multi-indicator" style="display:none; margin-top: 2rem;">
-                            <a href="/student/certificates.php" class="btn btn-outline" style="border-radius: 100px; font-size: 0.8rem; padding: 0.5rem 1.5rem; border-color: rgba(255,255,255,0.1);">
+                            <a href="/student/certificates" class="btn btn-outline" style="border-radius: 100px; font-size: 0.8rem; padding: 0.5rem 1.5rem; border-color: rgba(255,255,255,0.1);">
                                 <span data-i18n="cert_view_more">Xem các chứng chỉ khác</span> (<span id="cert-remaining-count">0</span>)
                             </a>
                         </div>
@@ -196,7 +196,7 @@ require __DIR__ . '/layouts/header.php';
                         <div style="font-size: 4rem; margin-bottom: 2rem; opacity: 0.2;">📜</div>
                         <h3 style="font-family: var(--font-heading); font-size: 2rem; color: #fff; margin-bottom: 1rem;" data-i18n="home_cert_empty_title">Chứng chỉ đầu tiên đang chờ bạn</h3>
                         <p style="max-width: 400px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-bottom: 2.5rem;" data-i18n="home_cert_empty_text">Hoàn thành 100% khóa học để ghi nhận thành tựu và nhận chứng chỉ chính thức từ AI Study Hub.</p>
-                        <a href="/student/my-courses.php" class="btn btn-primary" style="border-radius: 100px; padding: 0.8rem 2.5rem;" data-i18n="nav_my_courses">Vào khóa học của tôi</a>
+                        <a href="/student/courses" class="btn btn-primary" style="border-radius: 100px; padding: 0.8rem 2.5rem;" data-i18n="nav_my_courses">Vào khóa học của tôi</a>
                     </div>
                 </div>
                 <div id="guest-cert-overlay" class="guest-tip-overlay"
@@ -208,7 +208,7 @@ require __DIR__ . '/layouts/header.php';
                                 style="font-weight: 700; color: #fff; letter-spacing: 0.02em;">Hoàn thành khóa học để
                                 nhận chứng chỉ</span>
                         </div>
-                        <a href="/login.php" class="btn btn-primary"
+                        <a href="/login" class="btn btn-primary"
                             style="border-radius:100px; padding: 0.8rem 2.5rem;">Đăng nhập ngay</a>
                     </div>
                 </div>
@@ -223,7 +223,7 @@ require __DIR__ . '/layouts/header.php';
             <h2 class="editorial-title fade-up" data-i18n="home_cta_title" style="text-align: center;">Bắt đầu hành
                 trình học tập <br>thông minh <em>ngay hôm nay.</em></h2>
             <div class="mt-12 fade-up">
-                <a href="/register.php" class="btn btn-primary" id="final-cta-btn" data-i18n="home_cta_btn"
+                <a href="/register" class="btn btn-primary" id="final-cta-btn" data-i18n="home_cta_btn"
                     style="border-radius:100px; padding: 1.2rem 4rem; font-size: 1rem; font-weight: 600; letter-spacing: 0.01em;">Tham
                     gia miễn phí</a>
             </div>
@@ -243,7 +243,7 @@ require __DIR__ . '/layouts/header.php';
 
     window.enrollAndLearn = async function (courseId) {
         try { await window.api.post(`/courses/${courseId}/enroll`, {}); } catch (e) { }
-        window.location.href = `/student/learning.php?course_id=${courseId}`;
+        window.location.href = `/student/learning/${courseId}`;
     };
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -252,9 +252,9 @@ require __DIR__ . '/layouts/header.php';
 
         // Tự động chuyển hướng về Dashboard tương ứng nếu đã đăng nhập
         if (token && user) {
-            let dashboardUrl = '/student/dashboard.php';
-            if (user.role === 'teacher') dashboardUrl = '/teacher/dashboard.php';
-            else if (user.role === 'admin') dashboardUrl = '/admin/dashboard.php';
+            let dashboardUrl = '/student/dashboard';
+            if (user.role === 'teacher') dashboardUrl = '/teacher/dashboard';
+            else if (user.role === 'admin') dashboardUrl = '/admin/dashboard';
             
             window.location.href = dashboardUrl;
             return;
@@ -270,15 +270,15 @@ require __DIR__ . '/layouts/header.php';
             document.getElementById('guest-stats-overlay').style.display = 'flex';
         } else {
             const user = window.api.getUser();
-            let dashboardUrl = '/student/dashboard.php';
+            let dashboardUrl = '/student/dashboard';
             let dashboardTextKey = 'nav_student_dashboard';
 
             if (user.role === 'teacher') {
-                dashboardUrl = '/teacher/dashboard.php';
+                dashboardUrl = '/teacher/dashboard';
                 dashboardTextKey = 'tc_dash_title';
             } else if (user.role === 'admin') {
-                dashboardUrl = '/admin/dashboard.php';
-                dashboardTextKey = 'nav_admin_dashboard'; // Giả sử có key này
+                dashboardUrl = '/admin/dashboard';
+                dashboardTextKey = 'nav_admin_dashboard';
             }
 
             const dashboardText = (window.I18n && I18n.get(dashboardTextKey)) || 'Vào bảng điều khiển';
@@ -360,12 +360,12 @@ require __DIR__ . '/layouts/header.php';
                     if (enrolled) {
                         btn = `<button onclick="window.enrollAndLearn(${c.id})" class="btn btn-outline" style="width:100%; border-radius:100px; font-weight:500; font-size: 0.85rem;" data-i18n="std_btn_continue">Tiếp tục học</button>`;
                     } else if (isPremium) {
-                        const link = !isGuest ? `/student/course-payment.php?course_id=${c.id}&price=${c.price}` : '/login.php';
+                        const link = !isGuest ? `/student/payment/${c.id}` : '/login';
                         btn = `<button onclick="window.location.href='${link}'" class="btn btn-primary" style="width:100%; border-radius:100px; font-weight:600; font-size: 0.85rem;" data-i18n="home_btn_buy">Mua khóa học</button>`;
                     } else {
                         btn = !isGuest
                             ? `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width:100%; border-radius:100px; font-weight:600; font-size: 0.85rem;" data-i18n="std_btn_free">Ghi danh miễn phí</button>`
-                            : `<button onclick="window.location.href='/login.php'" class="btn btn-outline" style="width:100%; border-radius:100px; font-weight:500; font-size: 0.85rem;" data-i18n="home_btn_login_learn">Đăng nhập để học</button>`;
+                            : `<button onclick="window.location.href='/login'" class="btn btn-outline" style="width:100%; border-radius:100px; font-weight:500; font-size: 0.85rem;" data-i18n="home_btn_login_learn">Đăng nhập để học</button>`;
                     }
 
                     const price = c.price > 0
@@ -375,12 +375,12 @@ require __DIR__ . '/layouts/header.php';
                     return `
                     <div class="${isLarge ? 'course-card-large' : 'course-card-small'} fade-up">
                         <div class="card" style="display:flex; flex-direction:column; border-radius: 24px; overflow: hidden; transition: all 0.6s cubic-bezier(0.16,1,0.3,1);">
-                            <div style="cursor:pointer; position:relative; aspect-ratio: 16/9; background: rgba(255,255,255,0.02); overflow: hidden;" onclick="window.location.href='/course-detail.php?id=${c.id}'">
+                            <div style="cursor:pointer; position:relative; aspect-ratio: 16/9; background: rgba(255,255,255,0.02); overflow: hidden;" onclick="window.location.href='/course/${c.id}'">
                                 ${c.thumbnail ? `<img src="${c.thumbnail}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">` : '<span style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:2.5rem; opacity:0.15;">📚</span>'}
                                 ${isPremium ? '<span class="badge badge-premium" style="position:absolute; top:20px; right:20px; z-index:2; padding: 0.4rem 1rem; border-radius: 100px; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;">PREMIUM</span>' : ''}
                             </div>
                             <div class="card-body" style="flex:1; display:flex; flex-direction:column; padding: 2rem 2.5rem 2.5rem;">
-                                <h3 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 0.75rem; cursor:pointer; line-height:1.2; color: #fff;" onclick="window.location.href='/course-detail.php?id=${c.id}'">${c.title}</h3>
+                                <h3 style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 0.75rem; cursor:pointer; line-height:1.2; color: #fff;" onclick="window.location.href='/course/${c.id}'">${c.title}</h3>
                                 <p style="font-size: 0.85rem; color: rgba(248,250,252,0.35); line-height:1.7; margin-bottom: 1.5rem;">${c.description ? c.description.substring(0, 120) + '...' : 'Chưa có mô tả cho khóa học này.'}</p>
                                 <div style="margin-top: auto;">
                                     <div style="margin-bottom: 1.25rem;">${price}</div>

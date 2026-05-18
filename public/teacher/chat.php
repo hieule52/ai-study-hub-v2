@@ -90,7 +90,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const token = window.api.getToken();
     if (token) {
-        socket = new WebSocket(`ws://localhost:8080?token=${token}`);
+        const wsHost = window.location.hostname;
+        socket = new WebSocket(`ws://${wsHost}:8080?token=${token}`);
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);

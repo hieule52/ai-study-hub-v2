@@ -9,19 +9,19 @@ require __DIR__ . '/../layouts/header.php';
 <div class="teacher-layout">
     <!-- Sidebar -->
     <aside class="teacher-sidebar">
-        <a href="/teacher/dashboard.php" class="sidebar-nav-item">
+        <a href="/teacher/dashboard" class="sidebar-nav-item">
             <i class="fas fa-th-large"></i>
             <span data-i18n="tc_dash_title">Bảng điều khiển</span>
         </a>
-        <a href="/teacher/dashboard.php#courses-section" class="sidebar-nav-item">
+        <a href="/teacher/dashboard#courses-section" class="sidebar-nav-item">
             <i class="fas fa-book"></i>
             <span data-i18n="tc_dash_list_title">Khóa học của tôi</span>
         </a>
-        <a href="/teacher/students.php" class="sidebar-nav-item">
+        <a href="/teacher/students" class="sidebar-nav-item">
             <i class="fas fa-user-graduate"></i>
             <span data-i18n="nav_teacher_students">Học viên</span>
         </a>
-        <a href="/teacher/chat.php" class="sidebar-nav-item">
+        <a href="/teacher/chat" class="sidebar-nav-item">
             <i class="fas fa-comments"></i>
             <span data-i18n="nav_teacher_chat">Tin nhắn</span>
         </a>
@@ -127,7 +127,7 @@ require __DIR__ . '/../layouts/header.php';
                     <button type="submit" class="btn btn-primary" id="submitBtn" style="padding: 1rem 2.5rem; border-radius: 100px;">
                         Tiếp theo: Xây dựng nội dung
                     </button>
-                    <a href="/teacher/dashboard.php" class="btn btn-ghost" style="padding: 1rem 2rem;">Hủy bỏ</a>
+                    <a href="/teacher/dashboard" class="btn btn-ghost" style="padding: 1rem 2rem;">Hủy bỏ</a>
                 </div>
             </form>
         </div>
@@ -237,13 +237,13 @@ async function handleSubmit(e) {
             await window.api.put(`/teacher/courses/${courseId}`, payload);
             App.showToast('Đã cập nhật khóa học!', 'success');
             setTimeout(() => {
-                window.location.href = '/teacher/dashboard.php';
+                window.location.href = '/teacher/dashboard';
             }, 1000);
         } else {
             const res = await window.api.post('/courses', payload);
             App.showToast('Khóa học đã được tạo!', 'success');
             setTimeout(() => {
-                window.location.href = `/teacher/course-builder.php?course_id=${res.data.id}`;
+                window.location.href = `/teacher/course-builder/${res.data.id}`;
             }, 1000);
         }
     } catch(err) {

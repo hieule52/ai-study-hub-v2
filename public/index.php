@@ -23,21 +23,67 @@ if (php_sapi_name() === 'cli-server' && is_file(__DIR__ . $uriPath)) {
     return false;
 }
 
-// Nếu người dùng truy cập trang gốc '/', tự động đọc file giao diện HTML
-if ($uriPath === '/' || $uriPath === '') {
-    header('Content-Type: text/html; charset=utf-8');
-    require __DIR__ . '/home.php';
-    exit;
-}
+// Chuẩn hóa path
+$path = rtrim($uriPath, '/');
+if ($path === '') $path = '/';
 
+// ============================================================
+// STATIC ROUTE MAP — clean URL → file PHP
+// ============================================================
+$staticRoutes = [
+    '/'                     => 'home.php',
+    '/login'                => 'login.php',
+    '/register'             => 'register.php',
+    '/logout'               => 'logout.php',
+    '/forgot-password'      => 'forgot-password.php',
+    '/about'                => 'about.php',
+    '/courses'              => 'courses.php',
+    '/profile'              => 'profile.php',
+    '/certificate/verify'   => 'certificate/verify.php',
+    // Student
+    '/student/dashboard'    => 'student/dashboard.php',
+    '/student/courses'      => 'student/my-courses.php',
+    '/student/ai-chat'      => 'student/ai-chat.php',
+    '/student/chat'         => 'student/chat.php',
+    '/student/certificates' => 'student/certificates.php',
+    // Teacher
+    '/teacher/dashboard'    => 'teacher/dashboard.php',
+    '/teacher/courses'      => 'teacher/courses.php',
+    '/teacher/create-course' => 'teacher/create-course.php',
+    '/teacher/course-builder' => 'teacher/course-builder.php',
+    '/teacher/students'     => 'teacher/students.php',
+    '/teacher/chat'         => 'teacher/chat.php',
+    // Admin
+    '/admin/dashboard'      => 'admin/dashboard.php',
+    '/admin/users'          => 'admin/users.php',
+    '/admin/courses'        => 'admin/courses.php',
+    '/admin/logs'           => 'admin/logs.php',
+    '/admin/vip'            => 'admin/vip.php',
+    '/admin/preview'        => 'admin/preview-course.php',
+];
 
-// Nếu URL không bắt đầu bằng /api/, thử tìm file .php tương ứng và include nó
-if (strpos($uriPath, '/api/') !== 0) {
-    // Xử lý trường hợp URL bị thừa dấu gạch chéo cuối
-    $path = rtrim($uriPath, '/');
+// ============================================================
+// DYNAMIC ROUTE MAP — regex → [file, param names]
+// ============================================================
+$dynamicRoutes = [
+    // /course/8  or  /course/lap-trinh-python
+    '#^/course/([^/]+)$#'                   => ['file' => 'course-detail.php',          'params' => ['id']],
+    // /student/learning/8
+    '#^/student/learning/([0-9]+)$#'        => ['file' => 'student/learning.php',       'params' => ['course_id']],
+    // /student/payment/8
+    '#^/student/payment/([0-9]+)$#'         => ['file' => 'student/course-payment.php', 'params' => ['course_id']],
+    // /teacher/course-builder/8
+    '#^/teacher/course-builder/([0-9]+)$#'  => ['file' => 'teacher/course-builder.php', 'params' => ['course_id']],
+    // /admin/preview/8
+    '#^/admin/preview/([0-9]+)$#'           => ['file' => 'admin/preview-course.php',   'params' => ['id']],
+];
+
+// ============================================================
+// BACKWARD COMPAT: serve legacy .php paths directly
+// (so old bookmarks / hardcoded links still work)
+// ============================================================
+if (!in_array($path, array_keys($staticRoutes)) && strpos($path, '/api/') !== 0) {
     $phpFile = __DIR__ . $path . '.php';
-
-    // Nếu tệp vật lý có đuôi .php tồn tại, include nó
     if (file_exists($phpFile)) {
         header('Content-Type: text/html; charset=utf-8');
         require $phpFile;
@@ -45,12 +91,45 @@ if (strpos($uriPath, '/api/') !== 0) {
     }
 }
 
-// Khởi tạo Core objects cho Backend API
-$request = new Request();
-$response = new Response();
-$router = new Router();
+// ── Try static routes ────────────────────────────────────────
+if (isset($staticRoutes[$path]) && strpos($path, '/api/') !== 0) {
+    $target = __DIR__ . '/' . $staticRoutes[$path];
+    if (file_exists($target)) {
+        header('Content-Type: text/html; charset=utf-8');
+        require $target;
+        exit;
+    }
+}
 
-// Nạp các khai báo routes từ api.php
+// ── Try dynamic routes ───────────────────────────────────────
+if (strpos($path, '/api/') !== 0) {
+    foreach ($dynamicRoutes as $pattern => $config) {
+        if (preg_match($pattern, $path, $matches)) {
+            // Inject matched params into $_GET so JS can read them via PHP-injected JS vars
+            foreach ($config['params'] as $i => $paramName) {
+                if (isset($matches[$i + 1])) {
+                    $_GET[$paramName] = $matches[$i + 1];
+                }
+            }
+            $target = __DIR__ . '/' . $config['file'];
+            if (file_exists($target)) {
+                header('Content-Type: text/html; charset=utf-8');
+                // Expose route params as a PHP global for pages to use
+                $GLOBALS['_ROUTE_PARAMS'] = $_GET;
+                require $target;
+                exit;
+            }
+        }
+    }
+}
+
+// ============================================================
+// API ROUTES — handled by core Router
+// ============================================================
+$request  = new Request();
+$response = new Response();
+$router   = new Router();
+
 $apiRoutesPath = __DIR__ . '/../routes/api.php';
 if (file_exists($apiRoutesPath)) {
     require_once $apiRoutesPath;
@@ -58,8 +137,5 @@ if (file_exists($apiRoutesPath)) {
     $response->error('Missing api routes configuration', 500);
 }
 
-// Ghi log request để debug (có thể xóa sau)
 error_log("API Request: " . $_SERVER['REQUEST_METHOD'] . " " . $uriPath);
-
-// Điều hướng request
 $router->dispatch($request, $response);

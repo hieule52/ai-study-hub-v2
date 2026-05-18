@@ -117,7 +117,7 @@ require __DIR__ . '/../layouts/header.php';
                 <p class="admin-page-subtitle">Bạn đang xem nội dung với quyền Quản trị viên</p>
             </div>
             <div class="admin-topbar-right">
-                <a href="/admin/courses.php" class="admin-btn admin-btn-ghost">
+                <a href="/admin/courses" class="admin-btn admin-btn-ghost">
                     <i class="fas fa-arrow-left"></i> Quay lại Danh sách
                 </a>
             </div>
@@ -258,7 +258,8 @@ require __DIR__ . '/../layouts/header.php';
         });
 
         const urlParams = new URLSearchParams(window.location.search);
-        const courseId = urlParams.get('course_id');
+        // Support clean URL (/admin/preview/8) and legacy (?course_id=8)
+        const courseId = <?= json_encode($_GET['id'] ?? $_GET['course_id'] ?? null) ?> ?? urlParams.get('course_id');
         if (!courseId) {
             App.showToast('Không tìm thấy ID khóa học', 'error');
             return;
@@ -496,7 +497,7 @@ require __DIR__ . '/../layouts/header.php';
                 try {
                     await window.api.put(`/admin/courses/${id}/approve`);
                     App.showToast('Khóa học đã được duyệt thành công', 'success');
-                    setTimeout(() => window.location.href = '/admin/courses.php', 1000);
+                    setTimeout(() => window.location.href = '/admin/courses', 1000);
                 } catch (e) { App.showToast(e.message, 'error'); }
             }
         });
@@ -515,7 +516,7 @@ require __DIR__ . '/../layouts/header.php';
                 try {
                     await window.api.put(`/admin/courses/${id}/reject`);
                     App.showToast('Khóa học đã chuyển về trạng thái Bản nháp', 'success');
-                    setTimeout(() => window.location.href = '/admin/courses.php', 1000);
+                    setTimeout(() => window.location.href = '/admin/courses', 1000);
                 } catch (e) { App.showToast(e.message, 'error'); }
             }
         });

@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: aistudyhub_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: aistudyhublms
+      MYSQL_ROOT_PASSWORD: "123456" # Khớp với mật khẩu DB của bạn trong .env
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      # Tự động import database schema và dữ liệu ban đầu khi DB được khởi tạo lần đầu tiên
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - aistudyhub_net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aistudyhub_web
+    restart: always
+    ports:
+      - "8000:80" # Map cổng 8000 của máy chủ vào cổng 80 của Container
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db # Ghi đè DB_HOST từ localhost thành tên service db trong Docker Network
+      DB_NAME: aistudyhublms
+      DB_USER: root
+      DB_PASS: "123456"
+    volumes:
+      # Mount thư mục lưu trữ và upload để dữ liệu học viên tải lên không bị mất khi restart container
+      - ./storage:/var/www/html/storage
+      - ./public/uploads:/var/www/html/public/uploads
+    depends_on:
+      - db
+    networks:
+      - aistudyhub_net
+
+  websocket:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aistudyhub_websocket
+    command: php server.php
+    restart: always
+    ports:
+      - "8080:8080" # Map cổng WebSocket của Real-time Server
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db # Ghi đè DB_HOST thành db
+      DB_NAME: aistudyhublms
+      DB_USER: root
+      DB_PASS: "123456"
+      WS_PORT: 8080
+    depends_on:
+      - db
+      - web
+    networks:
+      - aistudyhub_net
+
+volumes:
+  db_data:
+
+networks:
+  aistudyhub_net:
+    driver: bridge

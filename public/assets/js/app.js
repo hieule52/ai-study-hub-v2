@@ -62,9 +62,9 @@ const App = {
 
     requireAuth(allowedRoles = []) {
         const user = window.api.getUser();
-        if (!user) { window.location.href = '/login.php'; return; }
+        if (!user) { window.location.href = '/login'; return; }
         if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-            const dashboards = { 'admin': '/admin/dashboard.php', 'teacher': '/teacher/dashboard.php', 'student': '/student/dashboard.php' };
+            const dashboards = { 'admin': '/admin/dashboard', 'teacher': '/teacher/dashboard', 'student': '/student/dashboard' };
             window.location.replace(dashboards[user.role] || '/');
             return null;
         }
@@ -105,8 +105,8 @@ const App = {
             this.renderOffcanvasSidebar(user);
         } else {
             userMenu.innerHTML = langToggleBtn + `
-                <a href="/login.php" class="nav-link" style="font-size: 0.85rem; font-weight: 600; margin-right: 0.5rem;">${loginText}</a>
-                <a href="/register.php" class="btn btn-primary" style="border-radius: 100px; padding: 0.6rem 1.5rem; font-size: 0.8rem;">${startText}</a>
+                <a href="/login" class="nav-link" style="font-size: 0.85rem; font-weight: 600; margin-right: 0.5rem;">${loginText}</a>
+                <a href="/register" class="btn btn-primary" style="border-radius: 100px; padding: 0.6rem 1.5rem; font-size: 0.8rem;">${startText}</a>
             `;
         }
     },
@@ -153,16 +153,16 @@ const App = {
 
         const lang = localStorage.getItem('lang') || 'vi';
         const items = user.role === 'admin' ? [
-            { icon: '⚙️', text: lang==='en'?'Admin Dashboard':'Bảng điều khiển Admin', link: '/admin/dashboard.php' },
-            { icon: '👥', text: lang==='en'?'Manage Users':'Quản lý Người dùng', link: '/admin/users.php' }
+            { icon: '⚙️', text: lang==='en'?'Admin Dashboard':'Bảng điều khiển Admin', link: '/admin/dashboard' },
+            { icon: '👥', text: lang==='en'?'Manage Users':'Quản lý Người dùng', link: '/admin/users' }
         ] : user.role === 'teacher' ? [
-            { icon: '🧑‍🏫', text: lang==='en'?'Teacher Dashboard':'Bảng điều khiển Giảng viên', link: '/teacher/dashboard.php' },
-            { icon: '📚', text: lang==='en'?'Course Manager':'Quản lý Khóa học', link: '/teacher/dashboard.php#courses-container' }
+            { icon: '🧑‍🏫', text: lang==='en'?'Teacher Dashboard':'Bảng điều khiển Giảng viên', link: '/teacher/dashboard' },
+            { icon: '📚', text: lang==='en'?'Course Manager':'Quản lý Khóa học', link: '/teacher/dashboard#courses-container' }
         ] : [
-            { icon: '📊', text: lang==='en'?'My Learning':'Tổng quan học tập', link: '/student/dashboard.php' },
-            { icon: '📚', text: lang==='en'?'My Courses':'Khóa học của tôi', link: '/student/my-courses.php' },
-            { icon: '🎓', text: lang==='en'?'Certificates':'Chứng chỉ của tôi', link: '/student/certificates.php' },
-            { icon: '🤖', text: lang==='en'?'AI Tutor':'Gia sư AI', link: '/student/ai-chat.php' }
+            { icon: '📊', text: lang==='en'?'My Learning':'Tổng quan học tập', link: '/student/dashboard' },
+            { icon: '📚', text: lang==='en'?'My Courses':'Khóa học của tôi', link: '/student/courses' },
+            { icon: '🎓', text: lang==='en'?'Certificates':'Chứng chỉ của tôi', link: '/student/certificates' },
+            { icon: '🤖', text: lang==='en'?'AI Tutor':'Gia sư AI', link: '/student/ai-chat' }
         ];
 
         sidebar.innerHTML = `
@@ -173,7 +173,7 @@ const App = {
                 </div>
             </div>
             <ul class="offcanvas-nav">
-                <li><a href="/profile.php">👤 ${lang==='en'?'My Profile':'Hồ sơ cá nhân'}</a></li>
+                <li><a href="/profile">👤 ${lang==='en'?'My Profile':'Hồ sơ cá nhân'}</a></li>
                 ${items.map(i => `<li><a href="${i.link}">${i.icon} ${i.text}</a></li>`).join('')}
                 <li><a href="/">🏠 ${lang==='en'?'Back to Home':'Trang chủ'}</a></li>
             </ul>
@@ -186,7 +186,7 @@ const App = {
 
     logout() {
         window.api.clearSession();
-        window.location.href = '/login.php';
+        window.location.href = '/login';
     },
 
     /**
@@ -199,7 +199,7 @@ const App = {
         } else {
             this.showToast(message, 'info');
             setTimeout(() => {
-                window.location.href = '/login.php';
+                window.location.href = '/login';
             }, 1200);
         }
     },
@@ -254,7 +254,7 @@ const App = {
             // Custom click logic for chat
             let clickAttr = '';
             if (item.type === 'chat' && item.data && item.data.sender_id) {
-                const url = window.api.getUser().role === 'teacher' ? '/teacher/chat.php' : '/student/chat.php';
+                const url = window.api.getUser().role === 'teacher' ? '/teacher/chat' : '/student/chat';
                 clickAttr = `onclick="window.location.href='${url}?user_id=${item.data.sender_id}'"`;
             }
 

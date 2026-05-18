@@ -150,7 +150,8 @@ require __DIR__ . '/layouts/header.php';
 <?php ob_start(); ?>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
-    const courseId = new URLSearchParams(window.location.search).get('id');
+    // Support both clean URL (/course/8) and legacy (?id=8)
+    const courseId = <?= json_encode($_GET['id'] ?? null) ?> ?? new URLSearchParams(window.location.search).get('id');
     if (!courseId) { document.getElementById('cd_title').innerText = 'Không tìm thấy khóa học'; return; }
 
     try {
@@ -182,18 +183,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const isPremium  = course.is_premium == 1 || course.price > 0;
         let btnHtml = '';
         if (isEnrolled) {
-            btnHtml = `<button onclick="window.location.href='/student/learning.php?course_id=${course.id}'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">▶ Tiếp tục học</button>`;
+            btnHtml = `<button onclick="window.location.href='/student/learning/${course.id}'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">▶ Tiếp tục học</button>`;
         } else if (isPremium) {
             if (window.api.getToken()) {
-                btnHtml = `<button onclick="window.location.href='/student/course-payment.php?course_id=${course.id}&price=${course.price}'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">💳 Mua khóa học</button>`;
+                btnHtml = `<button onclick="window.location.href='/student/payment/${course.id}?price=${course.price}'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">💳 Mua khóa học</button>`;
             } else {
-                btnHtml = `<button onclick="window.location.href='/login.php'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">Đăng nhập để Mua</button>`;
+                btnHtml = `<button onclick="window.location.href='/login'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">Đăng nhập để Mua</button>`;
             }
         } else {
             if (window.api.getToken()) {
                 btnHtml = `<button onclick="enrollAndLearn(${course.id})" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">🚀 Đăng ký miễn phí</button>`;
             } else {
-                btnHtml = `<button onclick="window.location.href='/login.php'" class="btn btn-outline" style="width:100%;padding:0.9rem;border-radius:100px;">Đăng nhập để Học</button>`;
+                btnHtml = `<button onclick="window.location.href='/login'" class="btn btn-outline" style="width:100%;padding:0.9rem;border-radius:100px;">Đăng nhập để Học</button>`;
             }
         }
         document.getElementById('cd_actions').innerHTML = btnHtml;
@@ -222,7 +223,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 window.enrollAndLearn = async function(id) {
     try { await window.api.post(`/courses/${id}/enroll`, {}); } catch(e) {}
-    window.location.href = `/student/learning.php?course_id=${id}`;
+    window.location.href = `/student/learning/${id}`;
 };
 </script>
 <?php

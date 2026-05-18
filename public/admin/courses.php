@@ -172,7 +172,7 @@ async function loadPendingCourses() {
                 <tr id="course-row-${c.id}">
                     <td>
                         <div style="font-weight:600; color:#fff;">${c.title}</div>
-                        <a href="/admin/preview-course.php?course_id=${c.id}" target="_blank"
+                        <a href="/admin/preview/${c.id}" target="_blank"
                            style="font-size:0.75rem; color:#818cf8; text-decoration:none; margin-top:4px; display:inline-block;">
                             <i class="fas fa-external-link-alt"></i> Xem trước
                         </a>

@@ -18,7 +18,7 @@ require __DIR__ . '/../layouts/header.php';
             Theo dõi và tiếp tục hành trình chinh phục tri thức của bạn
         </p>
     </div>
-    <a href="/courses.php" class="btn btn-primary course-page-btn" data-i18n="home_btn_explore">✨ Khám phá thêm</a>
+    <a href="/courses" class="btn btn-primary course-page-btn" data-i18n="home_btn_explore">✨ Khám phá thêm</a>
 </div>
 
 <!-- ── Stats Pills ── -->
@@ -77,7 +77,7 @@ require __DIR__ . '/../layouts/header.php';
                         <div class="empty-state-emoji">📭</div>
                         <h2 class="empty-state-title" data-i18n="std_no_enrolled">Hành trình chưa bắt đầu</h2>
                         <p class="text-secondary mb-8" style="font-size: 1.1rem; opacity: 0.7;" data-i18n="std_no_enrolled_msg">Bạn chưa tham gia khóa học nào. Hãy để AI Study Hub giúp bạn tìm thấy đam mê mới!</p>
-                        <a href="/courses.php" class="btn btn-primary course-page-btn" data-i18n="std_explore_new">✨ Khám phá khóa học ngay</a>
+                        <a href="/courses" class="btn btn-primary course-page-btn" data-i18n="std_explore_new">✨ Khám phá khóa học ngay</a>
                     </div>`;
             } else {
                 courses.forEach(c => {
@@ -89,7 +89,7 @@ require __DIR__ . '/../layouts/header.php';
                     let certBtn = '';
                     if (isDone) {
                         certBtn = hasCert
-                            ? `<a href="/student/certificates.php" class="btn btn-outline" style="width:100%;border-radius:100px;font-size:0.85rem;color:var(--success);border-color:rgba(16,185,129,0.3);">🎓 Xem Chứng Chỉ</a>`
+                            ? `<a href="/student/certificates" class="btn btn-outline" style="width:100%;border-radius:100px;font-size:0.85rem;color:var(--success);border-color:rgba(16,185,129,0.3);">🎓 Xem Chứng Chỉ</a>`
                             : `<button onclick="claimCert(${c.id})" class="btn" style="width:100%;border-radius:100px;font-size:0.85rem;background:rgba(251,191,36,0.1);color:var(--warning);border:1px solid rgba(251,191,36,0.25);">🏆 Nhận Chứng Chỉ</button>`;
                     }
 
@@ -119,7 +119,7 @@ require __DIR__ . '/../layouts/header.php';
                                 <div class="progress-fill ${isDone?'done':''}" style="width:${prog}%;"></div>
                             </div>
                             <div style="display:flex;flex-direction:column;gap:0.75rem;">
-                                <a href="/student/learning.php?course_id=${c.id}" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.85rem;padding:0.75rem; font-weight:700;" data-i18n="${prog>0?'std_btn_continue':'std_btn_start'}">${prog>0?'Tiếp tục học':'Vào học ngay'}</a>
+                                <a href="/student/learning/${c.id}" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.85rem;padding:0.75rem; font-weight:700;" data-i18n="${prog>0?'std_btn_continue':'std_btn_start'}">${prog>0?'Tiếp tục học':'Vào học ngay'}</a>
                                 ${certBtn}
                             </div>
                         </div>`;

@@ -14,19 +14,19 @@ require __DIR__ . '/../layouts/header.php';
 <div class="teacher-layout">
     <!-- Sidebar (Teacher Navigation) -->
     <aside class="teacher-sidebar">
-        <a href="/teacher/dashboard.php" class="sidebar-nav-item">
+        <a href="/teacher/dashboard" class="sidebar-nav-item">
             <i class="fas fa-th-large"></i>
             <span data-i18n="tc_dash_title">Bảng điều khiển</span>
         </a>
-        <a href="/teacher/dashboard.php#courses-section" class="sidebar-nav-item active">
+        <a href="/teacher/dashboard#courses-section" class="sidebar-nav-item active">
             <i class="fas fa-book"></i>
             <span data-i18n="tc_dash_list_title">Khóa học của tôi</span>
         </a>
-        <a href="/teacher/students.php" class="sidebar-nav-item">
+        <a href="/teacher/students" class="sidebar-nav-item">
             <i class="fas fa-user-graduate"></i>
             <span data-i18n="nav_teacher_students">Học viên</span>
         </a>
-        <a href="/teacher/chat.php" class="sidebar-nav-item">
+        <a href="/teacher/chat" class="sidebar-nav-item">
             <i class="fas fa-comments"></i>
             <span data-i18n="nav_teacher_chat">Tin nhắn</span>
         </a>
@@ -256,7 +256,8 @@ require __DIR__ . '/../layouts/header.php';
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 <script>
-let courseId = new URLSearchParams(window.location.search).get('course_id');
+// Support clean URL (/teacher/course-builder/8) and legacy (?course_id=8)
+let courseId = <?= json_encode($_GET['course_id'] ?? null) ?> ?? new URLSearchParams(window.location.search).get('course_id');
 let currentCurriculum = [];
 let quill;
 
@@ -276,7 +277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     if (!courseId) {
-        window.location.href = '/teacher/dashboard.php';
+        window.location.href = '/teacher/dashboard';
         return;
     }
 
