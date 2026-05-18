@@ -90,25 +90,44 @@ class LessonRepository
 
     public function create(array $data): ?array
     {
-        $sql = "INSERT INTO lessons (chapter_id, title, content_type, video_url, video_filename, video_size, duration, content, objectives, ai_summary, video_transcript, lesson_context, key_topics, order_index, is_free) 
-                VALUES (:chapter_id, :title, :content_type, :video_url, :video_filename, :video_size, :duration, :content, :objectives, :ai_summary, :video_transcript, :lesson_context, :key_topics, :order_index, :is_free)";
+        $sql = "INSERT INTO lessons (
+                    chapter_id, title, content_type, lesson_type, video_url, 
+                    video_filename, video_path, video_thumbnail, video_size, 
+                    duration, video_duration, content, objectives, ai_summary, 
+                    video_transcript, lesson_context, key_topics, lesson_keywords, 
+                    order_index, is_free, secure_token, storage_driver
+                ) 
+                VALUES (
+                    :chapter_id, :title, :content_type, :lesson_type, :video_url, 
+                    :video_filename, :video_path, :video_thumbnail, :video_size, 
+                    :duration, :video_duration, :content, :objectives, :ai_summary, 
+                    :video_transcript, :lesson_context, :key_topics, :lesson_keywords, 
+                    :order_index, :is_free, :secure_token, :storage_driver
+                )";
         $stmt = $this->db->prepare($sql);
         $success = $stmt->execute([
             'chapter_id' => $data['chapter_id'],
             'title' => $data['title'],
             'content_type' => $data['content_type'] ?? 'video',
+            'lesson_type' => $data['lesson_type'] ?? ($data['content_type'] ?? 'video'),
             'video_url' => $data['video_url'] ?? '',
             'video_filename' => $data['video_filename'] ?? null,
+            'video_path' => $data['video_path'] ?? null,
+            'video_thumbnail' => $data['video_thumbnail'] ?? null,
             'video_size' => $data['video_size'] ?? 0,
             'duration' => $data['duration'] ?? 0,
+            'video_duration' => $data['video_duration'] ?? ($data['duration'] ?? 0),
             'content' => $data['content'] ?? '',
             'objectives' => $data['objectives'] ?? null,
             'ai_summary' => $data['ai_summary'] ?? null,
             'video_transcript' => $data['video_transcript'] ?? null,
             'lesson_context' => $data['lesson_context'] ?? null,
             'key_topics' => $data['key_topics'] ?? null,
+            'lesson_keywords' => $data['lesson_keywords'] ?? ($data['key_topics'] ?? null),
             'order_index' => $data['order_index'] ?? 0,
-            'is_free' => $data['is_free'] ?? 0
+            'is_free' => $data['is_free'] ?? 0,
+            'secure_token' => $data['secure_token'] ?? null,
+            'storage_driver' => $data['storage_driver'] ?? 'local'
         ]);
 
         if ($success) {
@@ -119,33 +138,56 @@ class LessonRepository
 
     public function update(int $id, array $data): bool
     {
-        $sql = "UPDATE lessons SET title = :title, content_type = :content_type, 
-                video_url = :video_url, video_filename = COALESCE(:video_filename, video_filename),
-                video_size = CASE WHEN :video_size > 0 THEN :video_size2 ELSE video_size END,
-                duration = CASE WHEN :duration > 0 THEN :duration2 ELSE duration END,
-                content = :content, objectives = :objectives, ai_summary = :ai_summary,
-                video_transcript = :video_transcript, lesson_context = :lesson_context, key_topics = :key_topics,
-                order_index = :order_index, is_free = :is_free
+        $sql = "UPDATE lessons SET 
+                    title = :title, 
+                    content_type = :content_type, 
+                    lesson_type = :lesson_type,
+                    video_url = :video_url, 
+                    video_filename = COALESCE(:video_filename, video_filename),
+                    video_path = COALESCE(:video_path, video_path),
+                    video_thumbnail = COALESCE(:video_thumbnail, video_thumbnail),
+                    video_size = CASE WHEN :video_size > 0 THEN :video_size2 ELSE video_size END,
+                    duration = CASE WHEN :duration > 0 THEN :duration2 ELSE duration END,
+                    video_duration = CASE WHEN :video_duration > 0 THEN :video_duration2 ELSE video_duration END,
+                    content = :content, 
+                    objectives = :objectives, 
+                    ai_summary = :ai_summary,
+                    video_transcript = :video_transcript, 
+                    lesson_context = :lesson_context, 
+                    key_topics = :key_topics,
+                    lesson_keywords = :lesson_keywords,
+                    order_index = :order_index, 
+                    is_free = :is_free,
+                    secure_token = COALESCE(:secure_token, secure_token),
+                    storage_driver = :storage_driver
                 WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             'id' => $id,
             'title' => $data['title'],
             'content_type' => $data['content_type'] ?? 'video',
+            'lesson_type' => $data['lesson_type'] ?? ($data['content_type'] ?? 'video'),
             'video_url' => $data['video_url'] ?? '',
             'video_filename' => $data['video_filename'] ?? null,
+            'video_path' => $data['video_path'] ?? null,
+            'video_thumbnail' => $data['video_thumbnail'] ?? null,
             'video_size' => $data['video_size'] ?? 0,
             'video_size2' => $data['video_size'] ?? 0,
             'duration' => $data['duration'] ?? 0,
             'duration2' => $data['duration'] ?? 0,
+            'video_duration' => $data['video_duration'] ?? ($data['duration'] ?? 0),
+            'video_duration2' => $data['video_duration'] ?? ($data['duration'] ?? 0),
             'content' => $data['content'] ?? '',
             'objectives' => $data['objectives'] ?? null,
             'ai_summary' => $data['ai_summary'] ?? null,
             'video_transcript' => $data['video_transcript'] ?? null,
             'lesson_context' => $data['lesson_context'] ?? null,
             'key_topics' => $data['key_topics'] ?? null,
+            'lesson_keywords' => $data['lesson_keywords'] ?? ($data['key_topics'] ?? null),
             'order_index' => $data['order_index'] ?? 0,
-            'is_free' => $data['is_free'] ?? 0
+            'is_free' => $data['is_free'] ?? 0,
+            'secure_token' => $data['secure_token'] ?? null,
+            'storage_driver' => $data['storage_driver'] ?? 'local'
         ]);
     }
 

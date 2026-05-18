@@ -79,23 +79,52 @@ class AiService
 
     private function buildAdvancedSystemPrompt(?array $lesson, ?array $course): string
     {
-        $prompt = "BẠN LÀ: Một giảng viên đại học cao cấp, người cố vấn học thuật chuyên nghiệp (Expert Educational Mentor).\n";
-        $prompt .= "TÍNH CÁCH: Kiên nhẫn, thông thái, lịch thiệp và luôn khuyến khích tư duy.\n";
-        $prompt .= "NGÔN NGỮ: Tiếng Việt (hoặc ngôn ngữ của người dùng), chuyên nghiệp nhưng dễ hiểu.\n\n";
+        $prompt = "BẠN LÀ: Một giảng viên đại học cao cấp, người cố vấn học thuật chuyên nghiệp (Expert Educational Mentor) từ AI Study Hub.\n";
+        $prompt .= "TÍNH CÁCH: Kiên nhẫn, thông thái, truyền cảm hứng và luôn khuyến khích học viên tự suy nghĩ.\n";
+        $prompt .= "NGÔN NGỮ: Tiếng Việt (hoặc ngôn ngữ của học viên), khoa học, lịch sự nhưng gần gũi.\n\n";
 
-        $prompt .= "CHỈ THỊ HÀNH VI:\n";
-        $prompt .= "1. Giải thích các khái niệm theo từng bước (step-by-step).\n";
-        $prompt .= "2. Nếu là lập trình: Giải thích logic code, giải thuật và các lỗi thường gặp. Sử dụng Markdown để trình bày code đẹp mắt.\n";
-        $prompt .= "3. KHÔNG tiết lộ đáp án ngay lập tức cho các câu hỏi bài tập. Hãy gợi ý và dẫn dắt để học viên tự tìm ra lời giải.\n";
-        $prompt .= "4. Tuyệt đối từ chối các yêu cầu không liên quan đến giáo dục, giải trí hoặc các hành vi vi phạm đạo đức/bảo mật.\n\n";
+        $prompt .= "CHỈ THỊ CỐT LÕI:\n";
+        $prompt .= "1. Giải thích kiến thức theo từng bước (step-by-step) khoa học, liên hệ thực tế.\n";
+        $prompt .= "2. Nếu học viên hỏi về câu hỏi trong Quiz/Bài tập:\n";
+        $prompt .= "   - TUYỆT ĐỐI KHÔNG trực tiếp đưa ra đáp án đúng (ví dụ: Không nói 'Đáp án đúng là A').\n";
+        $prompt .= "   - Hãy sử dụng gợi ý (hints) và giải thích logic để dẫn dắt học viên tự tìm ra đáp án sai của mình và sửa lại cho đúng.\n";
+        $prompt .= "   - Định hướng học viên bằng câu hỏi gợi mở liên quan đến khái niệm bài học.\n";
+        $prompt .= "3. Nếu là code: Giải thích logic, giải thuật, và các lỗi bug thường gặp. Dùng Markdown code blocks.\n";
+        $prompt .= "4. Từ chối lịch sự mọi yêu cầu ngoài học thuật hoặc không phù hợp.\n";
+        $prompt .= "5. HIỂU BIẾT VỀ HỆ THỐNG & KHÓA HỌC:\n";
+        $prompt .= "   - Bạn là trợ lý chính thức của hệ thống giáo dục trực tuyến **AI Study Hub LMS**.\n";
+        $prompt .= "   - Khi học viên hỏi về các khóa học, giới thiệu khóa học, khuyên học khóa học nào, hoặc hỏi hệ thống có những khóa học gì:\n";
+        $prompt .= "     + Bạn CẦN sử dụng danh sách các khóa học thực tế đang hoạt động trong hệ thống dưới đây để giới thiệu chi tiết (tên khóa học, giảng viên, trình độ, học phí, mô tả khái quát).\n";
+        $prompt .= "     + Hãy chèn đường dẫn xem chi tiết dạng Markdown liên kết (ví dụ: [Tên Khóa Học](/course-detail.php?id=X)) để học viên có thể click vào học hoặc đăng ký ngay.\n";
+        $prompt .= "     + Khuyến khích học viên đăng ký hoặc tìm hiểu thêm tại trang **Khóa học** (đường dẫn: `/courses.php`).\n";
+        $prompt .= "     + Tuyệt đối không bịa đặt hoặc tự vẽ ra các khóa học không có thực trong danh sách này.\n\n";
+
+        // Gắn danh sách khóa học thực tế của hệ thống để AI Tutor giới thiệu
+        $systemCourses = $this->getSystemCourses();
+        if (!empty($systemCourses)) {
+            $prompt .= "--- DANH SÁCH KHÓA HỌC THỰC TẾ TRONG HỆ THỐNG AI STUDY HUB ---\n";
+            foreach ($systemCourses as $idx => $c) {
+                $num = $idx + 1;
+                $priceStr = ((float)$c['price'] <= 0) ? "Miễn phí" : number_format($c['price'], 0, ',', '.') . " VNĐ";
+                $prompt .= "Khóa học {$num}:\n";
+                $prompt .= "  - ID Khóa học: {$c['id']}\n";
+                $prompt .= "  - Tên khóa học: \"{$c['title']}\"\n";
+                $prompt .= "  - Giảng viên: {$c['teacher_name']}\n";
+                $prompt .= "  - Trình độ: {$c['level']}\n";
+                $prompt .= "  - Học phí: {$priceStr}\n";
+                $prompt .= "  - Mô tả: " . strip_tags($c['description']) . "\n";
+                $prompt .= "  - Đường dẫn xem chi tiết: /course-detail.php?id={$c['id']}\n\n";
+            }
+            $prompt .= "-------------------------------------------------------------\n\n";
+        }
 
         if ($course) {
-            $prompt .= "KHÓA HỌC: \"{$course['title']}\" (Trình độ: {$course['level']}).\n";
+            $prompt .= "KHÓA HỌC HIỆN TẠI: \"{$course['title']}\" (Trình độ: {$course['level']}).\n";
         }
 
         if ($lesson) {
             $prompt .= "BÀI HỌC HIỆN TẠI: \"{$lesson['title']}\"\n";
-            $prompt .= "--- NỘI DUNG NGỮ CẢNH (DÙNG ĐỂ TRẢ LỜI) ---\n";
+            $prompt .= "--- NỘI DUNG NGỮ CẢNH (DÙNG ĐỂ GIẢNG DẠY & TRẢ LỜI) ---\n";
             
             if (!empty($lesson['ai_summary'])) $prompt .= "[Tóm tắt bài]: {$lesson['ai_summary']}\n";
             if (!empty($lesson['video_transcript'])) $prompt .= "[Bản dịch Video]: {$lesson['video_transcript']}\n";
@@ -107,12 +136,90 @@ class AiService
             }
 
             if (!empty($lesson['quiz_explanations'])) {
-                $prompt .= "[Giải thích bài tập]: {$lesson['quiz_explanations']}\n";
+                $prompt .= "[Giải thích bài tập chung]: {$lesson['quiz_explanations']}\n";
             }
+
+            // Gắn ngữ cảnh câu hỏi trắc nghiệm chi tiết của bài học
+            $quizQuestionsContext = $this->getQuizQuestionsContext($lesson['id']);
+            if (!empty($quizQuestionsContext)) {
+                $prompt .= $quizQuestionsContext;
+            }
+            
             $prompt .= "-------------------------------------------\n";
         }
 
         return $prompt;
+    }
+
+    /**
+     * Lấy ngữ cảnh chi tiết toàn bộ câu hỏi và đáp án của bài học để AI Tutor trợ giúp học viên
+     */
+    private function getQuizQuestionsContext(int $lessonId): string
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT id, title FROM quizzes WHERE lesson_id = :lid AND deleted_at IS NULL LIMIT 1");
+            $stmt->execute(['lid' => $lessonId]);
+            $quiz = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$quiz) return "";
+
+            $stmtQuestions = $this->db->prepare("SELECT id, question, explanation, hint, difficulty_level FROM questions WHERE quiz_id = :qid AND deleted_at IS NULL ORDER BY id ASC");
+            $stmtQuestions->execute(['qid' => $quiz['id']]);
+            $questions = $stmtQuestions->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($questions)) return "";
+
+            $contextStr = "\n--- CÂU HỎI TRONG BÀI KIỂM TRA (QUIZ: \"{$quiz['title']}\") ---\n";
+            $i = 1;
+            foreach ($questions as $q) {
+                $contextStr .= "Câu hỏi {$i}: \"{$q['question']}\"\n";
+                $contextStr .= "- Mức độ: {$q['difficulty_level']}\n";
+                
+                $stmtAnswers = $this->db->prepare("SELECT answer_text, is_correct FROM answers WHERE question_id = :qid AND deleted_at IS NULL ORDER BY id ASC");
+                $stmtAnswers->execute(['qid' => $q['id']]);
+                $answers = $stmtAnswers->fetchAll(PDO::FETCH_ASSOC);
+                
+                if (!empty($answers)) {
+                    $contextStr .= "- Các đáp án lựa chọn:\n";
+                    $j = 65; // ASCII for 'A'
+                    foreach ($answers as $a) {
+                        $char = chr($j++);
+                        $correct = $a['is_correct'] ? "ĐÚNG" : "SAI";
+                        $contextStr .= "  + {$char}: \"{$a['answer_text']}\" (Đây là đáp án {$correct})\n";
+                    }
+                }
+                if (!empty($q['hint'])) {
+                    $contextStr .= "- Gợi ý giải: \"{$q['hint']}\"\n";
+                }
+                if (!empty($q['explanation'])) {
+                    $contextStr .= "- Giải thích chi tiết: \"{$q['explanation']}\"\n";
+                }
+                $contextStr .= "\n";
+                $i++;
+            }
+            $contextStr .= "--------------------------------------------------------\n";
+            return $contextStr;
+        } catch (\Exception $e) {
+            return ""; // Tránh crash luồng chat nếu lỗi DB
+        }
+    }
+
+    /**
+     * Lấy toàn bộ danh sách khóa học đang hoạt động trong hệ thống
+     */
+    private function getSystemCourses(): array
+    {
+        try {
+            $stmt = $this->db->query("
+                SELECT c.id, c.title, c.level, c.price, c.description, u.username as teacher_name
+                FROM courses c
+                LEFT JOIN users u ON c.teacher_id = u.id
+                WHERE c.status = 'approved' AND c.deleted_at IS NULL
+                ORDER BY c.id DESC
+            ");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     private function getDeepLessonContext(int $id): ?array
@@ -120,7 +227,7 @@ class AiService
         $stmt = $this->db->prepare("
             SELECT l.*, q.explanations as quiz_explanations, q.hints as quiz_hints
             FROM lessons l
-            LEFT JOIN quizzes q ON l.id = q.lesson_id
+            LEFT JOIN quizzes q ON l.id = q.lesson_id AND q.deleted_at IS NULL
             WHERE l.id = :id AND l.deleted_at IS NULL
         ");
         $stmt->execute(['id' => $id]);

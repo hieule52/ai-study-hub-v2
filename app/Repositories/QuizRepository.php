@@ -32,7 +32,7 @@ class QuizRepository
 
     public function findQuestionsByQuiz(int $quizId): array
     {
-        $stmt = $this->db->prepare("SELECT id, question FROM questions WHERE quiz_id = :quiz_id ORDER BY id ASC");
+        $stmt = $this->db->prepare("SELECT id, question, explanation, hint, difficulty_level FROM questions WHERE quiz_id = :quiz_id AND deleted_at IS NULL ORDER BY id ASC");
         $stmt->execute(['quiz_id' => $quizId]);
         return $stmt->fetchAll();
     }
@@ -43,7 +43,7 @@ class QuizRepository
         if ($includeCorrect) {
             $sql .= ", is_correct";
         }
-        $sql .= " FROM answers WHERE question_id = :qid ORDER BY id ASC";
+        $sql .= " FROM answers WHERE question_id = :qid AND deleted_at IS NULL ORDER BY id ASC";
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute(['qid' => $questionId]);
@@ -92,8 +92,14 @@ class QuizRepository
             foreach ($questions as $q) {
                 if (empty(trim($q['question'] ?? ''))) continue;
 
-                $stmt2 = $this->db->prepare("INSERT INTO questions (quiz_id, question) VALUES (:qid, :q)");
-                $stmt2->execute(['qid' => $quizId, 'q' => trim($q['question'])]);
+                $stmt2 = $this->db->prepare("INSERT INTO questions (quiz_id, question, explanation, hint, difficulty_level) VALUES (:qid, :q, :exp, :hint, :difficulty)");
+                $stmt2->execute([
+                    'qid' => $quizId, 
+                    'q' => trim($q['question']),
+                    'exp' => $q['explanation'] ?? null,
+                    'hint' => $q['hint'] ?? null,
+                    'difficulty' => $q['difficulty_level'] ?? 'easy'
+                ]);
                 $questionId = (int)$this->db->lastInsertId();
 
                 foreach (($q['answers'] ?? []) as $a) {

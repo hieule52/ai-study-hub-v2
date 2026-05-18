@@ -1,6 +1,10 @@
 <?php
 $pageTitle = 'Gia Sư AI - AI Study Hub';
-$actor = 'student';$extraHead = '<link rel="stylesheet" href="/assets/css/pages/ai-chat.css?v=' . time() . '">';
+$actor = 'student';
+$extraHead = '
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/pages/ai-chat.css?v=' . time() . '">
+';
 require __DIR__ . '/../layouts/header.php';
 ?>
 

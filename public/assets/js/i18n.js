@@ -137,6 +137,10 @@ const I18n = {
             "aichat_prompt2": "Tóm tắt bài học vừa rồi",
             "aichat_prompt3": "Tạo bài tập thực hành",
             "aichat_input_placeholder": "Hỏi AI điều gì đó...",
+            "aichat_analyzing": "Đang phân tích câu hỏi...",
+            "aichat_analyzing_img": "Đang phân tích câu hỏi và hình ảnh...",
+            "aichat_error": "❌ Lỗi kết nối tới AI: ",
+            "aichat_file_too_large": "File ảnh quá lớn! Vui lòng chọn ảnh dưới 5MB.",
 
             // Chat
             "chat_title": "Tin nhắn",
@@ -171,6 +175,8 @@ const I18n = {
             "lrn_no_desc": "Giảng viên chưa cập nhật mô tả chi tiết.",
             "lrn_btn_completed": "✅ Đã hoàn thành bài học",
             "lrn_reviewed": "Đã đánh giá",
+            "lrn_ai_thinking": "AI đang phân tích bài học...",
+            "lrn_ai_error": "Lỗi kết nối tới AI: ",
 
             // About Extra
             "about_cta_btn": "Đăng ký ngay",
@@ -415,6 +421,10 @@ const I18n = {
             "aichat_prompt2": "Summarize the last lesson",
             "aichat_prompt3": "Create practice exercises",
             "aichat_input_placeholder": "Ask AI anything...",
+            "aichat_analyzing": "Analyzing question...",
+            "aichat_analyzing_img": "Analyzing question and image...",
+            "aichat_error": "❌ Connection error to AI: ",
+            "aichat_file_too_large": "Image file is too large! Please choose an image under 5MB.",
 
             // Chat
             "chat_title": "Messages",
@@ -449,6 +459,8 @@ const I18n = {
             "lrn_no_desc": "No detailed description available.",
             "lrn_btn_completed": "✅ Lesson Completed",
             "lrn_reviewed": "Reviewed",
+            "lrn_ai_thinking": "AI is analyzing the lesson...",
+            "lrn_ai_error": "Connection error to AI: ",
 
             // About Extra
             "about_cta_btn": "Register Now",

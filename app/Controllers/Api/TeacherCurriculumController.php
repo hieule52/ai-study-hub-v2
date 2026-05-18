@@ -165,6 +165,9 @@ class TeacherCurriculumController
                 }
             }
 
+            // Tự động hóa trích xuất metadata và sinh nội dung bằng AI
+            \App\Services\AiAutomationService::processLessonMetadata($data);
+
             $lesson = $this->lessonRepo->create($data); if ($lesson) $this->requireReapprovalByChapter((int)$data['chapter_id']);
             if ($lesson) {
                 // Auto-update total lessons count
@@ -205,8 +208,24 @@ class TeacherCurriculumController
                 }
             }
 
-            $this->requireReapprovalByLesson((int)$id); $success = $this->lessonRepo->update((int)$id, $data);
+            // Tự động hóa trích xuất metadata và sinh nội dung bằng AI
+            \App\Services\AiAutomationService::processLessonMetadata($data);
+
+            $oldLesson = $this->lessonRepo->findLessonById((int)$id);
+            $this->requireReapprovalByLesson((int)$id); 
+            
+            $success = $this->lessonRepo->update((int)$id, $data);
             if ($success) {
+                // Nếu cập nhật thành công, kiểm tra xem video đã bị thay đổi để xóa file cũ giải phóng bộ nhớ
+                if ($oldLesson) {
+                    $oldVideo = $oldLesson['video_filename'] ?? '';
+                    $newVideo = $data['video_filename'] ?? '';
+                    if (!empty($oldVideo) && $oldVideo !== $newVideo) {
+                        $videoService = new \App\Services\VideoService();
+                        $videoService->deleteVideoFile($oldVideo);
+                    }
+                }
+                
                 $response->success("Cập nhật bài học thành công");
             } else {
                 $response->error("Cập nhật thất bại", 400);
@@ -232,6 +251,12 @@ class TeacherCurriculumController
             }
 
             $this->lessonRepo->delete((int)$id); $this->requireReapprovalByChapter((int)$lesson['chapter_id']);
+
+            // Xóa video file vật lý trên đĩa nếu bài học bị xóa để giải phóng dung lượng
+            if (!empty($lesson['video_filename'])) {
+                $videoService = new \App\Services\VideoService();
+                $videoService->deleteVideoFile($lesson['video_filename']);
+            }
 
             // Auto-update total lessons
             $chapter = $this->chapterRepo->findById($lesson['chapter_id']);

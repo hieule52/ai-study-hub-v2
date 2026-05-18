@@ -179,7 +179,7 @@ require __DIR__ . '/../layouts/header.php';
                                     <label class="form-label">Tóm tắt bài học (AI Summary)</label>
                                     <textarea id="ai_summary" class="form-control" rows="2" placeholder="Tóm tắt ngắn gọn nội dung bài học..."></textarea>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group" id="video-transcript-group">
                                     <label class="form-label">Bản dịch Video / Script (Video Transcript)</label>
                                     <textarea id="video_transcript" class="form-control" rows="4" placeholder="Nhập nội dung hội thoại trong video nếu có..."></textarea>
                                 </div>
@@ -283,6 +283,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCourseInfo();
     await loadCurriculum();
     if (window.I18n) window.I18n.render();
+
+    // Lắng nghe sự kiện để cập nhật preview video YouTube/ngoài ngay lập tức
+    document.getElementById('video_url').addEventListener('input', updateVideoPreview);
 });
 
 async function loadCourseInfo() {
@@ -417,13 +420,8 @@ async function editExistingLesson(lessonId, chapterId) {
         
         if (l.video_filename) {
             document.getElementById('video_filename').value = l.video_filename;
-            document.getElementById('video-info-display').innerHTML = `
-                <div class="video-info" style="margin-bottom: 1rem;">
-                    <i class="fas fa-check-circle" style="color:var(--success);"></i>
-                    <span style="font-size:0.85rem;">${l.video_filename}</span>
-                </div>
-            `;
         }
+        await updateVideoPreview();
         
         toggleContentFields();
         document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
@@ -453,6 +451,12 @@ function toggleContentFields() {
     document.getElementById('saveBtn').style.display = (type === 'quiz') ? 'none' : 'block';
     document.getElementById('ai-lesson-context-group').style.display = (type === 'quiz') ? 'none' : 'block';
 
+    // Ẩn/Hiện trường Bản dịch video dựa trên loại bài học
+    const transGroup = document.getElementById('video-transcript-group');
+    if (transGroup) {
+        transGroup.style.display = (type === 'video') ? 'block' : 'none';
+    }
+
     // Auto-add first question if quiz and empty
     if (type === 'quiz' && document.getElementById('quiz-questions-container').children.length === 0) {
         addQuestion();
@@ -463,9 +467,17 @@ function toggleContentFields() {
 async function handleVideoSelect(input) {
     if (!input.files[0]) return;
     const file = input.files[0];
+    
+    const chapterId = document.getElementById('chapter_id').value;
+    if (!chapterId) {
+        App.showToast('Vui lòng chọn hoặc tạo chương trước khi tải video.', 'error');
+        return;
+    }
+    
     const formData = new FormData();
     formData.append('video', file);
     formData.append('course_id', courseId);
+    formData.append('chapter_id', chapterId);
     
     document.getElementById('uploadProgress').style.display = 'block';
     const xhr = new XMLHttpRequest();
@@ -483,6 +495,7 @@ async function handleVideoSelect(input) {
             const res = JSON.parse(xhr.responseText);
             document.getElementById('video_filename').value = res.data.path;
             App.showToast('Tải video lên thành công!', 'success');
+            updateVideoPreview();
         } else {
             App.showToast('Tải video lên thất bại.', 'error');
         }
@@ -608,6 +621,83 @@ async function loadQuiz(lessonId) {
         document.getElementById('quiz-questions-container').innerHTML = '';
         qCount = 0;
         addQuestion(); 
+    }
+}
+
+async function updateVideoPreview() {
+    const videoFilename = document.getElementById('video_filename').value;
+    const videoUrl = document.getElementById('video_url').value.trim();
+    const infoDisplay = document.getElementById('video-info-display');
+    const editMode = document.getElementById('edit_mode').value;
+    const lessonId = document.getElementById('edit_lesson_id').value;
+
+    infoDisplay.innerHTML = '';
+
+    // Trường hợp 1: Link YouTube/Vimeo/Drive ngoài
+    if (videoUrl) {
+        let embedUrl = videoUrl;
+        if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+            const pattern = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i;
+            const matches = videoUrl.match(pattern);
+            if (matches && matches[1]) {
+                embedUrl = `https://www.youtube.com/embed/${matches[1]}`;
+            }
+        } else if (videoUrl.includes('drive.google.com')) {
+            const drivePattern = /\/file\/d\/([^\/?&#]+)/i;
+            const driveMatches = videoUrl.match(drivePattern);
+            if (driveMatches && driveMatches[1]) {
+                embedUrl = `https://drive.google.com/file/d/${driveMatches[1]}/preview`;
+            }
+        }
+        infoDisplay.innerHTML = `
+            <div class="video-preview-wrapper" style="border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.4); margin-bottom:1.5rem; position:relative; padding-top:56.25%;">
+                <iframe src="${embedUrl}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe>
+            </div>
+        `;
+        return;
+    }
+
+    // Trường hợp 2: Video tải lên cục bộ an toàn
+    if (videoFilename) {
+        if (editMode === 'edit' && lessonId) {
+            infoDisplay.innerHTML = `
+                <div style="display:flex; justify-content:center; padding:1.5rem; opacity:0.5; font-size:0.85rem;">
+                    <i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i> Đang tạo luồng xem trước bảo mật...
+                </div>
+            `;
+            try {
+                const tokenRes = await window.api.post(`/lessons/${lessonId}/stream-token`, { course_id: courseId });
+                if (tokenRes.success && tokenRes.data.stream_url) {
+                    infoDisplay.innerHTML = `
+                        <div class="video-preview-wrapper" style="border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.4); margin-bottom:1.5rem;">
+                            <video controls style="width:100%; display:block; outline:none; max-height:360px;">
+                                <source src="${tokenRes.data.stream_url}" type="video/mp4">
+                                Trình duyệt của bạn không hỗ trợ phát video HTML5.
+                            </video>
+                            <div style="padding:1rem; background:rgba(255,255,255,0.02); display:flex; align-items:center; justify-content:space-between; font-size:0.8rem; border-top:1px solid rgba(255,255,255,0.05);">
+                                <span style="opacity:0.6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;"><i class="fas fa-file-video" style="color:var(--primary); margin-right:6px;"></i>${videoFilename.split('/').pop()}</span>
+                                <span style="color:var(--success); font-weight:700; font-size:0.75rem;"><i class="fas fa-shield-alt" style="margin-right:4px;"></i>Secure Stream</span>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+            } catch (e) {
+                console.error("Lỗi lấy luồng xem trước:", e);
+            }
+        }
+        
+        // Fallback banner nếu là bài học mới tạo chưa lưu
+        infoDisplay.innerHTML = `
+            <div class="video-uploaded-banner" style="border-radius:12px; padding:1.25rem; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+                <div style="font-size:1.8rem;">✅</div>
+                <div style="flex:1;">
+                    <div style="font-weight:700; color:#fff; font-size:0.9rem;">Tải video lên thành công!</div>
+                    <div style="font-size:0.75rem; opacity:0.6; margin-top:4px;">File: ${videoFilename.split('/').pop()}</div>
+                </div>
+                <div style="font-size:0.75rem; color:var(--primary); font-weight:700;">Hãy nhấn "Lưu bài học" để cập nhật xem trước</div>
+            </div>
+        `;
     }
 }
 

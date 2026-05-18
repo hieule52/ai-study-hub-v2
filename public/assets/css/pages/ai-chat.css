@@ -216,3 +216,21 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.9em;
 }
+
+/* Premium Cinematic Links inside Chat Bubbles */
+.msg-bubble a {
+    color: var(--secondary);
+    text-decoration: none;
+    font-weight: 600;
+    border-bottom: 1px dashed var(--secondary);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 1px 2px;
+}
+
+.msg-bubble a:hover {
+    color: #fbbf24;
+    border-bottom-color: #fbbf24;
+    text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+    background: rgba(251, 191, 36, 0.05);
+    border-radius: 4px;
+}
