@@ -97,7 +97,7 @@ require __DIR__ . '/../layouts/header.php';
 
         <!-- AI Input -->
         <form class="ai-input-area" id="chatForm">
-            <input type="text" id="chatInput" placeholder="Hỏi AI về nội dung bài..." required>
+            <input type="text" id="chatInput" placeholder="Hỏi AI về nội dung bài..." data-i18n="aichat_input_placeholder" required>
             <button type="submit" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#f0f0f4;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
@@ -108,8 +108,8 @@ require __DIR__ . '/../layouts/header.php';
     <div id="reviewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(10px);">
         <div class="review-modal-card" style="background: rgba(23, 23, 23, 0.95); padding: 2.5rem; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 480px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); text-align: center;">
             <div style="font-size: 3.5rem; margin-bottom: 1rem;">🏆</div>
-            <h3 style="margin-bottom: 0.5rem; color: #fff; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em;">Khóa học Hoàn tất!</h3>
-            <p style="color: rgba(255,255,255,0.6); margin-bottom: 2rem; font-size: 0.95rem;">Chúc mừng bạn đã chinh phục thành công khóa học này. Hãy chia sẻ cảm nhận của bạn nhé!</p>
+            <h3 style="margin-bottom: 0.5rem; color: #fff; font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em;" data-i18n="lrn_review_modal_title">Khóa học Hoàn tất!</h3>
+            <p style="color: rgba(255,255,255,0.6); margin-bottom: 2rem; font-size: 0.95rem;" data-i18n="lrn_review_modal_subtitle">Chúc mừng bạn đã chinh phục thành công khóa học này. Hãy chia sẻ cảm nhận của bạn nhé!</p>
             
             <form id="reviewForm" onsubmit="submitReview(event)">
                 <input type="hidden" id="reviewRating" value="5">
@@ -123,13 +123,13 @@ require __DIR__ . '/../layouts/header.php';
                 </div>
 
                 <div style="margin-bottom: 2rem; text-align: left;">
-                    <label style="display: block; margin-bottom: 0.75rem; color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">Nhận xét của bạn</label>
-                    <textarea id="reviewComment" class="form-control" rows="4" placeholder="Bạn thấy khóa học này thế nào? Nội dung có hữu ích không?..." style="background: rgba(255,255,255,0.03); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1rem; width: 100%; resize: none; outline: none; transition: all 0.3s;" onfocus="this.style.borderColor='var(--primary)'; this.style.background='rgba(255,255,255,0.05)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.background='rgba(255,255,255,0.03)'"></textarea>
+                    <label style="display: block; margin-bottom: 0.75rem; color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;" data-i18n="lrn_review_label">Nhận xét của bạn</label>
+                    <textarea id="reviewComment" class="form-control" rows="4" placeholder="Bạn thấy khóa học này thế nào? Nội dung có hữu ích không?..." data-i18n="lrn_review_placeholder" style="background: rgba(255,255,255,0.03); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1rem; width: 100%; resize: none; outline: none; transition: all 0.3s;" onfocus="this.style.borderColor='var(--primary)'; this.style.background='rgba(255,255,255,0.05)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.background='rgba(255,255,255,0.03)'"></textarea>
                 </div>
 
                 <div style="display: flex; gap: 1rem;">
-                    <button type="button" class="btn btn-ghost" style="flex: 1; border-radius: 12px;" onclick="document.getElementById('reviewModal').style.display='none'">Bỏ qua</button>
-                    <button type="submit" class="btn btn-primary" id="btnSubmitReview" style="flex: 2; border-radius: 12px; font-weight: 600; padding: 0.8rem;">Gửi Đánh Giá</button>
+                    <button type="button" class="btn btn-ghost" style="flex: 1; border-radius: 12px;" onclick="document.getElementById('reviewModal').style.display='none'" data-i18n="lrn_review_skip">Bỏ qua</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitReview" style="flex: 2; border-radius: 12px; font-weight: 600; padding: 0.8rem;" data-i18n="lrn_review_submit">Gửi Đánh Giá</button>
                 </div>
             </form>
         </div>
@@ -283,11 +283,12 @@ require __DIR__ . '/../layouts/header.php';
                 const objContainer = document.getElementById('objectives_container');
                 if (lesson.objectives) {
                     const tags = lesson.objectives.split(',').map(t => `<span class="objective-tag">${t.trim()}</span>`).join('');
+                    const objTitle = window.I18n ? window.I18n.get('lrn_what_you_will_learn') : 'Bạn sẽ học được gì:';
                     objContainer.innerHTML = `
                         <div class="objectives-card">
                             <div class="objectives-icon">🎯</div>
                             <div class="objectives-list">
-                                <div class="objectives-title">Bạn sẽ học được gì:</div>
+                                <div class="objectives-title">${objTitle}</div>
                                 <div class="objectives-items">${tags}</div>
                             </div>
                         </div>
@@ -318,7 +319,7 @@ require __DIR__ . '/../layouts/header.php';
                 const btnMark = document.getElementById('btn_mark_complete');
                 if (lesson.is_completed) {
                     btnMark.style.display = 'block';
-                    btnMark.innerHTML = '✅ Đã hoàn thành bài học';
+                    btnMark.innerHTML = window.I18n ? window.I18n.get('lrn_btn_completed') : '✅ Đã hoàn thành bài học';
                     btnMark.classList.replace('btn-primary', 'btn-outline');
                     btnMark.style.color = 'var(--success)';
                     btnMark.style.borderColor = 'var(--success)';
@@ -328,7 +329,7 @@ require __DIR__ . '/../layouts/header.php';
                         btnMark.style.display = 'none'; // Require quiz submission
                     } else {
                         btnMark.style.display = 'block';
-                        btnMark.innerHTML = '✅ Đánh dấu Đã Học';
+                        btnMark.innerHTML = window.I18n ? window.I18n.get('lrn_mark_complete') : '✅ Đánh dấu Đã Học';
                         btnMark.classList.add('btn-primary');
                         btnMark.classList.remove('btn-outline');
                         btnMark.style.color = '';
@@ -345,40 +346,45 @@ require __DIR__ . '/../layouts/header.php';
                     if (lesson.video_filename) {
                         // Secured video: lấy signed token rồi stream
                         try {
+                            const loadingVideoMsg = window.I18n ? window.I18n.get('lrn_loading_secure_video') : 'Đang tải video bảo mật...';
                             videoWrapper.innerHTML = `
                                 <div style="text-align: center;">
                                     <div style="font-size: 3rem; animation: spin 2s linear infinite;">⏳</div>
-                                    <p class="text-secondary mt-2">Đang tải video bảo mật...</p>
+                                    <p class="text-secondary mt-2">${loadingVideoMsg}</p>
                                 </div>`;
 
                             const tokenRes = await window.api.get(`/video/token/${lessonId}?course_id=${courseId}`);
                             const streamUrl = tokenRes.data.stream_url;
 
+                            const unsupportedVideoMsg = window.I18n ? window.I18n.get('lrn_video_unsupported') : 'Trình duyệt không hỗ trợ video.';
                             videoWrapper.innerHTML = `
                                 <video id="secureVideoPlayer" controls controlsList="nodownload" disablePictureInPicture
                                        style="width:100%;height:100%;background:#000;"
                                        oncontextmenu="return false;">
                                     <source src="${streamUrl}" type="video/mp4">
-                                    Trình duyệt không hỗ trợ video.
+                                    ${unsupportedVideoMsg}
                                 </video>`;
 
                             // Thêm event listener cho video errors
                             const videoEl = document.getElementById('secureVideoPlayer');
                             if (videoEl) {
                                 videoEl.addEventListener('error', () => {
+                                    const videoErrorMsg = window.I18n ? window.I18n.get('lrn_video_error_retry') : 'Video không thể phát. Vui lòng tải lại trang.';
                                     videoWrapper.innerHTML = `
                                         <div style="text-align:center;padding:2rem;">
                                             <div style="font-size:3rem;opacity:0.5;">⚠️</div>
-                                            <p class="text-secondary">Video không thể phát. Vui lòng tải lại trang.</p>
+                                            <p class="text-secondary">${videoErrorMsg}</p>
                                         </div>`;
                                 });
                             }
                         } catch(videoErr) {
+                            const loadVideoError = window.I18n ? window.I18n.get('lrn_video_error') : 'Lỗi kết nối';
+                            const enrollVideoMsg = window.I18n ? window.I18n.get('lrn_video_error_enroll') : 'Vui lòng đảm bảo bạn đã đăng ký khóa học này.';
                             videoWrapper.innerHTML = `
                                 <div style="text-align: center;">
                                     <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🔒</div>
-                                    <h2 class="text-secondary">${videoErr.message || 'Không thể tải video'}</h2>
-                                    <p class="text-muted mt-2">Vui lòng đảm bảo bạn đã đăng ký khóa học này.</p>
+                                    <h2 class="text-secondary">${loadVideoError}</h2>
+                                    <p class="text-muted mt-2">${enrollVideoMsg}</p>
                                 </div>`;
                         }
                     } else if (lesson.video_url) {
@@ -499,7 +505,8 @@ require __DIR__ . '/../layouts/header.php';
                             markComplete();
                         } catch (err) {
                             App.showToast(err.message, 'error');
-                            e.target.querySelector('button[type="submit"]').innerHTML = 'Nộp Lại';
+                            const reSubmitMsg = window.I18n ? window.I18n.get('lrn_quiz_grading_reSubmit') : 'Nộp Lại';
+                            e.target.querySelector('button[type="submit"]').innerHTML = reSubmitMsg;
                             e.target.querySelector('button[type="submit"]').disabled = false;
                         }
                     });
@@ -556,12 +563,14 @@ require __DIR__ . '/../layouts/header.php';
         }
 
         async function clearAIChat() {
-            if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử hội thoại của bài học này?')) return;
+            const confirmMsg = window.I18n ? window.I18n.get('lrn_ai_clear_confirm') : 'Bạn có chắc chắn muốn xóa toàn bộ lịch sử hội thoại của bài học này?';
+            if (!confirm(confirmMsg)) return;
             try {
                 await window.api.delete('/ai/history', { lesson_id: currentLessonId });
-                document.getElementById('chatBox').innerHTML = `<div class="msg bot" data-i18n="lrn_ai_welcome">👋 Lịch sử đã được dọn dẹp. Tôi đã sẵn sàng hỗ trợ bạn từ đầu!</div>`;
+                document.getElementById('chatBox').innerHTML = `<div class="msg bot" data-i18n="lrn_ai_welcome">👋 Chào bạn! Tôi là AI Tutor của bạn. Hỏi tôi bất cứ điều gì về nội dung bài học này nhé!</div>`;
                 if (window.I18n) window.I18n.render();
-                App.showToast('Đã xóa lịch sử chat', 'success');
+                const clearToast = window.I18n ? window.I18n.get('lrn_ai_clear_toast') : 'Đã xóa lịch sử chat';
+                App.showToast(clearToast, 'success');
             } catch (e) {
                 App.showToast(e.message, 'error');
             }
@@ -637,16 +646,18 @@ require __DIR__ . '/../layouts/header.php';
             const comment = document.getElementById('reviewComment').value;
             const btn = document.getElementById('btnSubmitReview');
             btn.disabled = true;
-            btn.innerText = 'Đang gửi...';
+            btn.innerText = window.I18n ? window.I18n.get('lrn_review_submitting') : 'Đang gửi...';
 
             try {
                 await window.api.post(`/student/courses/${courseId}/reviews`, { rating, comment });
-                App.showToast('Cảm ơn bạn đã đánh giá khóa học!', 'success');
+                const successMsg = window.I18n ? window.I18n.get('lrn_review_toast_success') : 'Cảm ơn bạn đã đánh giá khóa học!';
+                App.showToast(successMsg, 'success');
                 document.getElementById('reviewModal').style.display = 'none';
                 
                 // Update button state
                 const btnReview = document.getElementById('btn_review_course');
-                btnReview.innerHTML = `${'⭐'.repeat(rating)} <span data-i18n="lrn_reviewed">Đã đánh giá</span>`;
+                const reviewedMsg = window.I18n ? window.I18n.get('lrn_reviewed') : 'Đã đánh giá';
+                btnReview.innerHTML = `${'⭐'.repeat(rating)} <span data-i18n="lrn_reviewed">${reviewedMsg}</span>`;
                 btnReview.dataset.reviewed = "true";
             } catch (err) {
                 App.showToast(err.message, 'error');

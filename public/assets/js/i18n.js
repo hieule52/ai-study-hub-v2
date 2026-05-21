@@ -36,6 +36,10 @@ const I18n = {
             "nav_student_certificates": "Chứng chỉ",
             "nav_back_home": "Về trang chủ",
             "nav_logout": "Đăng xuất",
+            "nav_teacher_dashboard": "Tổng quan",
+            "nav_teacher_courses": "Quản lý khóa học",
+            "nav_admin_dashboard": "Hệ thống",
+            "nav_admin_users": "Người dùng",
 
             // Home
             "home_label_academic": "Đào tạo xuất sắc",
@@ -283,7 +287,61 @@ const I18n = {
             "tc_stud_title": "Quản lý học viên",
             "tc_stud_subtitle": "Theo dõi tiến độ và hỗ trợ học thuật cho học viên của bạn",
             "tc_stud_search": "Tìm tên học viên...",
-            "tc_chat_search": "Tìm kiếm học viên hoặc khóa học..."
+            "tc_chat_search": "Tìm kiếm học viên hoặc khóa học...",
+
+            // Admin Sidebar
+            "adm_nav_label_overview": "Tổng quan",
+            "adm_nav_label_manage": "Quản lý",
+            "adm_nav_label_system": "Hệ thống",
+            "adm_nav_dashboard": "Bảng điều khiển",
+            "adm_nav_courses": "Khóa học",
+            "adm_nav_users": "Người dùng",
+            "adm_nav_vip": "Doanh thu ghi danh",
+            "adm_nav_logs": "Nhật ký hệ thống",
+
+            // Certificates
+            "cert_title": "Chứng Chỉ Của Tôi",
+            "cert_desc": "Các chứng chỉ bạn đã đạt được sau khi hoàn thành 100% khóa học.",
+            "cert_total_label": "Tổng Chứng Chỉ",
+            "cert_loading": "Đang tải chứng chỉ...",
+            "cert_empty_title": "Chưa có chứng chỉ nào",
+            "cert_empty_desc": "Hoàn thành 100% một khóa học và nhận chứng chỉ ngay!",
+            "cert_go_courses": "Đến khóa học của tôi",
+            "cert_completed_badge": "ĐÃ HOÀN THÀNH",
+            "cert_teacher_label": "Giảng viên",
+            "cert_date_label": "Ngày cấp",
+            "cert_btn_verify": "Xác Minh",
+            "cert_btn_share": "Chia sẻ",
+            "cert_copied_toast": "Đã sao chép link xác minh chứng chỉ!",
+
+            // Learning
+            "lrn_what_you_will_learn": "Bạn sẽ học được gì:",
+            "lrn_loading_secure_video": "Đang tải video bảo mật...",
+            "lrn_video_error": "Lỗi kết nối",
+            "lrn_video_unsupported": "Trình duyệt không hỗ trợ video.",
+            "lrn_video_error_retry": "Video không thể phát. Vui lòng tải lại trang.",
+            "lrn_video_error_enroll": "Vui lòng đảm bảo bạn đã đăng ký khóa học này.",
+            "lrn_quiz_grading_reSubmit": "Nộp Lại",
+            "lrn_review_modal_title": "Khóa học Hoàn tất!",
+            "lrn_review_modal_subtitle": "Chúc mừng bạn đã chinh phục thành công khóa học này. Hãy chia sẻ cảm nhận của bạn nhé!",
+            "lrn_review_label": "Nhận xét của bạn",
+            "lrn_review_placeholder": "Bạn thấy khóa học này thế nào? Nội dung có hữu ích không?...",
+            "lrn_review_skip": "Bỏ qua",
+            "lrn_review_submit": "Gửi Đánh Giá",
+            "lrn_review_submitting": "Đang gửi...",
+            "lrn_review_toast_success": "Cảm ơn bạn đã đánh giá khóa học!",
+            "lrn_ai_clear_confirm": "Bạn có chắc chắn muốn xóa toàn bộ lịch sử hội thoại của bài học này?",
+            "lrn_ai_clear_toast": "Đã xóa lịch sử chat",
+
+            // Chat
+            "chat_loading_teachers": "Đang tải giảng viên...",
+            "chat_select_contact": "Vui lòng chọn người liên hệ.",
+            "chat_ws_error": "Mất kết nối máy chủ tin nhắn. Đang thử kết nối lại...",
+            "chat_new_msg": "Tin nhắn mới từ",
+            "chat_loading_history": "Đang tải lịch sử...",
+            "chat_start_convo_with": "Bắt đầu trò chuyện với",
+            "chat_load_error": "Lỗi tải dữ liệu.",
+            "chat_fallback_teacher": "Giảng viên"
         },
         en: {
             "title_register": "Join AI Study Hub®",
@@ -320,6 +378,10 @@ const I18n = {
             "nav_student_certificates": "Certificates",
             "nav_back_home": "Back Home",
             "nav_logout": "Sign Out",
+            "nav_teacher_dashboard": "Overview",
+            "nav_teacher_courses": "Manage Courses",
+            "nav_admin_dashboard": "System",
+            "nav_admin_users": "Users",
 
             // Home
             "home_label_academic": "Academic Excellence",
@@ -568,7 +630,61 @@ const I18n = {
             "tc_stud_title": "Student Management",
             "tc_stud_subtitle": "Track progress and provide academic support to your students",
             "tc_stud_search": "Search student name...",
-            "tc_chat_search": "Search student or course..."
+            "tc_chat_search": "Search student or course...",
+
+            // Admin Sidebar
+            "adm_nav_label_overview": "Overview",
+            "adm_nav_label_manage": "Management",
+            "adm_nav_label_system": "System",
+            "adm_nav_dashboard": "Dashboard",
+            "adm_nav_courses": "Courses",
+            "adm_nav_users": "Users",
+            "adm_nav_vip": "Enrollment Revenue",
+            "adm_nav_logs": "System Logs",
+
+            // Certificates
+            "cert_title": "My Certificates",
+            "cert_desc": "The certificates you have achieved after completing 100% of the courses.",
+            "cert_total_label": "Total Certificates",
+            "cert_loading": "Loading certificates...",
+            "cert_empty_title": "No certificates yet",
+            "cert_empty_desc": "Complete 100% of a course and receive your certificate instantly!",
+            "cert_go_courses": "Go to my courses",
+            "cert_completed_badge": "COMPLETED",
+            "cert_teacher_label": "Teacher",
+            "cert_date_label": "Issued Date",
+            "cert_btn_verify": "Verify",
+            "cert_btn_share": "Share",
+            "cert_copied_toast": "Copied certificate verification link!",
+
+            // Learning
+            "lrn_what_you_will_learn": "What you will learn:",
+            "lrn_loading_secure_video": "Loading secure video...",
+            "lrn_video_error": "Connection error",
+            "lrn_video_unsupported": "Browser does not support video.",
+            "lrn_video_error_retry": "Video cannot be played. Please reload the page.",
+            "lrn_video_error_enroll": "Please make sure you are enrolled in this course.",
+            "lrn_quiz_grading_reSubmit": "Resubmit",
+            "lrn_review_modal_title": "Course Completed!",
+            "lrn_review_modal_subtitle": "Congratulations on successfully mastering this course. Please share your thoughts!",
+            "lrn_review_label": "Your Review",
+            "lrn_review_placeholder": "How was this course? Was the content helpful?...",
+            "lrn_review_skip": "Skip",
+            "lrn_review_submit": "Submit Review",
+            "lrn_review_submitting": "Submitting...",
+            "lrn_review_toast_success": "Thank you for reviewing the course!",
+            "lrn_ai_clear_confirm": "Are you sure you want to clear the entire chat history for this lesson?",
+            "lrn_ai_clear_toast": "Chat history cleared",
+
+            // Chat
+            "chat_loading_teachers": "Loading teachers...",
+            "chat_select_contact": "Please select a contact.",
+            "chat_ws_error": "Disconnected from chat server. Reconnecting...",
+            "chat_new_msg": "New message from",
+            "chat_loading_history": "Loading history...",
+            "chat_start_convo_with": "Start conversation with",
+            "chat_load_error": "Error loading data.",
+            "chat_fallback_teacher": "Teacher"
         }
     },
 

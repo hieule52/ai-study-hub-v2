@@ -19,7 +19,7 @@ require __DIR__ . '/../layouts/header.php';
         </div>
         
         <div class="contact-list" id="contactList">
-            <div class="p-6 text-center text-muted" style="font-size: 0.85rem;" data-i18n="home_loading">Đang tải giảng viên...</div>
+            <div class="p-6 text-center text-muted" style="font-size: 0.85rem;" data-i18n="chat_loading_teachers">Đang tải giảng viên...</div>
         </div>
     </aside>
 
@@ -97,7 +97,7 @@ require __DIR__ . '/../layouts/header.php';
         document.getElementById('wsChatForm').addEventListener('submit', (e) => {
             e.preventDefault();
             if (!currentReceiverId) {
-                App.showToast('Vui lòng chọn người liên hệ.', 'info');
+                App.showToast(window.I18n ? window.I18n.get('chat_select_contact') : 'Vui lòng chọn người liên hệ.', 'info');
                 return;
             }
             const input = document.getElementById('wsInput');
@@ -106,7 +106,7 @@ require __DIR__ . '/../layouts/header.php';
             if (!msg) return;
 
             if (!socket || socket.readyState !== WebSocket.OPEN) {
-                App.showToast('Mất kết nối máy chủ tin nhắn. Đang thử kết nối lại...', 'error');
+                App.showToast(window.I18n ? window.I18n.get('chat_ws_error') : 'Mất kết nối máy chủ tin nhắn. Đang thử kết nối lại...', 'error');
                 connectWS(token);
                 return;
             }
@@ -122,8 +122,19 @@ require __DIR__ . '/../layouts/header.php';
     });
 
     function connectWS(token) {
-        const wsHost = window.location.hostname;
-        socket = new WebSocket(`ws://${wsHost}:8080?token=${token}`);
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        let wsUrl;
+        
+        if (host.includes(':8000')) {
+            // Khi chạy local map qua cổng 8000 trực tiếp đến websocket container cổng 8080
+            wsUrl = `${protocol}//${window.location.hostname}:8080?token=${token}`;
+        } else {
+            // Khi chạy qua Cloudflare Tunnel hoặc cổng tiêu chuẩn 80/443, dùng Reverse Proxy qua Apache (/ws)
+            wsUrl = `${protocol}//${host}/ws?token=${token}`;
+        }
+        
+        socket = new WebSocket(wsUrl);
         
         socket.onopen = () => {
             console.log('[WS] Connected');
@@ -138,7 +149,8 @@ require __DIR__ . '/../layouts/header.php';
                 if (data.sender_id == currentReceiverId) {
                     appendMessage(data.content, 'received', data.sender_avatar);
                 } else {
-                    App.showToast(`Tin nhắn mới từ ${data.sender_name}`, 'info');
+                    const newMsgToast = window.I18n ? window.I18n.get('chat_new_msg') : 'Tin nhắn mới từ';
+                    App.showToast(`${newMsgToast} ${data.sender_name}`, 'info');
                 }
             }
             // Loại bỏ 'sent' ở đây vì đã hiển thị Optimistic UI
@@ -180,7 +192,8 @@ require __DIR__ . '/../layouts/header.php';
             const teachers = Object.values(teacherMap);
 
             if (teachers.length === 0) {
-                contactList.innerHTML = `<div class="p-6 text-center text-muted" data-i18n="chat_no_enroll_msg">Chưa có giảng viên liên hệ.</div>`;
+                const noEnrollMsg = window.I18n ? window.I18n.get('chat_no_enroll_msg') : 'Bạn chưa đăng ký khóa học nào để nhắn tin với giảng viên.';
+                contactList.innerHTML = `<div class="p-6 text-center text-muted" data-i18n="chat_no_enroll_msg">${noEnrollMsg}</div>`;
                 if (window.I18n) window.I18n.render();
                 return;
             }
@@ -226,6 +239,7 @@ require __DIR__ . '/../layouts/header.php';
         const isUserOnline = isOnline(lastSeen);
         const statusColor = isUserOnline ? 'var(--success)' : '#64748b';
         const statusText = isUserOnline ? 'chat_online' : 'chat_offline';
+        const statusDisplayVal = window.I18n ? window.I18n.get(statusText) : (isUserOnline ? 'Đang trực tuyến' : 'Ngoại tuyến');
 
         document.getElementById('chatHeader').innerHTML = `
             ${avatarHtml}
@@ -233,14 +247,15 @@ require __DIR__ . '/../layouts/header.php';
                 <h3 style="font-size: 1rem; font-weight: 700;">${escapeHtml(teacherName)}</h3>
                 <div style="font-size: 0.75rem; color: ${statusColor}; display: flex; align-items: center; gap: 4px;">
                     <div style="width: 6px; height: 6px; background: ${statusColor}; border-radius: 50%;"></div>
-                    <span data-i18n="${statusText}">${isUserOnline ? 'Đang trực tuyến' : 'Ngoại tuyến'}</span>
+                    <span data-i18n="${statusText}">${statusDisplayVal}</span>
                 </div>
             </div>
         `;
         if (window.I18n) window.I18n.render();
 
         const chatWin = document.getElementById('chatWindow');
-        chatWin.innerHTML = '<div class="p-6 text-center opacity-50">Đang tải lịch sử...</div>';
+        const loadingHistoryMsg = window.I18n ? window.I18n.get('chat_loading_history') : 'Đang tải lịch sử...';
+        chatWin.innerHTML = `<div class="p-6 text-center opacity-50" data-i18n="chat_loading_history">${loadingHistoryMsg}</div>`;
 
         try {
             const res = await window.api.get(`/chat/history?user_id=${teacherId}`);
@@ -249,7 +264,8 @@ require __DIR__ . '/../layouts/header.php';
             const myId = window.api.getUser().id;
             
             if (msgs.length === 0) {
-                chatWin.innerHTML = `<div class="p-6 text-center opacity-40">Bắt đầu trò chuyện với ${escapeHtml(teacherName)}</div>`;
+                const startConvoMsg = window.I18n ? window.I18n.get('chat_start_convo_with') : 'Bắt đầu trò chuyện với';
+                chatWin.innerHTML = `<div class="p-6 text-center opacity-40">${startConvoMsg} ${escapeHtml(teacherName)}</div>`;
             } else {
                 msgs.forEach(m => {
                     const type = (m.sender_id == myId) ? 'sent' : 'received';
@@ -258,7 +274,8 @@ require __DIR__ . '/../layouts/header.php';
             }
             chatWin.scrollTop = chatWin.scrollHeight;
         } catch (e) {
-            chatWin.innerHTML = '<div class="p-6 text-center text-danger">Lỗi tải dữ liệu.</div>';
+            const loadErrorMsg = window.I18n ? window.I18n.get('chat_load_error') : 'Lỗi tải dữ liệu.';
+            chatWin.innerHTML = `<div class="p-6 text-center text-danger" data-i18n="chat_load_error">${loadErrorMsg}</div>`;
         }
     }
 

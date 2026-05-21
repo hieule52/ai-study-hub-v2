@@ -90,8 +90,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const token = window.api.getToken();
     if (token) {
-        const wsHost = window.location.hostname;
-        socket = new WebSocket(`ws://${wsHost}:8080?token=${token}`);
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        let wsUrl;
+        
+        if (host.includes(':8000')) {
+            // Khi chạy local map qua cổng 8000 trực tiếp đến websocket container cổng 8080
+            wsUrl = `${protocol}//${window.location.hostname}:8080?token=${token}`;
+        } else {
+            // Khi chạy qua Cloudflare Tunnel hoặc cổng tiêu chuẩn 80/443, dùng Reverse Proxy qua Apache (/ws)
+            wsUrl = `${protocol}//${host}/ws?token=${token}`;
+        }
+        
+        socket = new WebSocket(wsUrl);
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);

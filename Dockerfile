@@ -15,11 +15,14 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pdo_mysql gd zip
 
-# Enable Apache rewrite module
-RUN a2enmod rewrite
+# Enable Apache rewrite, proxy and security headers modules
+RUN a2enmod rewrite proxy proxy_http proxy_wstunnel headers
 
 # Copy custom Apache virtual host configuration
 COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
+
+# Copy custom PHP configuration
+COPY docker/php.ini /usr/local/etc/php/conf.d/uploads.ini
 
 # Install Composer from official image
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

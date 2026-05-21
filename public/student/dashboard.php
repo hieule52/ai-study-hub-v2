@@ -251,6 +251,9 @@ require __DIR__ . '/../layouts/header.php';
                     const priceHtml = c.price>0
                         ? `<span style="font-weight:700;">${new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(c.price)}</span>`
                         : `<span class="badge badge-free" data-i18n="home_free">Miễn phí</span>`;
+                    const descHtml = c.description
+                        ? c.description.substring(0, 90) + '...'
+                        : `<span data-i18n="std_no_desc">Chưa có mô tả.</span>`;
                     return `
                     <div class="card liquid-glass" style="display:flex;flex-direction:column;">
                         <div class="card-img-placeholder" style="position:relative;height:180px;cursor:pointer;" onclick="window.location.href='/course/${c.id}'">
@@ -259,7 +262,7 @@ require __DIR__ . '/../layouts/header.php';
                         </div>
                         <div class="card-body" style="flex:1;display:flex;flex-direction:column;">
                             <h3 class="card-title" style="cursor:pointer;" onclick="window.location.href='/course/${c.id}'">${c.title}</h3>
-                            <p class="text-secondary" style="font-size:0.82rem;flex:1;margin-bottom:1rem;line-height:1.6;" data-i18n="std_no_desc">${c.description?c.description.substring(0,90)+'...':'Chưa có mô tả.'}</p>
+                            <p class="text-secondary" style="font-size:0.82rem;flex:1;margin-bottom:1rem;line-height:1.6;">${descHtml}</p>
                             <div class="flex items-center justify-between mb-3">${priceHtml}</div>
                             ${btn}
                         </div>

@@ -115,8 +115,7 @@ header('Content-Type: text/html; charset=utf-8');
                         <ul class="sidebar-nav">
                             <?php if ($actor === 'student'): ?>
                             <li>
-                                <a href="/student/dashboard" class="sidebar-link <?= $isActive('/student/dashboard') ?>"
-                                    data-i18n="nav_student_dashboard">
+                                <a href="/student/dashboard" class="sidebar-link <?= $isActive('/student/dashboard') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="3" y="3" width="7" height="7"></rect>
@@ -124,23 +123,21 @@ header('Content-Type: text/html; charset=utf-8');
                                         <rect x="14" y="14" width="7" height="7"></rect>
                                         <rect x="3" y="14" width="7" height="7"></rect>
                                     </svg>
-                                    <span>Tổng quan</span>
+                                    <span data-i18n="nav_student_dashboard">Tổng quan</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="/student/courses" class="sidebar-link <?= $isActive('/student/courses') ?>"
-                                    data-i18n="nav_student_courses">
+                                <a href="/student/courses" class="sidebar-link <?= $isActive('/student/courses') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M2 3h6a4 4 0 0 1 4 4v14a4 4 0 0 0-4-4H2z"></path>
                                         <path d="M22 3h-6a4 4 0 0 0-4 4v14a4 4 0 0 1 4-4h6z"></path>
                                     </svg>
-                                    <span>Khóa học của tôi</span>
+                                    <span data-i18n="nav_student_courses">Khóa học của tôi</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="/student/ai-chat" class="sidebar-link <?= $isActive('/student/ai-chat') ?>"
-                                    data-i18n="nav_student_ai">
+                                <a href="/student/ai-chat" class="sidebar-link <?= $isActive('/student/ai-chat') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z">
@@ -149,35 +146,32 @@ header('Content-Type: text/html; charset=utf-8');
                                             d="M12 6a1 1 0 1 0 1 1 1 1 0 0 0-1-1zm0 4a1 1 0 1 0 1 1 1 1 0 0 0-1-1zm0 4a1 1 0 1 0 1 1 1 1 0 0 0-1-1z">
                                         </path>
                                     </svg>
-                                    <span>Gia sư AI</span>
+                                    <span data-i18n="nav_student_ai">Gia sư AI</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="/student/chat" class="sidebar-link <?= $isActive('/student/chat') ?>"
-                                    data-i18n="nav_student_chat">
+                                <a href="/student/chat" class="sidebar-link <?= $isActive('/student/chat') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                     </svg>
-                                    <span>Tin nhắn</span>
+                                    <span data-i18n="nav_student_chat">Tin nhắn</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="/student/certificates"
-                                    class="sidebar-link <?= $isActive('/student/certificates') ?>"
-                                    data-i18n="nav_student_certificates">
+                                    class="sidebar-link <?= $isActive('/student/certificates') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
                                         <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
                                     </svg>
-                                    <span>Chứng chỉ</span>
+                                    <span data-i18n="nav_student_certificates">Chứng chỉ</span>
                                 </a>
                             </li>
                         <?php elseif ($actor === 'teacher'): ?>
                             <li>
-                                <a href="/teacher/dashboard" class="sidebar-link <?= $isActive('/teacher/dashboard') ?>"
-                                    data-i18n="nav_teacher_dashboard">
+                                <a href="/teacher/dashboard" class="sidebar-link <?= $isActive('/teacher/dashboard') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="3" y="3" width="7" height="7"></rect>
@@ -185,23 +179,21 @@ header('Content-Type: text/html; charset=utf-8');
                                         <rect x="14" y="14" width="7" height="7"></rect>
                                         <rect x="3" y="14" width="7" height="7"></rect>
                                     </svg>
-                                    <span>Tổng quan</span>
+                                    <span data-i18n="nav_teacher_dashboard">Tổng quan</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="/teacher/dashboard#courses-container" class="sidebar-link"
-                                    data-i18n="nav_teacher_courses">
+                                <a href="/teacher/dashboard#courses-container" class="sidebar-link">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                                         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                                     </svg>
-                                    <span>Quản lý khóa học</span>
+                                    <span data-i18n="nav_teacher_courses">Quản lý khóa học</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="/teacher/students" class="sidebar-link <?= $isActive('/teacher/students') ?>"
-                                    data-i18n="nav_teacher_students">
+                                <a href="/teacher/students" class="sidebar-link <?= $isActive('/teacher/students') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -209,23 +201,21 @@ header('Content-Type: text/html; charset=utf-8');
                                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                                     </svg>
-                                    <span>Học viên</span>
+                                    <span data-i18n="nav_teacher_students">Học viên</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="/teacher/chat" class="sidebar-link <?= $isActive('/teacher/chat') ?>"
-                                    data-i18n="nav_teacher_chat">
+                                <a href="/teacher/chat" class="sidebar-link <?= $isActive('/teacher/chat') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                                     </svg>
-                                    <span>Hỗ trợ</span>
+                                    <span data-i18n="nav_teacher_chat">Hỗ trợ</span>
                                 </a>
                             </li>
                         <?php elseif ($actor === 'admin'): ?>
                             <li>
-                                <a href="/admin/dashboard" class="sidebar-link <?= $isActive('/admin/dashboard') ?>"
-                                    data-i18n="nav_admin_dashboard">
+                                <a href="/admin/dashboard" class="sidebar-link <?= $isActive('/admin/dashboard') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="12" cy="12" r="3"></circle>
@@ -233,12 +223,11 @@ header('Content-Type: text/html; charset=utf-8');
                                             d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
                                         </path>
                                     </svg>
-                                    <span>Hệ thống</span>
+                                    <span data-i18n="nav_admin_dashboard">Hệ thống</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="/admin/users" class="sidebar-link <?= $isActive('/admin/users') ?>"
-                                    data-i18n="nav_admin_users">
+                                <a href="/admin/users" class="sidebar-link <?= $isActive('/admin/users') ?>">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -246,7 +235,7 @@ header('Content-Type: text/html; charset=utf-8');
                                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                                     </svg>
-                                    <span>Người dùng</span>
+                                    <span data-i18n="nav_admin_users">Người dùng</span>
                                 </a>
                             </li>
                         <?php endif; ?>
