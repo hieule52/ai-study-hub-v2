@@ -50,6 +50,9 @@ require __DIR__ . '/../layouts/header.php';
             <!-- Active Chat -->
             <div id="chatActiveState" style="display: none; flex-direction: column; height: 100%;">
                 <header class="chat-header">
+                    <button class="chat-back-btn" onclick="closeChatMobile()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    </button>
                     <div id="activeAvatar"></div>
                     <div>
                         <h3 id="activeName" style="font-size: 1.2rem; font-weight: 800; margin: 0; letter-spacing: -0.01em;">-</h3>
@@ -185,10 +188,18 @@ async function loadContacts() {
     } catch (err) { console.error(err); }
 }
 
+window.closeChatMobile = function() {
+    const container = document.querySelector('.chat-container');
+    if (container) container.classList.remove('show-chat');
+};
+
 function selectContact(id, name, avatar, online) {
     currentReceiverId = id;
     document.getElementById('chatEmptyState').style.display = 'none';
     document.getElementById('chatActiveState').style.display = 'flex';
+    
+    const container = document.querySelector('.chat-container');
+    if (container) container.classList.add('show-chat');
     
     document.querySelectorAll('.contact-item').forEach(el => el.classList.remove('active'));
     document.querySelector(`.contact-item[data-id="${id}"]`)?.classList.add('active');

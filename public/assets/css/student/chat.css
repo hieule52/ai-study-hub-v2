@@ -232,3 +232,67 @@
     margin-bottom: 1.5rem;
     color: var(--primary);
 }
+
+.chat-back-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+
+.chat-back-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+@media (max-width: 768px) {
+    .chat-layout {
+        height: calc(100vh - 100px);
+        margin-top: 0.5rem;
+    }
+    
+    .chat-sidebar {
+        width: 100%;
+        display: flex;
+    }
+    
+    .chat-main {
+        display: none;
+    }
+    
+    .chat-layout.show-chat .chat-sidebar {
+        display: none;
+    }
+    
+    .chat-layout.show-chat .chat-main {
+        display: flex;
+    }
+    
+    .chat-back-btn {
+        display: flex;
+    }
+    
+    .chat-header {
+        padding: 1rem;
+    }
+    
+    .chat-messages {
+        padding: 1.25rem;
+        gap: 1rem;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+    
+    .chat-input-area {
+        padding: 1rem;
+    }
+}
+

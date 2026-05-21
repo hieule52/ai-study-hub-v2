@@ -147,27 +147,47 @@
 
 /* Tablet — ≤ 1024px */
 @media (max-width: 1024px) {
+    :root {
+        --section-spacing: 100px;
+        --container-px: 24px;
+    }
     .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
     .grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Mobile — ≤ 768px */
 @media (max-width: 768px) {
-    :root { --container-px: 20px; }   /* Tighten container padding on mobile */
+    :root {
+        --section-spacing: 70px;
+        --container-px: 20px;
+    }
     .container,
     .content-container,
     .footer-container {
         padding-inline: var(--container-px);
     }
+    .gap-12 { gap: 2rem; }
+    .gap-10 { gap: 1.75rem; }
+    .gap-8  { gap: 1.5rem; }
+    .gap-6  { gap: 1.25rem; }
 }
 
 /* Small mobile — ≤ 480px */
 @media (max-width: 480px) {
-    :root { --container-px: 16px; }
+    :root {
+        --section-spacing: 50px;
+        --container-px: 16px;
+    }
 
     .grid-cols-4,
     .grid-cols-3,
     .grid-cols-2 {
         grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    
+    .col-span-2,
+    .col-span-3 {
+        grid-column: span 1;
     }
 }

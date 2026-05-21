@@ -65,12 +65,29 @@
 
 @media (max-width: 768px) {
     .sidebar {
-        width: 100%;
-        position: static;
-        border-right: none;
-        border-bottom: 1px solid var(--glass-border);
-        padding: 1rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        transform: translateX(-100%);
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 1000;
+        background: rgba(7, 7, 9, 0.98);
+        border-right: 1px solid var(--glass-border);
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.8);
+        padding: 5rem 1.5rem 2rem;
     }
-    .main-content { margin-left: 0; padding: 1.25rem; }
-    .dashboard-layout { flex-direction: column; padding-top: 60px; }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    .main-content {
+        margin-left: 0;
+        padding: 1.5rem 1rem;
+        width: 100%;
+    }
+    .dashboard-layout {
+        padding-top: 80px;
+    }
 }
+

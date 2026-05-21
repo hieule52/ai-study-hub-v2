@@ -20,6 +20,9 @@ require __DIR__ . '/../layouts/header.php';
             <div class="player-nav">
                 <a href="/student/dashboard" class="btn btn-ghost player-nav-btn" data-i18n="lrn_back_home">&larr; Dashboard</a>
                 <span class="player-course-title" id="course_title_span">...</span>
+                <button class="btn btn-ghost curriculum-toggle-btn" onclick="toggleCurriculum()" style="display: none; align-items: center; gap: 6px; border-radius: 100px; font-size: 0.85rem; border: 1px solid var(--glass-border); padding: 0.4rem 1rem; color: #fff; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); cursor: pointer;">
+                    <i class="fas fa-list"></i> <span data-i18n="lrn_curriculum">Bài học</span>
+                </button>
             </div>
 
             <!-- Video Player -->
@@ -214,10 +217,21 @@ require __DIR__ . '/../layouts/header.php';
                             const lesDiv = document.createElement('div');
                             lesDiv.className = 'lesson-item';
                             lesDiv.id = `nav-lesson-${lesson.id}`;
-                            const icon = lesson.content_type === 'quiz' ? '📝' : '🎬';
-                            lesDiv.innerHTML = `<span>${icon}</span> <span style="flex: 1">${lesson.title}</span>`;
-                            lesDiv.onclick = () => loadLesson(lesson.id);
-                            sidebar.appendChild(lesDiv);
+                             const icon = lesson.content_type === 'quiz' ? '📝' : '🎬';
+                             lesDiv.innerHTML = `<span>${icon}</span> <span style="flex: 1">${lesson.title}</span>`;
+                             lesDiv.onclick = () => {
+                                 loadLesson(lesson.id);
+                                 const cSidebar = document.querySelector('.curriculum-sidebar');
+                                 const cOverlay = document.querySelector('.sidebar-overlay');
+                                 if (cSidebar && window.innerWidth <= 992) {
+                                     cSidebar.classList.remove('open');
+                                     if (cOverlay) {
+                                         cOverlay.classList.remove('active');
+                                         cOverlay.onclick = toggleSidebar;
+                                     }
+                                 }
+                             };
+                             sidebar.appendChild(lesDiv);
                         });
                     }
                 });
@@ -545,6 +559,26 @@ require __DIR__ . '/../layouts/header.php';
 
         function toggleAIChat() {
             document.getElementById('aiPopup').classList.toggle('open');
+        }
+
+        function toggleCurriculum() {
+            const sidebar = document.querySelector('.curriculum-sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            if (sidebar) {
+                sidebar.classList.toggle('open');
+                if (overlay) {
+                    if (sidebar.classList.contains('open')) {
+                        overlay.classList.add('active');
+                        overlay.onclick = function() {
+                            sidebar.classList.remove('open');
+                            overlay.classList.remove('active');
+                            overlay.onclick = typeof toggleSidebar !== 'undefined' ? toggleSidebar : null;
+                        };
+                    } else {
+                        overlay.classList.remove('active');
+                    }
+                }
+            }
         }
 
         // AI Chat — gửi context bài học + khóa học

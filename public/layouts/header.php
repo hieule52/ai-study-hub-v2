@@ -30,9 +30,38 @@ header('Content-Type: text/html; charset=utf-8');
             font-weight: 600;
         }
     </style>
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('navMenu');
+            const hamburger = document.getElementById('navHamburger');
+            if (menu && hamburger) {
+                menu.classList.toggle('mobile-open');
+                hamburger.classList.toggle('active');
+            }
+        }
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar, .teacher-sidebar, .admin-sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            if (sidebar) {
+                sidebar.classList.toggle('open');
+                if (overlay) overlay.classList.toggle('active');
+            }
+        }
+    </script>
 </head>
 
 <body class="cinematic-theme <?= ($noSidebar ?? false) ? 'no-sidebar-mode' : '' ?>">
+
+    <?php if (in_array($actor, ['student', 'teacher', 'admin'])): ?>
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <?php endif; ?>
 
     <?php if ($actor === 'auth'): ?>
         <div class="auth-wrapper">
@@ -57,7 +86,7 @@ header('Content-Type: text/html; charset=utf-8');
                         </svg>
                     </a>
 
-                    <ul class="nav-menu">
+                    <ul class="nav-menu" id="navMenu">
                         <?php if ($actor !== 'teacher'): ?>
                         <li><a href="/" class="nav-link" data-i18n="nav_home">Trang chủ</a></li>
                         <li><a href="/courses" class="nav-link" data-i18n="nav_courses">Khóa học</a></li>
@@ -100,6 +129,13 @@ header('Content-Type: text/html; charset=utf-8');
                             </div>
                         <?php endif; ?>
                     </div>
+
+                    <!-- Hamburger menu -->
+                    <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileMenu()" aria-label="Toggle navigation">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
                 </div>
             </nav>
             <?php endif; ?>

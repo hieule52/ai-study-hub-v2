@@ -222,10 +222,18 @@ require __DIR__ . '/../layouts/header.php';
         }
     }
 
+    window.closeChatMobile = function() {
+        const layout = document.querySelector('.chat-layout');
+        if (layout) layout.classList.remove('show-chat');
+    };
+
     async function selectContact(teacherId, teacherName, teacherAvatar = '', lastSeen = '') {
         currentReceiverId = teacherId;
         document.getElementById('chatEmptyState').style.display = 'none';
         document.getElementById('chatActiveState').style.display = 'flex';
+
+        const layout = document.querySelector('.chat-layout');
+        if (layout) layout.classList.add('show-chat');
 
         document.querySelectorAll('.contact-item').forEach(el => el.classList.remove('active'));
         const activeEl = document.querySelector(`.contact-item[data-id="${teacherId}"]`);
@@ -242,6 +250,9 @@ require __DIR__ . '/../layouts/header.php';
         const statusDisplayVal = window.I18n ? window.I18n.get(statusText) : (isUserOnline ? 'Đang trực tuyến' : 'Ngoại tuyến');
 
         document.getElementById('chatHeader').innerHTML = `
+            <button class="chat-back-btn" onclick="closeChatMobile()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
             ${avatarHtml}
             <div>
                 <h3 style="font-size: 1rem; font-weight: 700;">${escapeHtml(teacherName)}</h3>
