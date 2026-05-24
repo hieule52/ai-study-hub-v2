@@ -95,8 +95,8 @@ class AiService
         $prompt .= "   - Bạn là trợ lý chính thức của hệ thống giáo dục trực tuyến **AI Study Hub LMS**.\n";
         $prompt .= "   - Khi học viên hỏi về các khóa học, giới thiệu khóa học, khuyên học khóa học nào, hoặc hỏi hệ thống có những khóa học gì:\n";
         $prompt .= "     + Bạn CẦN sử dụng danh sách các khóa học thực tế đang hoạt động trong hệ thống dưới đây để giới thiệu chi tiết (tên khóa học, giảng viên, trình độ, học phí, mô tả khái quát).\n";
-        $prompt .= "     + Hãy chèn đường dẫn xem chi tiết dạng Markdown liên kết (ví dụ: [Tên Khóa Học](/course-detail.php?id=X)) để học viên có thể click vào học hoặc đăng ký ngay.\n";
-        $prompt .= "     + Khuyến khích học viên đăng ký hoặc tìm hiểu thêm tại trang **Khóa học** (đường dẫn: `/courses.php`).\n";
+        $prompt .= "     + Hãy chèn đường dẫn xem chi tiết dạng Markdown liên kết (ví dụ: [Tên Khóa Học](/course/X)) để học viên có thể click vào học hoặc đăng ký ngay.\n";
+        $prompt .= "     + Khuyến khích học viên đăng ký hoặc tìm hiểu thêm tại trang **Khóa học** (đường dẫn: `/courses`).\n";
         $prompt .= "     + Tuyệt đối không bịa đặt hoặc tự vẽ ra các khóa học không có thực trong danh sách này.\n\n";
 
         // Gắn danh sách khóa học thực tế của hệ thống để AI Tutor giới thiệu
@@ -113,7 +113,7 @@ class AiService
                 $prompt .= "  - Trình độ: {$c['level']}\n";
                 $prompt .= "  - Học phí: {$priceStr}\n";
                 $prompt .= "  - Mô tả: " . strip_tags($c['description']) . "\n";
-                $prompt .= "  - Đường dẫn xem chi tiết: /course-detail.php?id={$c['id']}\n\n";
+                $prompt .= "  - Đường dẫn xem chi tiết: /course/{$c['id']}\n\n";
             }
             $prompt .= "-------------------------------------------------------------\n\n";
         }

@@ -4,40 +4,52 @@ services:
   db:
     image: mysql:8.0
     container_name: aistudyhub_db
-    restart: always
+    # unless-stopped: tự restart khi crash, KHÔNG restart nếu người dùng chủ động stop
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: aistudyhublms
-      MYSQL_ROOT_PASSWORD: "123456" # Khớp với mật khẩu DB của bạn trong .env
+      MYSQL_ROOT_PASSWORD: "123456"
+      # Tránh lỗi authentication plugin với PHP PDO/MySQLi
+      MYSQL_ROOT_HOST: "%"
     ports:
       - "3307:3306"
     volumes:
+      # Named volume: dữ liệu MySQL KHÔNG bao giờ bị mất khi restart/rebuild container
       - db_data:/var/lib/mysql
-      # Tự động import database schema và dữ liệu ban đầu khi DB được khởi tạo lần đầu tiên
+      # Tự động import schema và seed data khi DB khởi tạo lần đầu tiên
       - ./database:/docker-entrypoint-initdb.d
     networks:
       - aistudyhub_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   web:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: aistudyhub_web
-    restart: always
+    restart: unless-stopped
     ports:
-      - "8000:80" # Map cổng 8000 của máy chủ vào cổng 80 của Container
+      - "8000:80"
     env_file:
       - .env
     environment:
-      DB_HOST: db # Ghi đè DB_HOST từ localhost thành tên service db trong Docker Network
+      # Ghi đè DB_HOST từ localhost → tên service db trong Docker internal network
+      DB_HOST: db
       DB_NAME: aistudyhublms
       DB_USER: root
       DB_PASS: "123456"
     volumes:
-      # Mount thư mục lưu trữ và upload để dữ liệu học viên tải lên không bị mất khi restart container
+      # Bind mount: uploads và storage tồn tại ngay cả khi rebuild image
       - ./storage:/var/www/html/storage
       - ./public/uploads:/var/www/html/public/uploads
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - aistudyhub_net
 
@@ -46,26 +58,33 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: aistudyhub_websocket
+    # Override CMD: chạy WebSocket server thay vì Apache
     command: php server.php
-    restart: always
+    restart: unless-stopped
     ports:
-      - "8080:8080" # Map cổng WebSocket của Real-time Server
+      # Expose port 8080 để kết nối trực tiếp khi dev local (localhost:8080)
+      # Khi chạy qua Cloudflare Tunnel / VPS, Apache sẽ proxy /ws → websocket:8080
+      - "8080:8080"
     env_file:
       - .env
     environment:
-      DB_HOST: db # Ghi đè DB_HOST thành db
+      DB_HOST: db
       DB_NAME: aistudyhublms
       DB_USER: root
       DB_PASS: "123456"
       WS_PORT: 8080
+      # WebSocket server lắng nghe trên 0.0.0.0 để nhận kết nối từ mọi interface
+      WS_HOST: "0.0.0.0"
     depends_on:
-      - db
-      - web
+      db:
+        condition: service_healthy
     networks:
       - aistudyhub_net
 
 volumes:
+  # Named volume được Docker quản lý, tồn tại độc lập với container lifecycle
   db_data:
+    driver: local
 
 networks:
   aistudyhub_net:

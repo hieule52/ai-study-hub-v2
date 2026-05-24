@@ -28,6 +28,65 @@ $path = rtrim($uriPath, '/');
 if ($path === '') $path = '/';
 
 // ============================================================
+// AUTOMATIC REDIRECTS FOR LEGACY .php URLS
+// ============================================================
+if (strpos($path, '.php') !== false) {
+    $redirectUrl = '';
+    
+    // Dynamic mappings
+    if ($path === '/course-detail.php' && isset($_GET['id'])) {
+        $redirectUrl = '/course/' . $_GET['id'];
+    } elseif ($path === '/student/learning.php' && isset($_GET['course_id'])) {
+        $redirectUrl = '/student/learning/' . $_GET['course_id'];
+    } elseif ($path === '/student/course-payment.php' && isset($_GET['course_id'])) {
+        $redirectUrl = '/student/payment/' . $_GET['course_id'];
+    } elseif ($path === '/admin/preview-course.php' && isset($_GET['id'])) {
+        $redirectUrl = '/admin/preview/' . $_GET['id'];
+    } else {
+        // Static mappings
+        $cleanMappings = [
+            '/login.php'                => '/login',
+            '/register.php'             => '/register',
+            '/logout.php'               => '/logout',
+            '/forgot-password.php'      => '/forgot-password',
+            '/about.php'                => '/about',
+            '/courses.php'              => '/courses',
+            '/course-detail.php'        => '/courses', // Fallback
+            '/profile.php'              => '/profile',
+            '/certificate/verify.php'   => '/certificate/verify',
+            '/student/dashboard.php'    => '/student/dashboard',
+            '/student/my-courses.php'   => '/student/courses',
+            '/student/ai-chat.php'      => '/student/ai-chat',
+            '/student/chat.php'         => '/student/chat',
+            '/student/certificates.php' => '/student/certificates',
+            '/teacher/dashboard.php'    => '/teacher/dashboard',
+            '/teacher/courses.php'      => '/teacher/courses',
+            '/teacher/create-course.php' => '/teacher/create-course',
+            '/teacher/course-builder.php' => '/teacher/course-builder',
+            '/teacher/students.php'     => '/teacher/students',
+            '/teacher/chat.php'         => '/teacher/chat',
+            '/admin/dashboard.php'      => '/admin/dashboard',
+            '/admin/users.php'          => '/admin/users',
+            '/admin/courses.php'        => '/admin/courses',
+            '/admin/logs.php'           => '/admin/logs',
+            '/admin/vip.php'            => '/admin/vip',
+            '/admin/preview-course.php' => '/admin/preview',
+        ];
+        if (isset($cleanMappings[$path])) {
+            $redirectUrl = $cleanMappings[$path];
+            if (!empty($_SERVER['QUERY_STRING'])) {
+                $redirectUrl .= '?' . $_SERVER['QUERY_STRING'];
+            }
+        }
+    }
+    
+    if ($redirectUrl !== '') {
+        header('Location: ' . $redirectUrl, true, 301);
+        exit;
+    }
+}
+
+// ============================================================
 // STATIC ROUTE MAP — clean URL → file PHP
 // ============================================================
 $staticRoutes = [
@@ -38,6 +97,7 @@ $staticRoutes = [
     '/forgot-password'      => 'forgot-password.php',
     '/about'                => 'about.php',
     '/courses'              => 'courses.php',
+    '/course-detail'        => 'course-detail.php',
     '/profile'              => 'profile.php',
     '/certificate/verify'   => 'certificate/verify.php',
     // Student

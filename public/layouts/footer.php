@@ -3,7 +3,7 @@ $actor = $actor ?? 'guest';
 $extraScripts = $extraScripts ?? '';
 ?>
 
-<?php if (in_array($actor, ['student', 'teacher', 'admin']) && !isset($noSidebar)): ?>
+<?php if (in_array($actor, ['student', 'teacher', 'admin']) && !($noSidebar ?? false)): ?>
     </main> <!-- End main-content -->
     </div> <!-- End dashboard-layout -->
 <?php elseif ($actor === 'auth'): ?>
@@ -58,9 +58,9 @@ $extraScripts = $extraScripts ?? '';
 <?php endif; ?>
 
 <!-- Scripts -->
-<script src="/assets/js/api.js"></script>
-<script src="/assets/js/app.js"></script>
-<script src="/assets/js/i18n.js"></script>
+<script src="/assets/js/api.js?v=<?= time() ?>"></script>
+<script src="/assets/js/app.js?v=<?= time() ?>"></script>
+<script src="/assets/js/i18n.js?v=<?= time() ?>"></script>
 <?= $extraScripts ?>
 
 <script>

@@ -60,6 +60,13 @@ const App = {
         return container;
     },
 
+    formatVND(amount) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    },
+
     requireAuth(allowedRoles = []) {
         const user = window.api.getUser();
         if (!user) { window.location.href = '/login'; return; }

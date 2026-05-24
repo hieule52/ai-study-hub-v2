@@ -106,7 +106,7 @@ require __DIR__ . '/../layouts/header.php';
             if (btn) { btn.textContent = 'Đang xử lý...'; btn.disabled = true; }
             await window.api.post(`/courses/${courseId}/enroll`, {});
         } catch(e) { console.log(e.message); }
-        window.location.href = `/student/learning.php?course_id=${courseId}`;
+        window.location.href = `/student/learning/${courseId}`;
     };
 
     window.claimCert = async function(courseId) {

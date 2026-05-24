@@ -92,9 +92,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!user) return;
     if (window.I18n) window.I18n.render();
 
+    const courseList = document.getElementById('course-list');
+    const t = (key, fallback = '') => window.I18n ? window.I18n.get(key) : fallback;
+
     try {
         const res = await window.api.get('/teacher/dashboard');
-        const { stats, courses } = res.data;
+        const stats = res?.data?.stats || {};
+        const courses = res?.data?.courses || [];
 
         // Populate Stats
         document.getElementById('stat-courses').innerText = stats.total_courses || 0;
@@ -102,38 +106,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('stat-rating').innerText = stats.avg_rating || '0.0';
 
         // Populate Courses
-        const courseList = document.getElementById('course-list');
         if (courses.length === 0) {
-            courseList.innerHTML = `<tr><td colspan="5" class="text-center p-10 opacity-50">${I18n.get('tc_dash_no_courses')}</td></tr>`;
+            courseList.innerHTML = `<tr><td colspan="5" class="text-center p-10 opacity-50">${t('tc_dash_no_courses', 'Chưa có khóa học nào.')}</td></tr>`;
             return;
         }
 
         courseList.innerHTML = courses.map(c => {
             let statusClass = 'status-draft';
             let statusLabel = 'tc_dash_draft';
-            
-            if (c.status === 'active' || c.status === 'approved') { 
-                statusClass = 'status-active'; 
-                statusLabel = 'tc_dash_active'; 
-            } else if (c.status === 'pending') { 
-                statusClass = 'status-pending'; 
-                statusLabel = 'tc_dash_pending'; 
+
+            if (c.status === 'active' || c.status === 'approved') {
+                statusClass = 'status-active';
+                statusLabel = 'tc_dash_active';
+            } else if (c.status === 'pending') {
+                statusClass = 'status-pending';
+                statusLabel = 'tc_dash_pending';
             }
 
-            const priceLabel = c.is_premium ? App.formatVND(c.price) : I18n.get('tc_dash_free');
+            const priceLabel = (c.is_premium && c.price > 0)
+                ? new Intl.NumberFormat('vi-VN', {style:'currency', currency:'VND'}).format(c.price)
+                : t('tc_dash_free', 'Miễn phí');
 
             return `
                 <tr>
                     <td>
                         <div class="course-name-cell">
-                            <img src="${c.thumbnail || '/assets/images/course-default.jpg'}" class="course-thumb" alt="">
+                            <img src="${c.thumbnail || '/assets/images/course-default.jpg'}" class="course-thumb" alt="" onerror="this.style.display='none'">
                             <span class="course-title">${c.title}</span>
                         </div>
                     </td>
                     <td>${priceLabel}</td>
-                    <td>${c.student_count || 0} <span style="font-size: 0.8rem; opacity: 0.5;">${I18n.get('tc_dash_unit_student')}</span></td>
+                    <td>${c.student_count || 0} <span style="font-size: 0.8rem; opacity: 0.5;">${t('tc_dash_unit_student', 'học viên')}</span></td>
                     <td>
-                        <span class="status-badge ${statusClass}" data-i18n="${statusLabel}">${I18n.get(statusLabel)}</span>
+                        <span class="status-badge ${statusClass}" data-i18n="${statusLabel}">${t(statusLabel)}</span>
                     </td>
                     <td>
                         <div class="action-btns">
@@ -141,10 +146,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <i class="fas fa-cog"></i>
                             </a>
                             <a href="/teacher/course-builder/${c.id}" class="btn btn-primary btn-sm" style="border-radius:100px;">
-                                ${I18n.get('tc_dash_btn_build')}
+                                ${t('tc_dash_btn_build', 'Xây dựng')}
                             </a>
                             <button onclick="deleteCourse(${c.id})" class="btn btn-ghost btn-sm" style="color: var(--danger);">
-                                ${I18n.get('tc_dash_btn_delete')}
+                                ${t('tc_dash_btn_delete', 'Xóa')}
                             </button>
                         </div>
                     </td>
@@ -152,8 +157,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }).join('');
 
+        if (window.I18n) window.I18n.render();
+
     } catch (err) {
+        console.error('Dashboard load error:', err);
         App.showToast(err.message, 'error');
+        courseList.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--danger);">Lỗi tải dữ liệu: ${err.message}</td></tr>`;
     }
 });
 

@@ -116,14 +116,14 @@ require __DIR__ . '/layouts/header.php';
                 
                 let btn = '';
                 if (enrolled) {
-                    btn = `<button onclick="window.location.href='/student/learning.php?course_id=${c.id}'" class="btn btn-outline" style="width:100%; border-radius:100px;" data-i18n="std_btn_continue">${I18n.get('std_btn_continue')}</button>`;
+                    btn = `<button onclick="window.location.href='/student/learning/${c.id}'" class="btn btn-outline" style="width:100%; border-radius:100px;" data-i18n="std_btn_continue">${I18n.get('std_btn_continue')}</button>`;
                 } else if (isPremium) {
-                    const link = !isGuest ? `/student/course-payment.php?course_id=${c.id}&price=${c.price}` : '/login.php';
+                    const link = !isGuest ? `/student/payment/${c.id}` : '/login';
                     btn = `<button onclick="window.location.href='${link}'" class="btn btn-primary" style="width:100%; border-radius:100px;" data-i18n="home_btn_buy">${I18n.get('home_btn_buy')}</button>`;
                 } else {
                     btn = !isGuest
-                        ? `<button onclick="window.api.post('/courses/${c.id}/enroll', {}).then(()=>window.location.href='/student/learning.php?course_id=${c.id}')" class="btn btn-primary" style="width:100%; border-radius:100px;" data-i18n="std_btn_free">${I18n.get('std_btn_free')}</button>`
-                        : `<button onclick="window.location.href='/login.php'" class="btn btn-outline" style="width:100%; border-radius:100px;" data-i18n="home_btn_login_learn">${I18n.get('home_btn_login_learn')}</button>`;
+                        ? `<button onclick="window.api.post('/courses/${c.id}/enroll', {}).then(()=>window.location.href='/student/learning/${c.id}')" class="btn btn-primary" style="width:100%; border-radius:100px;" data-i18n="std_btn_free">${I18n.get('std_btn_free')}</button>`
+                        : `<button onclick="window.location.href='/login'" class="btn btn-outline" style="width:100%; border-radius:100px;" data-i18n="home_btn_login_learn">${I18n.get('home_btn_login_learn')}</button>`;
                 }
 
                 const price = c.price > 0
@@ -133,12 +133,12 @@ require __DIR__ . '/layouts/header.php';
                 return `
                 <div class="course-card-grid-item">
                     <div class="card liquid-glass" style="display:flex; flex-direction:column; border-radius: 24px; overflow: hidden; height: 100%; transition: all 0.6s cubic-bezier(0.16,1,0.3,1);">
-                        <div class="card-img-placeholder" style="cursor:pointer; position:relative; aspect-ratio: 16 / 9; background: rgba(255,255,255,0.02);" onclick="window.location.href='/course-detail.php?id=${c.id}'">
+                        <div class="card-img-placeholder" style="cursor:pointer; position:relative; aspect-ratio: 16 / 9; background: rgba(255,255,255,0.02);" onclick="window.location.href='/course/${c.id}'">
                             ${c.thumbnail ? `<img src="${c.thumbnail}" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">` : '<span style="position:relative; z-index:1; font-size:2rem;">📚</span>'}
                             ${isPremium ? '<span class="badge badge-premium" style="position:absolute; top:15px; right:15px; z-index:2; background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); font-size: 0.6rem;">PREMIUM</span>' : ''}
                         </div>
                         <div class="card-body" style="flex:1; display:flex; flex-direction:column; padding: 1.5rem;">
-                            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: #fff; margin-bottom: 0.5rem; cursor:pointer;" onclick="window.location.href='/course-detail.php?id=${c.id}'">${c.title}</h3>
+                            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; color: #fff; margin-bottom: 0.5rem; cursor:pointer;" onclick="window.location.href='/course/${c.id}'">${c.title}</h3>
                             <p class="text-xs opacity-60 mb-6" style="line-height: 1.6; flex:1;">${c.description ? c.description.substring(0, 80)+'...' : I18n.get('std_no_desc')}</p>
                             <div class="flex justify-between items-center mb-6">${price.replace('color: var(--text-primary)', 'color: #fff')}</div>
                             ${btn}

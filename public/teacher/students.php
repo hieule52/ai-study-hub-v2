@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
 
                     <div class="card-actions">
-                        <a href="/teacher/chat.php?user_id=${s.user_id}" class="btn btn-primary">
+                        <a href="/teacher/chat?user_id=${s.user_id}" class="btn btn-primary">
                             <i class="fas fa-comment"></i> Nhắn tin
                         </a>
                     </div>
