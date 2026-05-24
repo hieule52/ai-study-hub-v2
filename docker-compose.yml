@@ -44,9 +44,10 @@ services:
       DB_USER: root
       DB_PASS: "123456"
     volumes:
-      # Bind mount: uploads và storage tồn tại ngay cả khi rebuild image
-      - ./storage:/var/www/html/storage
-      - ./public/uploads:/var/www/html/public/uploads
+      # Named volumes to avoid Windows bind mount space limitations & syncing issues
+      - lms_storage:/var/www/html/storage
+      - lms_uploads:/var/www/html/public/uploads
+      - lms_course_images:/var/www/html/public/uploads/courses
     depends_on:
       db:
         condition: service_healthy
@@ -84,6 +85,13 @@ services:
 volumes:
   # Named volume được Docker quản lý, tồn tại độc lập với container lifecycle
   db_data:
+    driver: local
+  lms_storage:
+    driver: local
+  lms_uploads:
+    driver: local
+  # Volume riêng cho ảnh thumbnail khóa học - tồn tại bền vững qua mọi lần rebuild
+  lms_course_images:
     driver: local
 
 networks:

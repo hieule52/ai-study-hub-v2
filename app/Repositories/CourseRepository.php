@@ -270,7 +270,7 @@ class CourseRepository
             if ($course) {
                 // Lấy danh sách admin
                 $admins = $this->db->query("SELECT id FROM users WHERE role = 'admin'")->fetchAll(PDO::FETCH_COLUMN);
-                $notifStmt = $this->db->prepare("INSERT INTO notifications (user_id, type, title, message) VALUES (:uid, 'warning', :title, :msg)");
+                $notifStmt = $this->db->prepare("INSERT INTO notifications (user_id, type, title, content) VALUES (:uid, 'warning', :title, :msg)");
                 foreach ($admins as $adminId) {
                     $notifStmt->execute([
                         'uid' => $adminId,

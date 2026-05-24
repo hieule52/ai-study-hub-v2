@@ -65,9 +65,12 @@ class UploadController
             $uploadDirName = '/uploads/courses/' . date('Y_m');
             $uploadPath = __DIR__ . '/../../../public' . $uploadDirName;
             
-            // create directory if not exists
+            // Tạo thư mục nếu chưa tồn tại, kèm phân quyền đúng
             if (!is_dir($uploadPath)) {
-                mkdir($uploadPath, 0777, true);
+                if (!mkdir($uploadPath, 0775, true)) {
+                    throw new Exception("Không thể tạo thư mục upload. Kiểm tra quyền ghi.");
+                }
+                @chmod($uploadPath, 0775);
             }
 
             $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));

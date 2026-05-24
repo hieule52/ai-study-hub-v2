@@ -25,6 +25,10 @@ $isActive = fn(string $path) => (strpos($currentPath, $path) !== false) ? 'activ
         <i class="fas fa-comments"></i>
         <span data-i18n="nav_teacher_chat">Tin nhắn</span>
     </a>
+    <a href="/teacher/profile" class="sidebar-nav-item <?= $isActive('/teacher/profile') ?>">
+        <i class="fas fa-user-cog"></i>
+        <span data-i18n="nav_teacher_profile">Hồ sơ cá nhân</span>
+    </a>
     
     <div style="margin-top: auto; padding: 1.5rem 1rem;">
         <button onclick="App.logout()" class="teacher-logout-btn">

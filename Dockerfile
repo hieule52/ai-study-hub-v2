@@ -38,7 +38,9 @@ COPY . /var/www/html
 RUN composer install --no-interaction --optimize-autoloader
 
 # Set permissions for storage and public uploads (crucial for Apache web server write access)
-RUN mkdir -p /var/www/html/storage/private/videos /var/www/html/public/uploads \
+RUN mkdir -p /var/www/html/storage/private/videos \
+        /var/www/html/public/uploads/avatars \
+        /var/www/html/public/uploads/courses \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/public/uploads \
     && chmod -R 775 /var/www/html/storage /var/www/html/public/uploads
 

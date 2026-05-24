@@ -47,6 +47,12 @@ class UserController
         try {
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['student', 'teacher', 'admin']);
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 401);
+            return;
+        }
+
+        try {
             $userId = $request->user->sub;
             $body = $request->all();
 
@@ -63,7 +69,7 @@ class UserController
                 $response->error("Không thể cập nhật thông tin.", 500);
             }
         } catch (Exception $e) {
-            $response->error($e->getMessage(), 401);
+            $response->error($e->getMessage(), 400);
         }
     }
 

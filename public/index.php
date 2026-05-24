@@ -65,6 +65,7 @@ if (strpos($path, '.php') !== false) {
             '/teacher/course-builder.php' => '/teacher/course-builder',
             '/teacher/students.php'     => '/teacher/students',
             '/teacher/chat.php'         => '/teacher/chat',
+            '/teacher/profile.php'      => '/teacher/profile',
             '/admin/dashboard.php'      => '/admin/dashboard',
             '/admin/users.php'          => '/admin/users',
             '/admin/courses.php'        => '/admin/courses',
@@ -113,6 +114,7 @@ $staticRoutes = [
     '/teacher/course-builder' => 'teacher/course-builder.php',
     '/teacher/students'     => 'teacher/students.php',
     '/teacher/chat'         => 'teacher/chat.php',
+    '/teacher/profile'      => 'teacher/profile.php',
     // Admin
     '/admin/dashboard'      => 'admin/dashboard.php',
     '/admin/users'          => 'admin/users.php',

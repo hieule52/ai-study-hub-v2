@@ -233,11 +233,21 @@ class UserRepository
 
     public function updateProfile(int $id, string $username): bool
     {
-        $stmt = $this->db->prepare("UPDATE users SET username = :username WHERE id = :id");
-        return $stmt->execute([
-            'username' => $username,
-            'id' => $id
-        ]);
+        try {
+            $stmt = $this->db->prepare("UPDATE users SET username = :username WHERE id = :id");
+            return $stmt->execute([
+                'username' => $username,
+                'id' => $id
+            ]);
+        } catch (PDOException $e) {
+            // Bắt lỗi duplicate key (SQLSTATE 23000)
+            if ($e->getCode() === '23000') {
+                if (str_contains($e->getMessage(), 'username')) {
+                    throw new \Exception("Tên hiển thị này đã được sử dụng. Vui lòng chọn tên khác.");
+                }
+            }
+            throw $e;
+        }
     }
 
     public function updatePassword(int $id, string $hashedPassword): bool

@@ -59,6 +59,14 @@ class Chat implements MessageComponentInterface
         // Lấy username và avatar từ DB
         $userInfo = $this->getUserInfoFromDb($userId);
 
+        // Cập nhật last_seen trong DB khi user kết nối WS
+        try {
+            $db = Database::connect();
+            $db->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$userId]);
+        } catch (\Exception $e) {
+            echo "[WS] Lỗi cập nhật last_seen khi connect: " . $e->getMessage() . "\n";
+        }
+
         $this->clients->attach($conn);
         $this->connMeta[$conn->resourceId] = [
             'user_id'  => $userId,
@@ -117,6 +125,14 @@ class Chat implements MessageComponentInterface
 
         // Lưu vào database
         $this->chatRepo->saveMessage($senderId, $receiverId, $content);
+
+        // Cập nhật last_seen trong DB khi user gửi tin nhắn qua WS
+        try {
+            $db = Database::connect();
+            $db->prepare("UPDATE users SET last_seen = NOW() WHERE id = ?")->execute([$senderId]);
+        } catch (\Exception $e) {
+            echo "[WS] Lỗi cập nhật last_seen khi gửi tin nhắn: " . $e->getMessage() . "\n";
+        }
 
         // Tạo thông báo mới cho người nhận
         try {

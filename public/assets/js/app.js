@@ -99,9 +99,10 @@ const App = {
 
         if (user) {
             const username = user.username || user.email.split('@')[0];
+            const fallbackHtml = `<div style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-primary); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.75rem;">${username.charAt(0).toUpperCase()}</div>`.replace(/\s+/g, ' ').trim();
             const avatarHtml = user.avatar
-                ? `<img src="${user.avatar}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.1);">`
-                : `<div style="width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--text-primary); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.75rem;">${username.charAt(0).toUpperCase()}</div>`;
+                ? `<img src="${user.avatar}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.1);" onerror="this.onerror=null; this.outerHTML=decodeURIComponent('${encodeURIComponent(fallbackHtml)}');">`
+                : fallbackHtml;
 
             userMenu.innerHTML = langToggleBtn + `
                 <div style="display:flex; align-items:center; gap:0.75rem; cursor: pointer;" onclick="App.toggleOffcanvasSidebar()">
@@ -180,7 +181,7 @@ const App = {
                 </div>
             </div>
             <ul class="offcanvas-nav">
-                <li><a href="/profile">👤 ${lang==='en'?'My Profile':'Hồ sơ cá nhân'}</a></li>
+                <li><a href="${user.role === 'teacher' ? '/teacher/profile' : '/profile'}">👤 ${lang==='en'?'My Profile':'Hồ sơ cá nhân'}</a></li>
                 ${items.map(i => `<li><a href="${i.link}">${i.icon} ${i.text}</a></li>`).join('')}
                 <li><a href="/">🏠 ${lang==='en'?'Back to Home':'Trang chủ'}</a></li>
             </ul>

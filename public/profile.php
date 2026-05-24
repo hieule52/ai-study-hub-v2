@@ -105,6 +105,11 @@ require __DIR__ . '/layouts/header.php';
             const user = App.requireAuth(); // Require any logged in role
             if (!user) return;
             
+            if (user.role === 'teacher') {
+                window.location.replace('/teacher/profile');
+                return;
+            }
+            
             await fetchProfile();
         });
 
@@ -123,10 +128,11 @@ require __DIR__ . '/layouts/header.php';
                 document.getElementById('ui-role').innerText = user.role.toUpperCase();
                 
                 const avatarCircle = document.getElementById('user-avatar-char');
+                const fallbackHtml = `<span id="avatar-letter">${user.username.charAt(0).toUpperCase()}</span>`.replace(/\s+/g, ' ').trim();
                 if (user.avatar) {
-                    avatarCircle.innerHTML = `<img src="${user.avatar}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    avatarCircle.innerHTML = `<img src="${user.avatar}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.outerHTML=decodeURIComponent('${encodeURIComponent(fallbackHtml)}');">`;
                 } else {
-                    avatarCircle.innerHTML = `<span id="avatar-letter">${user.username.charAt(0).toUpperCase()}</span>`;
+                    avatarCircle.innerHTML = fallbackHtml;
                 }
 
             } catch(e) {

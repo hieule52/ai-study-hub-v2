@@ -165,10 +165,14 @@ require __DIR__ . '/../layouts/header.php';
 
     function isOnline(lastSeen) {
         if (!lastSeen) return false;
-        const lastSeenDate = new Date(lastSeen);
+        let dateStr = lastSeen.replace(' ', 'T');
+        if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+            dateStr += 'Z';
+        }
+        const lastSeenDate = new Date(dateStr);
         const now = new Date();
-        const diffMinutes = (now - lastSeenDate) / 1000 / 60;
-        return diffMinutes < 5; // Online if active in last 5 mins
+        const diffMinutes = Math.abs(now - lastSeenDate) / 1000 / 60;
+        return diffMinutes < 5;
     }
 
     async function loadContacts(user) {
@@ -200,9 +204,10 @@ require __DIR__ . '/../layouts/header.php';
 
             contactList.innerHTML = teachers.map(t => {
                 const initial = t.name.charAt(0).toUpperCase();
+                const fallbackHtml = `<div class="contact-avatar" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;">${initial}</div>`.replace(/\s+/g, ' ').trim();
                 const avatarHtml = t.avatar
-                    ? `<img src="${t.avatar}" class="contact-avatar">`
-                    : `<div class="contact-avatar" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;">${initial}</div>`;
+                    ? `<img src="${t.avatar}" class="contact-avatar" onerror="this.onerror=null; this.outerHTML=decodeURIComponent('${encodeURIComponent(fallbackHtml)}');">`
+                    : fallbackHtml;
                 const isUserOnline = isOnline(t.last_seen);
                 const statusColor = isUserOnline ? 'var(--success)' : '#64748b';
                 return `
@@ -240,9 +245,10 @@ require __DIR__ . '/../layouts/header.php';
         if (activeEl) activeEl.classList.add('active');
 
         const initial = teacherName.charAt(0).toUpperCase();
+        const fallbackHtml = `<div class="contact-avatar" style="width:40px; height:40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;">${initial}</div>`.replace(/\s+/g, ' ').trim();
         const avatarHtml = teacherAvatar
-            ? `<img src="${teacherAvatar}" class="contact-avatar" style="width:40px; height:40px;">`
-            : `<div class="contact-avatar" style="width:40px; height:40px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff;">${initial}</div>`;
+            ? `<img src="${teacherAvatar}" class="contact-avatar" style="width:40px; height:40px;" onerror="this.onerror=null; this.outerHTML=decodeURIComponent('${encodeURIComponent(fallbackHtml)}');">`
+            : fallbackHtml;
 
         const isUserOnline = isOnline(lastSeen);
         const statusColor = isUserOnline ? 'var(--success)' : '#64748b';

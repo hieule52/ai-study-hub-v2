@@ -148,7 +148,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function isOnline(lastSeen) {
     if (!lastSeen) return false;
-    const diff = (new Date() - new Date(lastSeen)) / 1000 / 60;
+    let dateStr = lastSeen.replace(' ', 'T');
+    if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+        dateStr += 'Z';
+    }
+    const lastSeenDate = new Date(dateStr);
+    const now = new Date();
+    const diff = Math.abs(now - lastSeenDate) / 1000 / 60;
     return diff < 5;
 }
 
@@ -256,15 +262,16 @@ function scrollToBottom() {
 }
 
 function getAvatarHtml(name, avatarUrl, size = 40) {
-    if (avatarUrl) {
-        return `<img src="${avatarUrl}" style="width:${size}px; height:${size}px; border-radius: 50%; object-fit:cover; border:1px solid var(--glass-border);">`;
-    }
     const initial = name ? name.charAt(0).toUpperCase() : '?';
-    return `
+    const fallbackHtml = `
         <div style="width:${size}px; height:${size}px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #818cf8); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:${size/2.2}px; border:1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2); line-height: 1;">
             ${initial}
         </div>
-    `;
+    `.replace(/\s+/g, ' ').trim();
+    if (avatarUrl) {
+        return `<img src="${avatarUrl}" style="width:${size}px; height:${size}px; border-radius: 50%; object-fit:cover; border:1px solid var(--glass-border);" onerror="this.onerror=null; this.outerHTML=decodeURIComponent('${encodeURIComponent(fallbackHtml)}');">`;
+    }
+    return fallbackHtml;
 }
 
 function escapeHtml(text) {
