@@ -207,11 +207,15 @@ docker-compose up --build
 
 ---
 
-## 📄 Bản Quyền & Phát Triển (License)
+## 🔒 Bản Quyền & Sở Hữu Trí Tuệ (Proprietary & Intellectual Property)
 
-Dự án được phân phối dưới giấy phép **MIT License**. Bạn hoàn toàn được phép tự do tải về, tùy chỉnh, nâng cấp và sử dụng cho các mục đích nghiên cứu học tập cá nhân hoặc phát triển doanh nghiệp.
+* **Sở hữu độc quyền:** Toàn bộ mã nguồn, cấu trúc dữ liệu, tài liệu thiết kế và giao diện đồ họa của hệ thống **AI Study Hub LMS** thuộc quyền sở hữu trí tuệ độc quyền của hai tác giả thực hiện đề tài tốt nghiệp (**Lê Diễn Hiếu** & **Nguyễn Duy Tín** - Khoa Công nghệ Thông tin, Trường Đại học Khoa học, Đại học Huế).
+* **Quy định bảo mật & Phân phối:**
+  * Đây là dự án phục vụ bảo vệ đề tài tốt nghiệp chính thức, được quản lý dưới dạng **Mã nguồn đóng (Closed-Source)**.
+  * **NGHIÊM CẤM** mọi hành vi sao chép, tải về tự do, sao chép cấu trúc, chỉnh sửa, tái phân phối hoặc thương mại hóa mã nguồn dưới bất kỳ hình thức nào khi chưa có sự cho phép bằng văn bản từ các tác giả sở hữu.
+  * Mọi hành vi vi phạm bản quyền phần mềm và học thuật sẽ bị xử lý nghiêm khắc theo Quy chế đào tạo của nhà trường và Luật Sở hữu trí tuệ hiện hành.
 
 ---
 <div align="center">
-  <p><em>"Building the future of digital learning, one clean connection at a time."</em></p>
+  <p><em>"Building the future of digital learning, one secure connection at a time."</em></p>
 </div>

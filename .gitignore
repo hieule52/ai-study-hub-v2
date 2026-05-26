@@ -16,3 +16,6 @@
 
 /storage/videos/*
 !/storage/videos/.gitkeep
+
+/storage/private/videos/*
+!/storage/private/videos/.gitkeep
