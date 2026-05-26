@@ -82,68 +82,88 @@ require __DIR__ . '/../layouts/header.php';
         const urlParams = new URLSearchParams(window.location.search);
         // Support clean URL (/student/payment/8?price=...) and legacy (?course_id=8)
         const courseId = <?= json_encode($_GET['course_id'] ?? null) ?> ?? urlParams.get('course_id');
-        const price = urlParams.get('price');
 
-        if (!courseId || !price) {
+        if (!courseId) {
             const errMsg = window.I18n ? window.I18n.get('pay_err_invalid') : 'Thông tin hóa đơn không hợp lệ.';
             App.showToast(errMsg, 'error');
             setTimeout(() => window.location.href = '/student/dashboard', 2000);
             return;
         }
 
-        // Configs
-        const BANK_BIN = 'VIETINBANK';
-        const ACCOUNT_NO = '101875375750';
-        const ACCOUNT_NAME = 'LE DIEN HIEU';
-        const AMOUNT = Math.round(parseFloat(price));
-        const TRANSFER_CONTENT = `MUA ${courseId} ${user.id}`;
+        let AMOUNT = 0;
+        let TRANSFER_CONTENT = "";
 
-        // Setup Details
-        document.getElementById('display-amount').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(AMOUNT);
-        document.getElementById('display-content').innerText = TRANSFER_CONTENT;
+        try {
+            // Fetch authentic course details from API securely
+            const courseRes = await window.api.get(`/courses/${courseId}`);
+            const course = courseRes.data;
 
-        // Generate VietQR Link
-        const qrUrl = `https://img.vietqr.io/image/${BANK_BIN}-${ACCOUNT_NO}-compact2.png?amount=${AMOUNT}&addInfo=${encodeURIComponent(TRANSFER_CONTENT)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`;
-        document.getElementById('qr-img').src = qrUrl;
+            if (!course || course.price === undefined) {
+                throw new Error("Không thể lấy thông tin giá khóa học.");
+            }
+
+            AMOUNT = Math.round(parseFloat(course.price));
+            TRANSFER_CONTENT = `MUA ${courseId} ${user.id}`;
+
+            // Setup Details in UI
+            document.getElementById('display-amount').innerText = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(AMOUNT);
+            document.getElementById('display-content').innerText = TRANSFER_CONTENT;
+
+            // Configs
+            const BANK_BIN = 'VIETINBANK';
+            const ACCOUNT_NO = '101875375750';
+            const ACCOUNT_NAME = 'LE DIEN HIEU';
+
+            // Generate VietQR Link
+            const qrUrl = `https://img.vietqr.io/image/${BANK_BIN}-${ACCOUNT_NO}-compact2.png?amount=${AMOUNT}&addInfo=${encodeURIComponent(TRANSFER_CONTENT)}&accountName=${encodeURIComponent(ACCOUNT_NAME)}`;
+            document.getElementById('qr-img').src = qrUrl;
+
+            // Start Polling JSON from Apps Script
+            const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGPUNNyERsT-7sweQuTvvOJJ8z7RUS4YOzPthw6kYCRMH6GcBMnyY22DiS9bDsemkA/exec";
+
+            let pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(APPS_SCRIPT_URL);
+                    const json = await response.json();
+
+                    const data = json.data || json;
+
+                    const targetContent = TRANSFER_CONTENT.toLowerCase().replace(/\s+/g, '');
+
+                    let foundMatch = data.find(tx => {
+                        const description = tx['Mô tả'] || tx.description;
+                        const txAmount = tx['Giá trị'] || tx.amount;
+                        if (!description) return false;
+                        const desc = String(description).toLowerCase().replace(/\s+/g, '');
+                        return desc.includes(targetContent) && txAmount >= AMOUNT;
+                    });
+
+                    if (foundMatch) {
+                        clearInterval(pollInterval);
+
+                        const statusBox = document.getElementById('sync-status');
+                        statusBox.innerHTML = window.I18n ? window.I18n.get('pay_success_msg') : '✅ Lệ phí đã được thanh toán! Chuẩn bị vào lớp...';
+                        statusBox.style.background = 'rgba(79, 70, 229, 0.2)';
+                        statusBox.style.borderColor = 'var(--primary)';
+                        statusBox.style.color = 'var(--primary)';
+
+                        await handleSuccess(courseId);
+                    }
+                } catch (err) {
+                    console.log('Fetching bank sync...', err.message);
+                }
+            }, 5000);
+
+        } catch (e) {
+            console.error(e);
+            const errMsg = window.I18n ? window.I18n.get('pay_err_invalid') : 'Thông tin hóa đơn không hợp lệ.';
+            App.showToast(errMsg + " (" + e.message + ")", 'error');
+            setTimeout(() => window.location.href = '/student/dashboard', 3000);
+            return;
+        }
 
         // Render I18n
         if (window.I18n) window.I18n.render();
-
-        // Start Polling JSON from Apps Script
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGPUNNyERsT-7sweQuTvvOJJ8z7RUS4YOzPthw6kYCRMH6GcBMnyY22DiS9bDsemkA/exec";
-
-        let pollInterval = setInterval(async () => {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL);
-                const json = await response.json();
-
-                const data = json.data || json;
-
-                const targetContent = TRANSFER_CONTENT.toLowerCase().replace(/\s+/g, '');
-
-                let foundMatch = data.find(tx => {
-                    const description = tx['Mô tả'] || tx.description;
-                    const txAmount = tx['Giá trị'] || tx.amount;
-                    if (!description) return false;
-                    const desc = String(description).toLowerCase().replace(/\s+/g, '');
-                    return desc.includes(targetContent) && txAmount >= AMOUNT;
-                });
-
-                if (foundMatch) {
-                    clearInterval(pollInterval);
-
-                    const statusBox = document.getElementById('sync-status');
-                    statusBox.innerHTML = window.I18n ? window.I18n.get('pay_success_msg') : '✅ Lệ phí đã được thanh toán! Chuẩn bị vào lớp...';
-                    statusBox.style.background = 'rgba(79, 70, 229, 0.2)';
-                    statusBox.style.borderColor = 'var(--primary)';
-                    statusBox.style.color = 'var(--primary)';
-
-                    await handleSuccess(courseId);
-                }
-            } catch (err) {
-                console.log('Fetching bank sync...', err.message);
-            }
-        }, 5000);
 
         async function handleSuccess(cid) {
             try {

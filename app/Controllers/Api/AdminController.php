@@ -10,6 +10,7 @@ use App\Repositories\EnrollmentRepository;
 use App\Middlewares\AuthMiddleware;
 use App\Middlewares\RoleMiddleware;
 use Exception;
+use PDO;
 
 use App\Repositories\NotificationRepository;
 
@@ -166,12 +167,17 @@ class AdminController
 
             $success = $this->courseRepo->updateStatus((int)$id, 'approved');
             if ($success) {
+                // Mark related moderation notifications as read
+                $db = \App\Core\Database::connect();
+                $stmt = $db->prepare("UPDATE admin_notifications SET is_read = 1 WHERE course_id = ?");
+                $stmt->execute([(int)$id]);
+
                 // Create Notification for Teacher
                 $this->notifRepo->create(
-                    (int)$course['teacher_id'],
+                    (int)$course->teacher_id,
                     'course_approved',
                     '🎉 Khóa học đã được duyệt!',
-                    "Chúc mừng! Khóa học '{$course['title']}' của bạn đã được phê duyệt và hiển thị công khai."
+                    "Chúc mừng! Khóa học '{$course->title}' của bạn đã được phê duyệt và hiển thị công khai."
                 );
                 $response->success("Đã duyệt khóa học thành công!");
             } else {
@@ -194,12 +200,17 @@ class AdminController
             // Chuyển lại về draft để người upload có thể sửa lại
             $success = $this->courseRepo->updateStatus((int)$id, 'draft');
             if ($success) {
+                // Mark related moderation notifications as read
+                $db = \App\Core\Database::connect();
+                $stmt = $db->prepare("UPDATE admin_notifications SET is_read = 1 WHERE course_id = ?");
+                $stmt->execute([(int)$id]);
+
                 // Create Notification for Teacher
                 $this->notifRepo->create(
-                    (int)$course['teacher_id'],
+                    (int)$course->teacher_id,
                     'warning',
                     '⚠️ Khóa học cần chỉnh sửa',
-                    "Khóa học '{$course['title']}' đã bị từ chối phê duyệt. Vui lòng kiểm tra lại nội dung và gửi duyệt lại."
+                    "Khóa học '{$course->title}' đã bị từ chối phê duyệt. Vui lòng kiểm tra lại nội dung và gửi duyệt lại."
                 );
                 $response->success("Đã từ chối và chuyển khóa học về bản nháp.");
             } else {
@@ -215,8 +226,18 @@ class AdminController
         try {
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
+
+            $course = $this->courseRepo->findById((int)$id);
+            if (!$course) throw new Exception("Không tìm thấy khóa học.");
+
             $success = $this->courseRepo->updateStatus((int)$id, 'hidden');
             if ($success) {
+                $this->notifRepo->create(
+                    (int)$course->teacher_id,
+                    'warning',
+                    '⚠️ Khóa học đã bị ẩn bởi Admin',
+                    "Khóa học '{$course->title}' của bạn đã bị ẩn bởi quản trị viên. Vui lòng liên hệ để biết thêm chi tiết."
+                );
                 $response->success("Đã ẩn khóa học.");
             } else {
                 $response->error("Không thể ẩn khóa học.", 500);
@@ -231,8 +252,18 @@ class AdminController
         try {
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
+
+            $course = $this->courseRepo->findById((int)$id);
+            if (!$course) throw new Exception("Không tìm thấy khóa học.");
+
             $success = $this->courseRepo->updateStatus((int)$id, 'approved');
             if ($success) {
+                $this->notifRepo->create(
+                    (int)$course->teacher_id,
+                    'course_approved',
+                    '🎉 Khóa học đã hiển thị lại',
+                    "Khóa học '{$course->title}' của bạn đã được hiển thị lại công khai trên hệ thống."
+                );
                 $response->success("Đã hiển thị lại khóa học.");
             } else {
                 $response->error("Không thể hiển thị khóa học.", 500);
@@ -247,8 +278,18 @@ class AdminController
         try {
             AuthMiddleware::handle($request, $response);
             RoleMiddleware::handle($request, $response, ['admin']);
+
+            $course = $this->courseRepo->findById((int)$id);
+            if (!$course) throw new Exception("Không tìm thấy khóa học.");
+
             $success = $this->courseRepo->delete((int)$id);
             if ($success) {
+                $this->notifRepo->create(
+                    (int)$course->teacher_id,
+                    'warning',
+                    '❌ Khóa học đã bị xóa bởi Admin',
+                    "Khóa học '{$course->title}' của bạn đã bị xóa khỏi hệ thống bởi quản trị viên."
+                );
                 $response->success("Đã xóa khóa học thành công (Soft Delete).");
             } else {
                 $response->error("Không thể xóa khóa học.", 500);
@@ -394,6 +435,88 @@ class AdminController
             RoleMiddleware::handle($request, $response, ['admin']);
             $logs = $this->userRepo->getAuditLogs();
             $response->success("Danh sách Nhật ký hệ thống", $logs);
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    public function getNotifications(Request $request, Response $response)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['admin']);
+            
+            $db = \App\Core\Database::connect();
+            $stmt = $db->query("
+                SELECT an.*, c.title as course_title, u.username as teacher_name
+                FROM admin_notifications an
+                LEFT JOIN courses c ON an.course_id = c.id
+                LEFT JOIN users u ON c.teacher_id = u.id
+                ORDER BY an.created_at DESC
+            ");
+            $notifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($notifs as &$n) {
+                if ($n['data']) {
+                    $n['data'] = json_decode($n['data'], true);
+                }
+            }
+            $response->success("Danh sách thông báo kiểm duyệt", $notifs);
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    public function markNotificationsAllRead(Request $request, Response $response)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['admin']);
+            
+            $db = \App\Core\Database::connect();
+            $db->query("UPDATE admin_notifications SET is_read = 1 WHERE is_read = 0");
+            $response->success("Đã đánh dấu tất cả thông báo là đã đọc.");
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    public function markNotificationRead(Request $request, Response $response, string $id)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['admin']);
+            
+            $db = \App\Core\Database::connect();
+            $stmt = $db->prepare("UPDATE admin_notifications SET is_read = 1 WHERE id = ?");
+            $stmt->execute([(int)$id]);
+            $response->success("Đã đánh dấu thông báo là đã đọc.");
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
+
+    public function getCourseChanges(Request $request, Response $response, string $id)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            RoleMiddleware::handle($request, $response, ['admin']);
+            
+            $db = \App\Core\Database::connect();
+            $stmt = $db->prepare("
+                SELECT ccl.*, u.username as performer_name
+                FROM course_change_logs ccl
+                LEFT JOIN users u ON ccl.performed_by = u.id
+                WHERE ccl.course_id = ?
+                ORDER BY ccl.created_at DESC
+            ");
+            $stmt->execute([(int)$id]);
+            $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($logs as &$l) {
+                if ($l['changed_fields']) $l['changed_fields'] = json_decode($l['changed_fields'], true);
+                if ($l['old_snapshot']) $l['old_snapshot'] = json_decode($l['old_snapshot'], true);
+                if ($l['new_snapshot']) $l['new_snapshot'] = json_decode($l['new_snapshot'], true);
+            }
+            $response->success("Lịch sử thay đổi khóa học", $logs);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }

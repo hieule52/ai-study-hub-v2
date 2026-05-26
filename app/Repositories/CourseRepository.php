@@ -216,7 +216,7 @@ class CourseRepository
             SELECT c.*, u.username as teacher_name, u.email as teacher_email
             FROM courses c
             JOIN users u ON c.teacher_id = u.id
-            WHERE c.status = 'pending' AND c.deleted_at IS NULL
+            WHERE c.status IN ('pending', 'pending_reapproval') AND c.deleted_at IS NULL
             ORDER BY c.id ASC
         ");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -236,7 +236,7 @@ class CourseRepository
 
     public function countPendingCourses(): int
     {
-        $stmt = $this->db->query("SELECT COUNT(*) FROM courses WHERE status = 'pending' AND deleted_at IS NULL");
+        $stmt = $this->db->query("SELECT COUNT(*) FROM courses WHERE status IN ('pending', 'pending_reapproval') AND deleted_at IS NULL");
         return (int) $stmt->fetchColumn();
     }
 
@@ -256,31 +256,16 @@ class CourseRepository
     }
 
     /**
-     * Mark course as pending if it was approved (used when teacher makes changes)
+     * Mark course as pending_reapproval if it was approved.
+     * 
+     * LƯU Ý: Phương thức này CHỈ thay đổi status.
+     * Notification + change log được xử lý bởi ChangeTrackingService::trackChange().
+     * KHÔNG gọi phương thức này trực tiếp từ controllers — để ChangeTrackingService quản lý.
      */
     public function requireReapproval(int $courseId): bool
     {
-        $stmt = $this->db->prepare("UPDATE courses SET status = 'pending' WHERE id = :id AND status = 'approved'");
-        $success = $stmt->execute(['id' => $courseId]);
-        
-        // Nếu có dòng nào bị ảnh hưởng (nghĩa là nó từ approved -> pending)
-        if ($success && $stmt->rowCount() > 0) {
-            // Lấy thông tin course
-            $course = $this->findById($courseId);
-            if ($course) {
-                // Lấy danh sách admin
-                $admins = $this->db->query("SELECT id FROM users WHERE role = 'admin'")->fetchAll(PDO::FETCH_COLUMN);
-                $notifStmt = $this->db->prepare("INSERT INTO notifications (user_id, type, title, content) VALUES (:uid, 'warning', :title, :msg)");
-                foreach ($admins as $adminId) {
-                    $notifStmt->execute([
-                        'uid' => $adminId,
-                        'title' => "Khóa học cần duyệt lại",
-                        'msg' => "Khóa học '{$course->title}' đã bị chỉnh sửa bởi giảng viên và đang chờ bạn xét duyệt lại."
-                    ]);
-                }
-            }
-        }
-        return $success;
+        $stmt = $this->db->prepare("UPDATE courses SET status = 'pending_reapproval' WHERE id = :id AND status = 'approved'");
+        return $stmt->execute(['id' => $courseId]);
     }
 
     public function getTotalRevenue(): float

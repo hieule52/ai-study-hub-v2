@@ -21,7 +21,8 @@ class QuizController
     {
         try {
             AuthMiddleware::handle($request, $response);
-            $quiz = $this->quizService->getQuizForStudent((int)$lessonId);
+            $userRole = $request->user->role ?? 'guest';
+            $quiz = $this->quizService->getQuizForStudent((int)$lessonId, $userRole);
             $response->success("Tải bộ câu hỏi thành công", $quiz);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 404);
@@ -34,9 +35,10 @@ class QuizController
             AuthMiddleware::handle($request, $response);
             
             $userId = $request->user->sub; // Get from JWT
+            $userRole = $request->user->role ?? 'guest';
             $studentAnswers = $request->input('answers', []); // ['12' => 45, '13' => 48] array question_id => answer_id
             
-            $result = $this->quizService->submitAndCalculateScore($userId, (int)$quizId, (array)$studentAnswers);
+            $result = $this->quizService->submitAndCalculateScore($userId, (int)$quizId, (array)$studentAnswers, $userRole);
 
             $response->success("Nộp bài thi thành công", $result, 201);
         } catch (Exception $e) {

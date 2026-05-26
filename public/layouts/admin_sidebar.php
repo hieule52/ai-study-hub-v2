@@ -46,6 +46,12 @@ try {
             <span data-i18n="adm_nav_vip">Doanh thu ghi danh</span>
         </a>
 
+        <a href="/admin/notifications" class="admin-nav-item <?= $isActive('/admin/notifications') ?>">
+            <i class="fas fa-bell"></i>
+            <span data-i18n="adm_nav_notifications">Thông báo kiểm duyệt</span>
+            <span class="admin-nav-badge" id="sidebarNotifBadge" style="display:none; background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);">0</span>
+        </a>
+
         <div class="admin-nav-label" data-i18n="adm_nav_label_system">Hệ thống</div>
 
         <a href="/admin/logs" class="admin-nav-item <?= $isActive('/admin/logs') ?>">
@@ -64,15 +70,25 @@ try {
 </aside>
 
 <script>
-// Load pending course badge
+// Load pending course badge and moderation notifications
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const res = await window.api.get('/admin/stats');
-        const pending = res.data?.pending_courses || 0;
-        const badge = document.getElementById('sidebarPendingBadge');
-        if (badge && pending > 0) {
-            badge.innerText = pending;
-            badge.style.display = 'inline-flex';
+        const resStats = await window.api.get('/admin/stats');
+        const pending = resStats.data?.pending_courses || 0;
+        const badgePending = document.getElementById('sidebarPendingBadge');
+        if (badgePending && pending > 0) {
+            badgePending.innerText = pending;
+            badgePending.style.display = 'inline-flex';
+        }
+    } catch(e) {}
+
+    try {
+        const resNotifs = await window.api.get('/admin/notifications');
+        const unreadCount = resNotifs.data?.filter(n => !n.is_read).length || 0;
+        const badgeNotif = document.getElementById('sidebarNotifBadge');
+        if (badgeNotif && unreadCount > 0) {
+            badgeNotif.innerText = unreadCount;
+            badgeNotif.style.display = 'inline-flex';
         }
     } catch(e) {}
 });

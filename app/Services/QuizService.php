@@ -14,11 +14,54 @@ class QuizService
         $this->quizRepo = new QuizRepository();
     }
 
-    public function getQuizForStudent(int $lessonId): array
+    public function getQuizForStudent(int $lessonId, string $userRole = 'student'): array
     {
         $quiz = $this->quizRepo->findQuizByLesson($lessonId);
         if (!$quiz) {
             throw new Exception("Không có bài tập cho lesson này.");
+        }
+
+        // Fetch course status
+        $db = \App\Core\Database::connect();
+        $stmtStatus = $db->prepare("
+            SELECT c.status, c.id as course_id 
+            FROM courses c
+            JOIN chapters ch ON c.id = ch.course_id
+            JOIN lessons l ON ch.id = l.chapter_id
+            WHERE l.id = ?
+        ");
+        $stmtStatus->execute([$lessonId]);
+        $courseInfo = $stmtStatus->fetch(\PDO::FETCH_ASSOC);
+
+        if ($courseInfo && $courseInfo['status'] === 'pending_reapproval' && $userRole !== 'teacher' && $userRole !== 'admin') {
+            // Find oldest update log for this quiz
+            $stmtLog = $db->prepare("
+                SELECT * FROM course_change_logs 
+                WHERE course_id = ? AND entity_type = 'quiz' AND entity_id = ? AND action_type = 'update'
+                ORDER BY id ASC LIMIT 1
+            ");
+            $stmtLog->execute([$courseInfo['course_id'], (int)$quiz['id']]);
+            $log = $stmtLog->fetch(\PDO::FETCH_ASSOC);
+            if ($log && $log['old_snapshot']) {
+                $oldQuiz = json_decode($log['old_snapshot'], true);
+                
+                // Format the questions for student view (remove is_correct from choices)
+                $questions = $oldQuiz['questions'] ?? [];
+                foreach ($questions as &$question) {
+                    $options = [];
+                    foreach (($question['answers'] ?? []) as $ans) {
+                        $options[] = [
+                            'id' => $ans['id'],
+                            'answer_text' => $ans['answer_text'] ?? $ans['text'] ?? ''
+                        ];
+                    }
+                    $question['options'] = $options;
+                    unset($question['answers']);
+                }
+                
+                $oldQuiz['questions'] = $questions;
+                return $oldQuiz;
+            }
         }
 
         $questions = $this->quizRepo->findQuestionsByQuiz($quiz['id']);
@@ -32,11 +75,46 @@ class QuizService
         return $quiz;
     }
 
-    public function submitAndCalculateScore(int $userId, int $quizId, array $studentAnswers): array
+    public function submitAndCalculateScore(int $userId, int $quizId, array $studentAnswers, string $userRole = 'student'): array
     {
         // studentAnswers format: [question_id => answer_id_luachon, ...]
         
-        $questions = $this->quizRepo->findQuestionsByQuiz($quizId);
+        // Fetch course status
+        $db = \App\Core\Database::connect();
+        $stmtStatus = $db->prepare("
+            SELECT c.status, c.id as course_id 
+            FROM courses c
+            JOIN chapters ch ON c.id = ch.course_id
+            JOIN lessons l ON ch.id = l.chapter_id
+            JOIN quizzes q ON l.id = q.lesson_id
+            WHERE q.id = ?
+        ");
+        $stmtStatus->execute([$quizId]);
+        $courseInfo = $stmtStatus->fetch(\PDO::FETCH_ASSOC);
+
+        $useSnapshot = false;
+        $questions = [];
+
+        if ($courseInfo && $courseInfo['status'] === 'pending_reapproval' && $userRole !== 'teacher' && $userRole !== 'admin') {
+            // Find oldest change log for this quiz
+            $stmtLog = $db->prepare("
+                SELECT * FROM course_change_logs 
+                WHERE course_id = ? AND entity_type = 'quiz' AND entity_id = ? AND action_type = 'update'
+                ORDER BY id ASC LIMIT 1
+            ");
+            $stmtLog->execute([$courseInfo['course_id'], $quizId]);
+            $log = $stmtLog->fetch(\PDO::FETCH_ASSOC);
+            if ($log && $log['old_snapshot']) {
+                $oldQuiz = json_decode($log['old_snapshot'], true);
+                $questions = $oldQuiz['questions'] ?? [];
+                $useSnapshot = true;
+            }
+        }
+
+        if (!$useSnapshot) {
+            $questions = $this->quizRepo->findQuestionsByQuiz($quizId);
+        }
+
         if (empty($questions)) {
             throw new Exception("Lỗi: Bộ Quiz không tồn tại.");
         }
@@ -47,7 +125,13 @@ class QuizService
 
         foreach ($questions as $q) {
             $qId = $q['id'];
-            $options = $this->quizRepo->findAnswersByQuestion($qId, true);
+            
+            if ($useSnapshot) {
+                // If using snapshot, answers are already inside the question object
+                $options = $q['answers'] ?? [];
+            } else {
+                $options = $this->quizRepo->findAnswersByQuestion($qId, true);
+            }
             
             $correctAnswerId = null;
             foreach ($options as $opt) {

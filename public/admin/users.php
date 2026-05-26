@@ -250,10 +250,17 @@ async function saveUser(e) {
 }
 
 async function deleteUser(id) {
-    if (!confirm('Xóa tài khoản này? Người dùng sẽ mất quyền truy cập.')) return;
+    const confirmed = await App.confirm({
+        title: 'Xóa tài khoản',
+        message: 'Bạn có chắc chắn muốn xóa tài khoản này? Người dùng sẽ mất quyền truy cập hệ thống ngay lập tức.',
+        type: 'danger',
+        confirmText: 'Xóa tài khoản',
+        cancelText: 'Hủy bỏ'
+    });
+    if (!confirmed) return;
     try {
         await window.api.delete(`/admin/users/${id}`);
-        App.showToast('Đã xóa người dùng.', 'success');
+        App.showToast('Đã xóa người dùng thành công.', 'success');
         loadUsers();
     } catch(e) { App.showToast(e.message, 'error'); }
 }

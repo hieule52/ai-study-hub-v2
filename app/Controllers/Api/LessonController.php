@@ -20,7 +20,17 @@ class LessonController
     public function curriculum(Request $request, Response $response, string $courseId)
     {
         try {
-            $curriculum = $this->lessonService->getCourseCurriculum((int)$courseId);
+            $authHeader = $request->getHeader('Authorization');
+            $userRole = 'guest';
+            if ($authHeader && preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+                $token = $matches[1];
+                $payload = \App\Core\JWTHandler::decode($token);
+                if ($payload) {
+                    $userRole = $payload->role ?? 'guest';
+                }
+            }
+
+            $curriculum = $this->lessonService->getCourseCurriculum((int)$courseId, $userRole);
             $response->success("Giáo trình khóa học", $curriculum);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 404);
@@ -31,7 +41,8 @@ class LessonController
     {
         try {
             AuthMiddleware::handle($request, $response);
-            $lesson = $this->lessonService->getLessonDetail((int)$lessonId);
+            $userRole = $request->user->role ?? 'guest';
+            $lesson = $this->lessonService->getLessonDetail((int)$lessonId, $userRole);
             $response->success("Chi tiết bài giảng", $lesson);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 404);

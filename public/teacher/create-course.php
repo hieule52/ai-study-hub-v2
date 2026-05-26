@@ -107,18 +107,18 @@ require __DIR__ . '/../layouts/header.php';
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Tóm tắt dành cho AI (AI Summary)</label>
-                        <textarea id="ai_course_summary" class="form-control" rows="3" placeholder="Tóm tắt ngắn gọn mục tiêu cốt lõi của khóa học dành cho AI..."></textarea>
+                        <label class="form-label">Tóm tắt dành cho AI (AI Summary) <span style="color:var(--danger);">*</span></label>
+                        <textarea id="ai_course_summary" class="form-control" rows="3" placeholder="Tóm tắt ngắn gọn mục tiêu cốt lõi của khóa học dành cho AI..." required></textarea>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="form-group">
-                            <label class="form-label">Từ khóa trọng tâm (AI Keywords)</label>
-                            <input type="text" id="ai_keywords" class="form-control" placeholder="VD: machine learning, neural networks, python">
+                            <label class="form-label">Từ khóa trọng tâm (AI Keywords) <span style="color:var(--danger);">*</span></label>
+                            <input type="text" id="ai_keywords" class="form-control" placeholder="VD: machine learning, neural networks, python" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Trọng tâm giảng dạy (AI Learning Focus)</label>
-                            <input type="text" id="ai_focus" class="form-control" placeholder="VD: Thực hành dự án thực tế, Tư duy thuật toán">
+                            <label class="form-label">Trọng tâm giảng dạy (AI Learning Focus) <span style="color:var(--danger);">*</span></label>
+                            <input type="text" id="ai_focus" class="form-control" placeholder="VD: Thực hành dự án thực tế, Tư duy thuật toán" required>
                         </div>
                     </div>
                 </div>
@@ -207,12 +207,45 @@ function previewThumbnail(input) {
 async function handleSubmit(e) {
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
+
+    // ── Comprehensive Validation ──
+    const validationRules = [
+        { id: 'title',              label: 'Tên khóa học' },
+        { id: 'description',        label: 'Mô tả khóa học' },
+        { id: 'ai_course_summary',  label: 'Tóm tắt dành cho AI (AI Summary)' },
+        { id: 'ai_keywords',        label: 'Từ khóa trọng tâm (AI Keywords)' },
+        { id: 'ai_focus',           label: 'Trọng tâm giảng dạy (AI Learning Focus)' }
+    ];
+
+    for (const rule of validationRules) {
+        const el = document.getElementById(rule.id);
+        if (!el || !el.value.trim()) {
+            App.showToast(`Vui lòng nhập: ${rule.label}`, 'error');
+            if (el) {
+                el.focus();
+                el.style.borderColor = 'var(--danger)';
+                el.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.15)';
+                setTimeout(() => {
+                    el.style.borderColor = '';
+                    el.style.boxShadow = '';
+                }, 3000);
+            }
+            return;
+        }
+    }
+
+    // Check thumbnail for new courses
+    const fileInput = document.getElementById('thumbnail');
+    if (!courseId && !currentThumbnail && fileInput.files.length === 0) {
+        App.showToast('Vui lòng chọn ảnh bìa cho khóa học', 'error');
+        return;
+    }
+
     btn.disabled = true;
     btn.innerHTML = courseId ? '⏳ Đang cập nhật...' : '⏳ Đang khởi tạo...';
 
     try {
         let thumbnailUrl = currentThumbnail;
-        const fileInput = document.getElementById('thumbnail');
         if (fileInput.files.length > 0) {
             const uploadRes = await window.api.uploadFile('/upload/image', fileInput.files[0]);
             thumbnailUrl = uploadRes.data.url;
@@ -220,17 +253,17 @@ async function handleSubmit(e) {
 
         const price = parseInt(document.getElementById('price').value) || 0;
         const payload = {
-            title: document.getElementById('title').value,
-            description: document.getElementById('description').value,
+            title: document.getElementById('title').value.trim(),
+            description: document.getElementById('description').value.trim(),
             thumbnail: thumbnailUrl,
             price: price,
             is_premium: price > 0 ? 1 : 0,
             category_id: document.getElementById('category_id').value || null,
             level: document.getElementById('level').value,
             estimated_duration: parseInt(document.getElementById('estimated_duration').value) || 0,
-            ai_course_summary: document.getElementById('ai_course_summary').value,
-            ai_keywords: document.getElementById('ai_keywords').value,
-            ai_focus: document.getElementById('ai_focus').value
+            ai_course_summary: document.getElementById('ai_course_summary').value.trim(),
+            ai_keywords: document.getElementById('ai_keywords').value.trim(),
+            ai_focus: document.getElementById('ai_focus').value.trim()
         };
 
         if (courseId) {

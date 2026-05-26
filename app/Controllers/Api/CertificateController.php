@@ -170,4 +170,23 @@ class CertificateController
             $response->error($e->getMessage(), 400);
         }
     }
+
+    /**
+     * PUT /api/notifications/:id/read
+     */
+    public function markRead(Request $request, Response $response, string $id): void
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            $userId = (int)$request->user->sub;
+            $success = $this->notifRepo->markRead((int)$id, $userId);
+            if ($success) {
+                $response->success('Đã đánh dấu thông báo là đã đọc');
+            } else {
+                $response->error('Đánh dấu thất bại', 400);
+            }
+        } catch (Exception $e) {
+            $response->error($e->getMessage(), 400);
+        }
+    }
 }

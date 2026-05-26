@@ -175,6 +175,63 @@ require __DIR__ . '/../layouts/header.php';
                                 <i class="fas fa-chevron-down" style="font-size:0.8rem; opacity:0.5;"></i>
                             </div>
                             <div id="ai-lesson-fields" class="hidden" style="display:flex; flex-direction:column; gap:1.25rem; background:rgba(255,255,255,0.02); padding:1.25rem; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+
+                                <!-- ── AI Feature Toggles ── -->
+                                <div style="background:rgba(99, 102, 241, 0.06); padding:1.25rem; border-radius:12px; border:1px solid rgba(99, 102, 241, 0.12);">
+                                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; color:var(--primary); font-weight:700; font-size:0.85rem;">
+                                        <span>⚙️</span> Tùy chọn AI tự động
+                                    </div>
+                                    <div style="display:flex; flex-direction:column; gap:0.85rem;">
+                                        <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; font-size:0.85rem; color:rgba(255,255,255,0.8);">
+                                            <input type="checkbox" id="enable_auto_summary" checked style="accent-color: var(--primary); width:16px; height:16px;">
+                                            Tự động tóm tắt bài học (AI Summary)
+                                        </label>
+                                        <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; font-size:0.85rem; color:rgba(255,255,255,0.8);">
+                                            <input type="checkbox" id="enable_auto_keywords" checked style="accent-color: var(--primary); width:16px; height:16px;">
+                                            Tự động gợi ý từ khóa (AI Keywords)
+                                        </label>
+                                        <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; font-size:0.85rem; color:rgba(255,255,255,0.8);">
+                                            <input type="checkbox" id="enable_auto_context" checked style="accent-color: var(--primary); width:16px; height:16px;">
+                                            Tự động thiết lập ngữ cảnh (AI Context)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- ── Strict AI Mode ── -->
+                                <div style="background:rgba(239, 68, 68, 0.06); padding:1.25rem; border-radius:12px; border:1px solid rgba(239, 68, 68, 0.15);">
+                                    <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer;">
+                                        <input type="checkbox" id="strict_ai_mode" style="accent-color: #ef4444; width:18px; height:18px;">
+                                        <div>
+                                            <div style="font-weight:700; color:#fff; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem;">
+                                                🔒 Chế độ AI Nghiêm ngặt (Strict Mode)
+                                            </div>
+                                            <div style="font-size:0.75rem; opacity:0.5; margin-top:4px; line-height:1.5;">
+                                                Khi bật, AI Tutor sẽ CHỈ trả lời dựa trên nội dung bài học do giảng viên cung cấp. Mọi câu hỏi ngoài phạm vi sẽ bị từ chối. Khuyến khích dùng cho bài học có yêu cầu chính xác cao.
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- ── Teacher Notes ── -->
+                                <div class="form-group">
+                                    <label class="form-label" style="display:flex; align-items:center; gap:0.4rem;">
+                                        📝 Ghi chú của Giảng viên (Teacher Notes)
+                                    </label>
+                                    <textarea id="teacher_notes" class="form-control" rows="3" placeholder="Viết ghi chú hướng dẫn cho AI Tutor. Nội dung này sẽ được ưu tiên cao nhất khi AI trả lời học viên.&#10;VD: Nhấn mạnh vào phần tối ưu hóa thuật toán, không giải thích sâu về cấu trúc dữ liệu."></textarea>
+                                    <p style="font-size:0.72rem; opacity:0.4; margin-top:0.5rem;">💡 AI Tutor sẽ ưu tiên nội dung ghi chú này cao nhất khi trả lời câu hỏi học viên.</p>
+                                </div>
+
+                                <!-- ── Transcript Status Badge ── -->
+                                <div id="transcript-status-section" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+                                    <div style="font-size:0.82rem; font-weight:600; color:rgba(255,255,255,0.6);">Trạng thái bản dịch:</div>
+                                    <div id="transcript-status-badge" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.35rem 0.85rem; border-radius:100px; font-size:0.75rem; font-weight:700; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.1);">
+                                        📝 Chưa có
+                                    </div>
+                                    <button type="button" id="verifyTranscriptBtn" onclick="verifyTranscript()" style="display:none; padding:0.4rem 1rem; border-radius:100px; border:1px solid rgba(16,185,129,0.3); background:rgba(16,185,129,0.08); color:#10b981; font-size:0.75rem; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.15)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">
+                                        ✅ Xác minh bản dịch
+                                    </button>
+                                </div>
+
                                 <div class="form-group">
                                     <label class="form-label">Tóm tắt bài học (AI Summary)</label>
                                     <textarea id="ai_summary" class="form-control" rows="2" placeholder="Tóm tắt ngắn gọn nội dung bài học..."></textarea>
@@ -200,7 +257,8 @@ require __DIR__ . '/../layouts/header.php';
 
                         <div style="margin-top: 2.5rem; display: flex; gap: 1rem; border-top: 1px solid var(--glass-border); padding-top: 2rem;">
                             <button type="submit" class="btn btn-primary" id="saveBtn" style="padding: 1rem 2.5rem;">Lưu bài học</button>
-                            <button type="button" class="btn btn-ghost" onclick="hideEditor()">Hủy</button>
+                            <button type="button" class="btn btn-outline-danger" id="deleteLessonBtn" style="display: none; padding: 1rem 2rem; border-radius: var(--radius-md);" onclick="deleteCurrentLesson()">Xóa bài học</button>
+                            <button type="button" class="btn btn-ghost" style="margin-left: auto;" onclick="hideEditor()">Hủy</button>
                         </div>
                     </form>
                 </div>
@@ -301,7 +359,10 @@ async function loadCurriculum() {
         const res = await window.api.get(`/courses/${courseId}/curriculum`);
         currentCurriculum = res.data;
         renderCurriculum();
-    } catch(e) {}
+    } catch(e) {
+        console.error("Lỗi khi tải giáo trình:", e);
+        App.showToast("Không thể tải giáo trình: " + (e.message || e), "error");
+    }
 }
 
 function renderCurriculum() {
@@ -324,6 +385,9 @@ function renderCurriculum() {
                 <div class="lesson-item" id="lesson-nav-${l.id}" onclick="editExistingLesson(${l.id}, ${ch.id})">
                     <span class="type-icon">${l.content_type === 'video' ? '🎬' : (l.content_type === 'quiz' ? '❓' : '📄')}</span>
                     <span class="lesson-name">${escapeHtml(l.title)}</span>
+                    <div class="lesson-actions">
+                        <button onclick="event.stopPropagation(); deleteLesson(${l.id})" title="Xóa bài học" style="color: var(--danger);"><i class="fas fa-trash-alt"></i></button>
+                    </div>
                 </div>
             `).join('')}
             <div class="add-lesson-btn" onclick="openEditor(${ch.id})">+ Thêm bài học</div>
@@ -381,7 +445,7 @@ async function submitChapterModal() {
             App.showToast('Đã thêm chương mới!', 'success');
         }
         document.getElementById('chapterModal').style.display = 'none';
-        loadCurriculum();
+        await loadCurriculum();
     } catch(e) { App.showToast(e.message, 'error'); }
 }
 
@@ -401,6 +465,15 @@ function openEditor(chapterId) {
     document.getElementById('lesson-form').reset();
     quill.root.innerHTML = '';
     document.getElementById('video-info-display').innerHTML = '';
+    const deleteBtn = document.getElementById('deleteLessonBtn');
+    if (deleteBtn) deleteBtn.style.display = 'none';
+    // Reset AI config fields
+    document.getElementById('enable_auto_summary').checked = true;
+    document.getElementById('enable_auto_keywords').checked = true;
+    document.getElementById('enable_auto_context').checked = true;
+    document.getElementById('strict_ai_mode').checked = false;
+    document.getElementById('teacher_notes').value = '';
+    updateTranscriptBadge('empty');
     toggleContentFields();
 }
 
@@ -412,6 +485,8 @@ async function editExistingLesson(lessonId, chapterId) {
         document.getElementById('editor-panel').style.display = 'block';
         document.getElementById('edit_mode').value = 'edit';
         document.getElementById('edit_lesson_id').value = lessonId;
+        const deleteBtn = document.getElementById('deleteLessonBtn');
+        if (deleteBtn) deleteBtn.style.display = 'block';
         document.getElementById('chapter_id').value = chapterId;
         document.getElementById('lesson_title').value = l.title;
         document.getElementById('content_type').value = l.content_type;
@@ -436,12 +511,54 @@ async function editExistingLesson(lessonId, chapterId) {
         document.getElementById('lesson_context').value = l.lesson_context || '';
         document.getElementById('key_topics').value = l.key_topics || '';
 
+        // AI Config Fields
+        document.getElementById('enable_auto_summary').checked = l.enable_auto_summary != 0;
+        document.getElementById('enable_auto_keywords').checked = l.enable_auto_keywords != 0;
+        document.getElementById('enable_auto_context').checked = l.enable_auto_context != 0;
+        document.getElementById('strict_ai_mode').checked = l.strict_ai_mode == 1;
+        document.getElementById('teacher_notes').value = l.teacher_notes || '';
+        updateTranscriptBadge(l.transcript_status || 'empty');
+
     } catch(e) { App.showToast(e.message, 'error'); }
 }
 
 function hideEditor() {
     document.getElementById('editor-panel').style.display = 'none';
     document.getElementById('empty-state').style.display = 'flex';
+}
+
+async function deleteLesson(lessonId) {
+    const confirmed = await App.confirm({
+        title: 'Xóa bài học',
+        message: 'Bạn có chắc chắn muốn xóa bài học này không? Hành động này không thể hoàn tác.',
+        type: 'danger',
+        confirmText: 'Xóa ngay',
+        cancelText: 'Hủy bỏ'
+    });
+    if (!confirmed) {
+        return;
+    }
+    try {
+        await window.api.delete(`/teacher/lessons/${lessonId}`);
+        App.showToast('Đã xóa bài học thành công!', 'success');
+        
+        const currentEditId = document.getElementById('edit_lesson_id').value;
+        const currentMode = document.getElementById('edit_mode').value;
+        if (currentMode === 'edit' && currentEditId == lessonId) {
+            hideEditor();
+        }
+        
+        await loadCurriculum();
+    } catch(e) {
+        App.showToast(e.message || 'Xóa bài học thất bại.', 'error');
+    }
+}
+
+function deleteCurrentLesson() {
+    const lessonId = document.getElementById('edit_lesson_id').value;
+    if (lessonId) {
+        deleteLesson(lessonId);
+    }
 }
 
 function toggleContentFields() {
@@ -519,13 +636,19 @@ document.getElementById('lesson-form').addEventListener('submit', async (e) => {
         ai_summary: document.getElementById('ai_summary').value,
         video_transcript: document.getElementById('video_transcript').value,
         lesson_context: document.getElementById('lesson_context').value,
-        key_topics: document.getElementById('key_topics').value
+        key_topics: document.getElementById('key_topics').value,
+        // AI Config Fields
+        enable_auto_summary: document.getElementById('enable_auto_summary').checked ? 1 : 0,
+        enable_auto_keywords: document.getElementById('enable_auto_keywords').checked ? 1 : 0,
+        enable_auto_context: document.getElementById('enable_auto_context').checked ? 1 : 0,
+        strict_ai_mode: document.getElementById('strict_ai_mode').checked ? 1 : 0,
+        teacher_notes: document.getElementById('teacher_notes').value
     };
     try {
         if (mode === 'edit') await window.api.put(`/teacher/lessons/${document.getElementById('edit_lesson_id').value}`, data);
         else await window.api.post('/teacher/lessons', data);
         App.showToast('Đã lưu bài học!', 'success');
-        loadCurriculum();
+        await loadCurriculum();
         hideEditor();
     } catch(e) { App.showToast(e.message, 'error'); }
 });
@@ -602,7 +725,7 @@ async function saveQuiz() {
     try {
         await window.api.post(`/teacher/lessons/${lessonId}/quiz`, { title, questions, explanations, hints, ai_tags });
         App.showToast('Đã lưu bài kiểm tra!', 'success');
-        loadCurriculum();
+        await loadCurriculum();
         hideEditor();
     } catch(e) { App.showToast(e.message, 'error'); }
 }
@@ -706,6 +829,60 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function updateTranscriptBadge(status) {
+    const badge = document.getElementById('transcript-status-badge');
+    const verifyBtn = document.getElementById('verifyTranscriptBtn');
+    if (!badge) return;
+
+    switch (status) {
+        case 'teacher_verified':
+            badge.innerHTML = '✅ Giảng viên đã xác minh';
+            badge.style.background = 'rgba(16,185,129,0.1)';
+            badge.style.color = '#10b981';
+            badge.style.borderColor = 'rgba(16,185,129,0.3)';
+            if (verifyBtn) verifyBtn.style.display = 'none';
+            break;
+        case 'auto_generated':
+            badge.innerHTML = '🤖 Tự động tạo bởi AI';
+            badge.style.background = 'rgba(245,158,11,0.1)';
+            badge.style.color = '#f59e0b';
+            badge.style.borderColor = 'rgba(245,158,11,0.3)';
+            if (verifyBtn) verifyBtn.style.display = 'inline-flex';
+            break;
+        default:
+            badge.innerHTML = '📝 Chưa có';
+            badge.style.background = 'rgba(255,255,255,0.06)';
+            badge.style.color = 'rgba(255,255,255,0.4)';
+            badge.style.borderColor = 'rgba(255,255,255,0.1)';
+            if (verifyBtn) verifyBtn.style.display = 'none';
+    }
+}
+
+async function verifyTranscript() {
+    const lessonId = document.getElementById('edit_lesson_id').value;
+    if (!lessonId) {
+        App.showToast('Vui lòng lưu bài học trước khi xác minh.', 'error');
+        return;
+    }
+
+    const confirmed = await App.confirm({
+        title: 'Xác minh bản dịch',
+        message: 'Bạn xác nhận rằng nội dung bản dịch/transcript hiện tại là chính xác và đã được kiểm tra?',
+        type: 'success',
+        confirmText: 'Xác minh',
+        cancelText: 'Hủy'
+    });
+    if (!confirmed) return;
+
+    try {
+        await window.api.put(`/teacher/lessons/${lessonId}/verify-transcript`);
+        App.showToast('Đã xác minh bản dịch thành công!', 'success');
+        updateTranscriptBadge('teacher_verified');
+    } catch (e) {
+        App.showToast(e.message || 'Xác minh thất bại.', 'error');
+    }
 }
 </script>
 

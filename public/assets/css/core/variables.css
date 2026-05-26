@@ -42,5 +42,5 @@
 
     /* ── Typography ── */
     --font-body:    'Inter', system-ui, sans-serif;
-    --font-heading: 'Playfair Display', Georgia, serif; /* Cinematic serif for Vietnamese */
+    --font-heading: 'Inter', system-ui, sans-serif;
 }

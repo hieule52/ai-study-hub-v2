@@ -53,8 +53,21 @@ class AiAutomationService
 
         // 2. Tự động sinh AI Transcript, Summary, Keywords, Context
         // Chỉ chạy AI nếu tiêu đề bài học không trống và các trường AI chưa được điền
-        if (!empty($data['title']) && (empty($data['video_transcript']) || empty($data['ai_summary']) || empty($data['lesson_context']))) {
-            self::generateAiContent($data);
+        // Tôn trọng các toggle của giảng viên
+        $autoSummary = (int)($data['enable_auto_summary'] ?? 1);
+        $autoKeywords = (int)($data['enable_auto_keywords'] ?? 1);
+        $autoContext = (int)($data['enable_auto_context'] ?? 1);
+
+        $needsAi = false;
+        if (!empty($data['title'])) {
+            if ($autoSummary && empty($data['ai_summary'])) $needsAi = true;
+            if ($autoKeywords && (empty($data['lesson_keywords']) && empty($data['key_topics']))) $needsAi = true;
+            if ($autoContext && empty($data['lesson_context'])) $needsAi = true;
+            if (empty($data['video_transcript'])) $needsAi = true;
+        }
+
+        if ($needsAi) {
+            self::generateAiContent($data, $autoSummary, $autoKeywords, $autoContext);
         }
     }
 
@@ -80,8 +93,9 @@ class AiAutomationService
 
     /**
      * Gọi LLM (Gemini hoặc Groq) để sinh nội dung học tập thông minh
+     * Tôn trọng các toggle của giảng viên
      */
-    private static function generateAiContent(array &$data): void
+    private static function generateAiContent(array &$data, int $autoSummary = 1, int $autoKeywords = 1, int $autoContext = 1): void
     {
         $title = $data['title'];
         $content = strip_tags($data['content'] ?? '');
@@ -123,14 +137,18 @@ Mẫu JSON cần trả về:
                 if ($parsed) {
                     if (empty($data['video_transcript'])) {
                         $data['video_transcript'] = $parsed['video_transcript'] ?? null;
+                        // Đánh dấu transcript được tạo tự động bởi AI
+                        if (!empty($data['video_transcript'])) {
+                            $data['transcript_status'] = 'auto_generated';
+                        }
                     }
-                    if (empty($data['ai_summary'])) {
+                    if ($autoSummary && empty($data['ai_summary'])) {
                         $data['ai_summary'] = $parsed['ai_summary'] ?? null;
                     }
-                    if (empty($data['lesson_context'])) {
+                    if ($autoContext && empty($data['lesson_context'])) {
                         $data['lesson_context'] = $parsed['lesson_context'] ?? null;
                     }
-                    if (empty($data['lesson_keywords']) || empty($data['key_topics'])) {
+                    if ($autoKeywords && (empty($data['lesson_keywords']) || empty($data['key_topics']))) {
                         $keywords = $parsed['lesson_keywords'] ?? null;
                         $data['lesson_keywords'] = $keywords;
                         $data['key_topics'] = $keywords;
@@ -146,14 +164,15 @@ Mẫu JSON cần trả về:
         // Nếu AI lỗi hoặc trả về không đúng cấu trúc, điền nội dung học thuật mẫu cực chuẩn
         if (empty($data['video_transcript'])) {
             $data['video_transcript'] = "[00:00] Xin chào toàn thể học viên của AI Study Hub. Trong bài học \"" . $title . "\" hôm nay, chúng ta sẽ cùng nghiên cứu sâu sắc về các khái niệm nền tảng của chủ đề.\n[02:00] Đi sâu vào phân tích kiến trúc thực tế...\n[05:00] Tóm lược các nội dung cốt lõi và hướng dẫn thực hành.";
+            $data['transcript_status'] = 'auto_generated';
         }
-        if (empty($data['ai_summary'])) {
+        if ($autoSummary && empty($data['ai_summary'])) {
             $data['ai_summary'] = "### Điểm cốt lõi bài học:\n- **Khái niệm chính**: Nghiên cứu sâu về " . $title . ".\n- **Ứng dụng**: Cách triển khai thực tiễn trong công việc và học tập.\n- **Lưu ý quan trọng**: Đọc kỹ tài liệu đính kèm và làm bài kiểm tra đầy đủ.";
         }
-        if (empty($data['lesson_context'])) {
+        if ($autoContext && empty($data['lesson_context'])) {
             $data['lesson_context'] = "Bài học này nằm trong chương trình đào tạo chuyên sâu của khóa học, đóng vai trò bản lề giúp định hình tư duy thiết kế và tối ưu hóa giải pháp công nghệ.";
         }
-        if (empty($data['lesson_keywords'])) {
+        if ($autoKeywords && empty($data['lesson_keywords'])) {
             $data['lesson_keywords'] = "ai study hub, " . strtolower($title);
             $data['key_topics'] = $data['lesson_keywords'];
         }

@@ -115,6 +115,7 @@ $staticRoutes = [
     '/teacher/students'     => 'teacher/students.php',
     '/teacher/chat'         => 'teacher/chat.php',
     '/teacher/profile'      => 'teacher/profile.php',
+    '/teacher/notifications'=> 'teacher/notifications.php',
     // Admin
     '/admin/dashboard'      => 'admin/dashboard.php',
     '/admin/users'          => 'admin/users.php',
@@ -122,6 +123,7 @@ $staticRoutes = [
     '/admin/logs'           => 'admin/logs.php',
     '/admin/vip'            => 'admin/vip.php',
     '/admin/preview'        => 'admin/preview-course.php',
+    '/admin/notifications'  => 'admin/notifications.php',
 ];
 
 // ============================================================

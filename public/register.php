@@ -1,6 +1,7 @@
 <?php
 $pageTitle = 'Tham gia ngay — AI Study Hub®';
 $actor = 'auth';
+$extraHead = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">';
 require __DIR__ . '/layouts/header.php';
 ?>
 
@@ -84,7 +85,21 @@ require __DIR__ . '/layouts/header.php';
                 </div>
                 <div class="form-group">
                     <label class="form-label" data-i18n="label_password">Mật khẩu bảo mật</label>
-                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password" tabindex="-1" onclick="togglePasswordVisibility('password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" data-i18n="label_confirm_password">Nhắc lại mật khẩu</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirm-password" class="form-control" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password" tabindex="-1" onclick="togglePasswordVisibility('confirm-password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <button type="submit" class="auth-btn" id="btn-register" data-i18n="btn_create_account">Tạo tài khoản miễn phí</button>
@@ -100,6 +115,21 @@ require __DIR__ . '/layouts/header.php';
 
 <?php ob_start(); ?>
 <script>
+    // Password visibility toggle logic
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
     // Role selection logic
     const roleOptions = document.querySelectorAll('.role-option');
     let selectedRole = 'student';
@@ -118,6 +148,12 @@ require __DIR__ . '/layouts/header.php';
         const username = document.getElementById('username').value;
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (password !== confirmPassword) {
+            App.showToast(I18n.get('toast_password_mismatch'), 'error');
+            return;
+        }
 
         try {
             btn.disabled = true;
@@ -152,6 +188,7 @@ require __DIR__ . '/layouts/header.php';
         }
     });
 </script>
+
 <?php
 $extraScripts = ob_get_clean();
 require __DIR__ . '/layouts/footer.php';

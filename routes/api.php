@@ -105,6 +105,7 @@ $router->put('/api/teacher/chapters/reorder', 'Api\TeacherCurriculumController@r
 $router->post('/api/teacher/lessons', 'Api\TeacherCurriculumController@createLesson');
 $router->put('/api/teacher/lessons/:id', 'Api\TeacherCurriculumController@updateLesson');
 $router->delete('/api/teacher/lessons/:id', 'Api\TeacherCurriculumController@deleteLesson');
+$router->put('/api/teacher/lessons/:id/verify-transcript', 'Api\TeacherCurriculumController@verifyTranscript');
 $router->put('/api/teacher/lessons/reorder', 'Api\TeacherCurriculumController@reorderLessons');
 
 $router->post('/api/teacher/quizzes', 'Api\TeacherCurriculumController@createQuiz');
@@ -140,6 +141,10 @@ $router->delete('/api/admin/courses/:id', 'Api\AdminController@deleteCourse');
 $router->get('/api/admin/enrollments', 'Api\AdminController@getEnrollments');
 $router->get('/api/admin/vip-payments', 'Api\AdminController@getVipPayments');
 $router->get('/api/admin/audit-logs', 'Api\AdminController@getAuditLogs');
+$router->get('/api/admin/notifications', 'Api\AdminController@getNotifications');
+$router->put('/api/admin/notifications/read-all', 'Api\AdminController@markNotificationsAllRead');
+$router->put('/api/admin/notifications/:id/read', 'Api\AdminController@markNotificationRead');
+$router->get('/api/admin/courses/:id/changes', 'Api\AdminController@getCourseChanges');
 
 // =============================================
 // CERTIFICATES
@@ -153,6 +158,7 @@ $router->get('/api/certificates/verify/:uuid', 'Api\CertificateController@verify
 // =============================================
 $router->get('/api/notifications', 'Api\CertificateController@getNotifications');
 $router->put('/api/notifications/read-all', 'Api\CertificateController@markAllRead');
+$router->put('/api/notifications/:id/read', 'Api\CertificateController@markRead');
 
 // =============================================
 // QUIZ HISTORY & RETRY

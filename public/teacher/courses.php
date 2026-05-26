@@ -91,6 +91,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else if (c.status === 'pending') {
                 statusClass = 'status-pending';
                 statusLabel = 'tc_dash_pending';
+            } else if (c.status === 'pending_reapproval') {
+                statusClass = 'status-reapproval';
+                statusLabel = 'tc_dash_pending_reapproval';
+            } else if (c.status === 'hidden') {
+                statusClass = 'status-hidden';
+                statusLabel = 'tc_dash_hidden';
             }
 
             const priceLabel = (c.is_premium && c.price > 0)
@@ -136,7 +142,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function deleteCourse(id) {
-    if (!confirm('Bạn có chắc chắn muốn xóa khóa học này?')) return;
+    const confirmed = await App.confirm({
+        title: 'Xóa khóa học',
+        message: 'Bạn có chắc chắn muốn xóa khóa học này? Hành động này không thể hoàn tác.',
+        type: 'danger',
+        confirmText: 'Xóa ngay',
+        cancelText: 'Hủy bỏ'
+    });
+    if (!confirmed) return;
     try {
         await window.api.delete(`/teacher/courses/${id}`);
         App.showToast('Đã xóa khóa học thành công.', 'success');

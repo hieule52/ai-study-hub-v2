@@ -136,7 +136,8 @@ class Chat implements MessageComponentInterface
 
         // Tạo thông báo mới cho người nhận
         try {
-            $this->notifRepo->create($receiverId, 'chat', $senderMeta['username'], $content, [
+            $title = $senderRole === 'student' ? "💬 Tin nhắn từ học viên " . $senderMeta['username'] : "💬 Tin nhắn từ giảng viên " . $senderMeta['username'];
+            $this->notifRepo->create($receiverId, 'chat', $title, $content, [
                 'sender_id' => $senderId
             ]);
         } catch (Exception $notifEx) {

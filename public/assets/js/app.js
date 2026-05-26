@@ -10,39 +10,251 @@ const App = {
     showToast(message, type = 'success') {
         const toastContainer = document.getElementById('toast-container') || this._createToastContainer();
         
+        if (!document.querySelector('link[href*="font-awesome"]')) {
+            const faLink = document.createElement('link');
+            faLink.rel = 'stylesheet';
+            faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+            document.head.appendChild(faLink);
+        }
+
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         
-        const bg = type === 'success' ? '#fff' : 'rgba(252,165,165,0.1)';
-        const border = type === 'success' ? 'rgba(0,0,0,0.1)' : 'rgba(252,165,165,0.3)';
-        const color = type === 'success' ? '#0f172a' : '#ef4444';
+        let iconHtml = '';
+        let borderGlow = '';
+        let glowColor = '';
+        let iconColor = '';
+        
+        if (type === 'success') {
+            iconHtml = '<i class="fas fa-check-circle"></i>';
+            borderGlow = 'rgba(16, 185, 129, 0.25)';
+            glowColor = 'rgba(16, 185, 129, 0.12)';
+            iconColor = '#10b981';
+        } else if (type === 'error') {
+            iconHtml = '<i class="fas fa-exclamation-circle"></i>';
+            borderGlow = 'rgba(239, 68, 68, 0.25)';
+            glowColor = 'rgba(239, 68, 68, 0.12)';
+            iconColor = '#ef4444';
+        } else if (type === 'warning') {
+            iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+            borderGlow = 'rgba(245, 158, 11, 0.25)';
+            glowColor = 'rgba(245, 158, 11, 0.12)';
+            iconColor = '#f59e0b';
+        } else {
+            iconHtml = '<i class="fas fa-info-circle"></i>';
+            borderGlow = 'rgba(99, 102, 241, 0.25)';
+            glowColor = 'rgba(99, 102, 241, 0.12)';
+            iconColor = '#818cf8';
+        }
 
         toast.style.cssText = `
-            background: ${bg};
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid ${border};
-            color: ${color};
-            padding: 1rem 1.5rem;
-            border-radius: 100px;
+            background: rgba(13, 19, 35, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid ${borderGlow};
+            border-left: 4px solid ${iconColor};
+            color: #fff;
+            padding: 0.85rem 1.25rem;
+            border-radius: 14px;
             margin-bottom: 0.75rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 15px ${glowColor};
             transform: translateX(120%);
-            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease;
             font-weight: 500;
             font-size: 0.85rem;
-            z-index: 99999;
-            min-width: 280px;
-            letter-spacing: 0.02em;
+            z-index: 999999;
+            min-width: 300px;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-sizing: border-box;
+            opacity: 0;
         `;
-        toast.textContent = message;
+        
+        toast.innerHTML = `
+            <span style="color: ${iconColor}; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${iconHtml}
+            </span>
+            <span style="flex: 1; line-height: 1.4; word-break: break-word;">${message}</span>
+        `;
 
         toastContainer.appendChild(toast);
-        setTimeout(() => toast.style.transform = 'translateX(0)', 10);
+        
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+            toast.style.opacity = '1';
+        }, 20);
+        
         setTimeout(() => {
             toast.style.transform = 'translateX(120%)';
-            setTimeout(() => toast.remove(), 600);
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
         }, 4000);
+    },
+
+    confirm({ title = 'Xác nhận', message = '', type = 'danger', confirmText = 'Đồng ý', cancelText = 'Hủy bỏ' }) {
+        return new Promise((resolve) => {
+            if (!document.querySelector('link[href*="font-awesome"]')) {
+                const faLink = document.createElement('link');
+                faLink.rel = 'stylesheet';
+                faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+                document.head.appendChild(faLink);
+            }
+
+            let modal = document.getElementById('global-confirm-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'global-confirm-modal';
+                modal.style.cssText = `
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(4, 7, 16, 0.8);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 100000;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                `;
+                document.body.appendChild(modal);
+            }
+            
+            let iconHtml = '';
+            let confirmBtnColor = '';
+            let glowColor = '';
+            
+            if (type === 'danger') {
+                iconHtml = '<i class="fas fa-exclamation-triangle"></i>';
+                confirmBtnColor = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                glowColor = 'rgba(239, 68, 68, 0.15)';
+            } else if (type === 'success') {
+                iconHtml = '<i class="fas fa-check-circle"></i>';
+                confirmBtnColor = 'linear-gradient(135deg, #10b981, #059669)';
+                glowColor = 'rgba(16, 185, 129, 0.15)';
+            } else if (type === 'warning') {
+                iconHtml = '<i class="fas fa-exclamation-circle"></i>';
+                confirmBtnColor = 'linear-gradient(135deg, #f59e0b, #d97706)';
+                glowColor = 'rgba(245, 158, 11, 0.15)';
+            } else {
+                iconHtml = '<i class="fas fa-info-circle"></i>';
+                confirmBtnColor = 'linear-gradient(135deg, #6366f1, #4f46e5)';
+                glowColor = 'rgba(99, 102, 241, 0.15)';
+            }
+            
+            modal.innerHTML = `
+                <div class="confirm-card" style="
+                    background: linear-gradient(135deg, #0d1525, #070a13);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    border-radius: 24px;
+                    padding: 2.5rem 2rem;
+                    width: 100%;
+                    max-width: 420px;
+                    margin: 1.5rem;
+                    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), 0 0 50px ${glowColor};
+                    text-align: center;
+                    transform: scale(0.9);
+                    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    font-family: 'Inter', system-ui, sans-serif;
+                ">
+                    <div class="confirm-icon" style="
+                        width: 64px;
+                        height: 64px;
+                        border-radius: 20px;
+                        background: ${type === 'danger' ? 'rgba(239, 68, 68, 0.1)' : type === 'success' ? 'rgba(16, 185, 129, 0.1)' : type === 'warning' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(99, 102, 241, 0.1)'};
+                        color: ${type === 'danger' ? '#ef4444' : type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : '#818cf8'};
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 1.5rem;
+                        font-size: 1.75rem;
+                        box-shadow: 0 8px 24px ${glowColor};
+                    ">
+                        ${iconHtml}
+                    </div>
+                    <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem; letter-spacing: -0.02em;">${title}</h3>
+                    <p style="font-size: 0.9rem; color: #94a3b8; line-height: 1.6; margin: 0 0 2rem; padding: 0 0.5rem;">${message}</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem;">
+                        <button class="confirm-cancel-btn" style="
+                            padding: 0.85rem;
+                            border-radius: 12px;
+                            font-weight: 700;
+                            font-family: inherit;
+                            font-size: 0.875rem;
+                            background: rgba(255, 255, 255, 0.04);
+                            color: rgba(255, 255, 255, 0.6);
+                            border: 1px solid rgba(255, 255, 255, 0.08);
+                            cursor: pointer;
+                            transition: all 0.2s;
+                            outline: none;
+                        ">${cancelText}</button>
+                        <button class="confirm-ok-btn" style="
+                            padding: 0.85rem;
+                            border-radius: 12px;
+                            font-weight: 700;
+                            font-family: inherit;
+                            font-size: 0.875rem;
+                            background: ${confirmBtnColor};
+                            color: #fff;
+                            border: none;
+                            cursor: pointer;
+                            box-shadow: 0 8px 20px ${glowColor};
+                            transition: all 0.2s;
+                            outline: none;
+                        ">${confirmText}</button>
+                    </div>
+                </div>
+            `;
+            
+            const card = modal.querySelector('.confirm-card');
+            const cancelBtn = modal.querySelector('.confirm-cancel-btn');
+            const okBtn = modal.querySelector('.confirm-ok-btn');
+            
+            const close = (result) => {
+                modal.style.opacity = '0';
+                card.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    resolve(result);
+                }, 300);
+            };
+            
+            cancelBtn.onclick = () => close(false);
+            okBtn.onclick = () => close(true);
+            
+            cancelBtn.onmouseover = () => {
+                cancelBtn.style.background = 'rgba(255, 255, 255, 0.08)';
+                cancelBtn.style.color = '#fff';
+                cancelBtn.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+            };
+            cancelBtn.onmouseout = () => {
+                cancelBtn.style.background = 'rgba(255, 255, 255, 0.04)';
+                cancelBtn.style.color = 'rgba(255, 255, 255, 0.6)';
+                cancelBtn.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+            };
+            
+            okBtn.onmouseover = () => {
+                okBtn.style.transform = 'translateY(-1px)';
+                okBtn.style.boxShadow = `0 12px 24px ${glowColor}`;
+            };
+            okBtn.onmouseout = () => {
+                okBtn.style.transform = 'translateY(0)';
+                okBtn.style.boxShadow = `0 8px 20px ${glowColor}`;
+            };
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) close(false);
+            };
+            
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.style.opacity = '1';
+                card.style.transform = 'scale(1)';
+                okBtn.focus();
+            }, 10);
+        });
     },
 
     _createToastContainer() {

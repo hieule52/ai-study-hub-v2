@@ -95,14 +95,18 @@ class LessonRepository
                     video_filename, video_path, video_thumbnail, video_size, 
                     duration, video_duration, content, objectives, ai_summary, 
                     video_transcript, lesson_context, key_topics, lesson_keywords, 
-                    order_index, is_free, secure_token, storage_driver
+                    order_index, is_free, secure_token, storage_driver,
+                    transcript_status, strict_ai_mode, teacher_notes,
+                    enable_auto_summary, enable_auto_keywords, enable_auto_context
                 ) 
                 VALUES (
                     :chapter_id, :title, :content_type, :lesson_type, :video_url, 
                     :video_filename, :video_path, :video_thumbnail, :video_size, 
                     :duration, :video_duration, :content, :objectives, :ai_summary, 
                     :video_transcript, :lesson_context, :key_topics, :lesson_keywords, 
-                    :order_index, :is_free, :secure_token, :storage_driver
+                    :order_index, :is_free, :secure_token, :storage_driver,
+                    :transcript_status, :strict_ai_mode, :teacher_notes,
+                    :enable_auto_summary, :enable_auto_keywords, :enable_auto_context
                 )";
         $stmt = $this->db->prepare($sql);
         $success = $stmt->execute([
@@ -127,7 +131,13 @@ class LessonRepository
             'order_index' => $data['order_index'] ?? 0,
             'is_free' => $data['is_free'] ?? 0,
             'secure_token' => $data['secure_token'] ?? null,
-            'storage_driver' => $data['storage_driver'] ?? 'local'
+            'storage_driver' => $data['storage_driver'] ?? 'local',
+            'transcript_status' => $data['transcript_status'] ?? 'empty',
+            'strict_ai_mode' => $data['strict_ai_mode'] ?? 0,
+            'teacher_notes' => $data['teacher_notes'] ?? null,
+            'enable_auto_summary' => $data['enable_auto_summary'] ?? 1,
+            'enable_auto_keywords' => $data['enable_auto_keywords'] ?? 1,
+            'enable_auto_context' => $data['enable_auto_context'] ?? 1
         ]);
 
         if ($success) {
@@ -159,7 +169,12 @@ class LessonRepository
                     order_index = :order_index, 
                     is_free = :is_free,
                     secure_token = COALESCE(:secure_token, secure_token),
-                    storage_driver = :storage_driver
+                    storage_driver = :storage_driver,
+                    strict_ai_mode = :strict_ai_mode,
+                    teacher_notes = :teacher_notes,
+                    enable_auto_summary = :enable_auto_summary,
+                    enable_auto_keywords = :enable_auto_keywords,
+                    enable_auto_context = :enable_auto_context
                 WHERE id = :id";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -187,8 +202,28 @@ class LessonRepository
             'order_index' => $data['order_index'] ?? 0,
             'is_free' => $data['is_free'] ?? 0,
             'secure_token' => $data['secure_token'] ?? null,
-            'storage_driver' => $data['storage_driver'] ?? 'local'
+            'storage_driver' => $data['storage_driver'] ?? 'local',
+            'strict_ai_mode' => $data['strict_ai_mode'] ?? 0,
+            'teacher_notes' => $data['teacher_notes'] ?? null,
+            'enable_auto_summary' => $data['enable_auto_summary'] ?? 1,
+            'enable_auto_keywords' => $data['enable_auto_keywords'] ?? 1,
+            'enable_auto_context' => $data['enable_auto_context'] ?? 1
         ]);
+    }
+
+    /**
+     * Xác minh bản dịch — cập nhật transcript_status, verified_by_teacher, verified_at
+     */
+    public function verifyTranscript(int $lessonId, int $teacherId): bool
+    {
+        $stmt = $this->db->prepare("
+            UPDATE lessons SET 
+                transcript_status = 'teacher_verified',
+                verified_by_teacher = :teacher_id,
+                verified_at = CURRENT_TIMESTAMP
+            WHERE id = :id
+        ");
+        return $stmt->execute(['id' => $lessonId, 'teacher_id' => $teacherId]);
     }
 
     /**

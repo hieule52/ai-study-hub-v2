@@ -25,6 +25,10 @@ $isActive = fn(string $path) => (strpos($currentPath, $path) !== false) ? 'activ
         <i class="fas fa-comments"></i>
         <span data-i18n="nav_teacher_chat">Tin nhắn</span>
     </a>
+    <a href="/teacher/notifications" class="sidebar-nav-item <?= $isActive('/teacher/notifications') ?>">
+        <i class="fas fa-bell"></i>
+        <span data-i18n="nav_teacher_notifications">Thông báo</span>
+    </a>
     <a href="/teacher/profile" class="sidebar-nav-item <?= $isActive('/teacher/profile') ?>">
         <i class="fas fa-user-cog"></i>
         <span data-i18n="nav_teacher_profile">Hồ sơ cá nhân</span>

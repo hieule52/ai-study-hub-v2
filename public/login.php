@@ -1,6 +1,7 @@
 <?php
 $pageTitle = 'Đăng nhập — AI Study Hub®';
 $actor = 'auth';
+$extraHead = '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">';
 require __DIR__ . '/layouts/header.php';
 ?>
 
@@ -37,7 +38,12 @@ require __DIR__ . '/layouts/header.php';
                 </div>
                 <div class="form-group">
                     <label class="form-label" data-i18n="label_password">Mật khẩu</label>
-                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                        <button type="button" class="toggle-password" tabindex="-1" onclick="togglePasswordVisibility('password', this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 
                 <button type="submit" class="auth-btn" id="btn-login" data-i18n="btn_login">Đăng nhập ngay</button>
@@ -53,6 +59,21 @@ require __DIR__ . '/layouts/header.php';
 
 <?php ob_start(); ?>
 <script>
+    // Password visibility toggle logic
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btn-login');

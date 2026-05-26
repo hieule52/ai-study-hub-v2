@@ -598,7 +598,14 @@ require __DIR__ . '/../layouts/header.php';
 
         async function clearAIChat() {
             const confirmMsg = window.I18n ? window.I18n.get('lrn_ai_clear_confirm') : 'Bạn có chắc chắn muốn xóa toàn bộ lịch sử hội thoại của bài học này?';
-            if (!confirm(confirmMsg)) return;
+            const confirmed = await App.confirm({
+                title: 'Xóa lịch sử chat',
+                message: confirmMsg,
+                type: 'danger',
+                confirmText: 'Xóa ngay',
+                cancelText: 'Hủy bỏ'
+            });
+            if (!confirmed) return;
             try {
                 await window.api.delete('/ai/history', { lesson_id: currentLessonId });
                 document.getElementById('chatBox').innerHTML = `<div class="msg bot" data-i18n="lrn_ai_welcome">👋 Chào bạn! Tôi là AI Tutor của bạn. Hỏi tôi bất cứ điều gì về nội dung bài học này nhé!</div>`;

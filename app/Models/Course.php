@@ -22,6 +22,11 @@ class Course
     public ?string $teacher_name;
     public ?string $teacher_email;
 
+    // AI Learning Context fields
+    public ?string $ai_course_summary;
+    public ?string $ai_keywords;
+    public ?string $ai_focus;
+
     public function __construct(array $data = [])
     {
         if (!empty($data)) {
@@ -43,6 +48,11 @@ class Course
             $this->category_slug = $data['category_slug'] ?? null;
             $this->teacher_name = $data['teacher_name'] ?? null;
             $this->teacher_email = $data['teacher_email'] ?? null;
+
+            // AI Learning Context fields
+            $this->ai_course_summary = $data['ai_course_summary'] ?? null;
+            $this->ai_keywords = $data['ai_keywords'] ?? null;
+            $this->ai_focus = $data['ai_focus'] ?? null;
         }
     }
 }

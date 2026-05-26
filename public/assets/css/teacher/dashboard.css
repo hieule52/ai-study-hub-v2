@@ -239,6 +239,24 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.status-reapproval {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    animation: pulse-reapproval 2s ease-in-out infinite;
+}
+
+@keyframes pulse-reapproval {
+    0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.15); }
+    50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+}
+
+.status-hidden {
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
 /* ── Notifications ── */
 .notif-bell-btn {
     background: var(--glass-bg);
