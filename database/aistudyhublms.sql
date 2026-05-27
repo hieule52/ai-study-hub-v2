@@ -23,7 +23,38 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '6c4b2c32-be4f-11f0-b103-d843ae2bcf25:1-2446';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '6c4b2c32-be4f-11f0-b103-d843ae2bcf25:1-2449';
+
+--
+-- Table structure for table `admin_notifications`
+--
+
+DROP TABLE IF EXISTS `admin_notifications`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `admin_notifications` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `course_id` int NOT NULL,
+  `type` varchar(50) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `data` longtext,
+  `is_read` tinyint DEFAULT '0',
+  `priority` varchar(20) DEFAULT 'medium',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_admin_notifs_read` (`is_read`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `admin_notifications`
+--
+
+LOCK TABLES `admin_notifications` WRITE;
+/*!40000 ALTER TABLE `admin_notifications` DISABLE KEYS */;
+/*!40000 ALTER TABLE `admin_notifications` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `ai_conversations`
@@ -252,6 +283,38 @@ INSERT INTO `course_categories` VALUES (1,'Lập trình','lap-trinh','fa-code',N
 UNLOCK TABLES;
 
 --
+-- Table structure for table `course_change_logs`
+--
+
+DROP TABLE IF EXISTS `course_change_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `course_change_logs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `course_id` int NOT NULL,
+  `entity_type` varchar(50) NOT NULL,
+  `entity_id` int NOT NULL,
+  `action_type` varchar(50) NOT NULL,
+  `changed_fields` text NOT NULL,
+  `old_snapshot` longtext,
+  `new_snapshot` longtext,
+  `performed_by` int NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_course_changes` (`course_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `course_change_logs`
+--
+
+LOCK TABLES `course_change_logs` WRITE;
+/*!40000 ALTER TABLE `course_change_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `course_change_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `course_reviews`
 --
 
@@ -304,7 +367,7 @@ CREATE TABLE `courses` (
   `thumbnail` varchar(255) DEFAULT NULL,
   `price` decimal(10,2) DEFAULT '0.00',
   `is_premium` tinyint(1) DEFAULT '0',
-  `status` enum('draft','pending','approved','published','hidden') DEFAULT 'draft',
+  `status` enum('draft','pending','approved','published','hidden','pending_reapproval') DEFAULT 'draft',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
@@ -835,14 +898,6 @@ LOCK TABLES `video_tokens` WRITE;
 INSERT INTO `video_tokens` VALUES (51,'eac2c61e42f92d7cdd0da5353f6f2a85c78cafef23f69e44ad27efc91d9e72de',17,10,'2026-05-17 10:38:17','2026-05-17 06:38:17'),(57,'f44998a2670b24051636c0925a7b971781619d8eb9e70c4dd8f9eefe521e2a3c',6,11,'2026-05-17 12:30:41','2026-05-17 08:30:41'),(59,'4fa9ca142bd0b1f9cf30eedad43d99004345530e1fad06f4de079f8c105d0586',17,11,'2026-05-17 12:36:35','2026-05-17 08:36:35');
 /*!40000 ALTER TABLE `video_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping events for database 'aistudyhublms'
---
-
---
--- Dumping routines for database 'aistudyhublms'
---
 SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -854,4 +909,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-18 11:51:36
+-- Dump completed on 2026-05-28  1:01:54
