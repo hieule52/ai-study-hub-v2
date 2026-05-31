@@ -48,7 +48,7 @@ class StudentController
 
             $success = $this->enrollRepo->enroll($userId, (int)$courseId);
             if ($success) {
-                $response->success("Đăng ký khóa học thành công!", [], 201);
+                $response->success("Ghi danh khóa học thành công!", [], 201);
             } else {
                 $response->error("Bạn đã tham gia khóa học này rồi.", 400);
             }
@@ -114,8 +114,8 @@ class StudentController
         try {
             AuthMiddleware::handle($request, $response);
             $userId = $request->user->sub;
-            
-            $rating = (int)$request->input('rating');
+
+            $rating  = (int)$request->input('rating');
             $comment = $request->input('comment', '');
 
             if ($rating < 1 || $rating > 5) {
@@ -124,25 +124,103 @@ class StudentController
             }
 
             // Check if 100% completed
-            $stmt = \App\Core\Database::connect()->prepare("SELECT progress_percent FROM enrollments WHERE user_id = ? AND course_id = ?");
+            $db   = \App\Core\Database::connect();
+            $stmt = $db->prepare("SELECT progress_percent, course_status FROM enrollments WHERE user_id = ? AND course_id = ?");
             $stmt->execute([$userId, $courseId]);
-            $progress = $stmt->fetchColumn();
+            $enrollment = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-            if ($progress === false || $progress < 100) {
+            if (!$enrollment || (int)$enrollment['progress_percent'] < 100) {
                 $response->error("Bạn cần hoàn thành 100% khóa học mới có thể đánh giá.", 400);
                 return;
             }
 
-            $stmt = \App\Core\Database::connect()->prepare("
-                INSERT INTO course_reviews (course_id, user_id, rating, comment) 
-                VALUES (?, ?, ?, ?) 
+            // Lưu đánh giá
+            $stmt = $db->prepare("
+                INSERT INTO course_reviews (course_id, user_id, rating, comment)
+                VALUES (?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment)
             ");
             $stmt->execute([$courseId, $userId, $rating, $comment]);
 
-            $response->success("Cảm ơn bạn đã đánh giá khóa học!", [], 201);
+            // Tự động cấp chứng chỉ nếu khoá học đã hoàn thành
+            $certIssued = false;
+            try {
+                $courseService = new \App\Services\CourseService();
+                $certIssued    = $courseService->tryIssueCertificateAfterReview((int)$userId, (int)$courseId);
+            } catch (\Exception $ce) {
+                // Non-critical
+            }
+
+            $response->success(
+                $certIssued
+                    ? "🎓 Cảm ơn bạn đã đánh giá! Chứng chỉ của bạn đã được cấp."
+                    : "Cảm ơn bạn đã đánh giá khóa học!",
+                ['cert_issued' => $certIssued],
+                201
+            );
         } catch (Exception $e) {
             $response->error($e->getMessage(), 500);
         }
     }
+
+    public function resetProgress(Request $request, Response $response, string $courseId)
+    {
+        try {
+            AuthMiddleware::handle($request, $response);
+            $userId = $request->user->sub;
+
+            $db = \App\Core\Database::connect();
+            $db->beginTransaction();
+
+            // 1. Lấy danh sách lesson_id của khóa học này để xóa trong bảng lesson_progress
+            $stmtLessons = $db->prepare("
+                SELECT l.id FROM lessons l
+                JOIN chapters c ON l.chapter_id = c.id
+                WHERE c.course_id = ?
+            ");
+            $stmtLessons->execute([$courseId]);
+            $lessonIds = $stmtLessons->fetchAll(\PDO::FETCH_COLUMN);
+
+            if (!empty($lessonIds)) {
+                $placeholders = implode(',', array_fill(0, count($lessonIds), '?'));
+                // Xóa tiến độ học của user này đối với các bài học thuộc khóa học này
+                $stmtDelProg = $db->prepare("
+                    DELETE FROM lesson_progress 
+                    WHERE user_id = ? AND lesson_id IN ($placeholders)
+                ");
+                $stmtDelProg->execute(array_merge([$userId], $lessonIds));
+            }
+
+            // 2. Reset progress_percent, completed_at, course_status trong bảng enrollments
+            $stmtResetEnroll = $db->prepare("
+                UPDATE enrollments 
+                SET progress_percent = 0, completed_at = NULL, course_status = 'learning'
+                WHERE user_id = ? AND course_id = ?
+            ");
+            $stmtResetEnroll->execute([$userId, $courseId]);
+
+            // 3. Xóa chứng chỉ đã cấp nếu có (để học viên học lại có thể nhận lại)
+            $stmtDelCert = $db->prepare("
+                DELETE FROM certificates 
+                WHERE student_id = ? AND course_id = ?
+            ");
+            $stmtDelCert->execute([$userId, $courseId]);
+
+            // 4. Xóa đánh giá đã gửi nếu có
+            $stmtDelReview = $db->prepare("
+                DELETE FROM course_reviews 
+                WHERE user_id = ? AND course_id = ?
+            ");
+            $stmtDelReview->execute([$userId, $courseId]);
+
+            $db->commit();
+            $response->success("Đã cài đặt lại toàn bộ tiến độ học tập. Chúc bạn học lại vui vẻ!", []);
+        } catch (Exception $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            $response->error($e->getMessage(), 500);
+        }
+    }
 }
+

@@ -64,11 +64,37 @@ class AiRepository
     }
 
     /**
+     * Lấy hoặc tạo conversation cho AI Assistant tổng quát (không gắn bài học cụ thể)
+     * Dùng lesson_id = NULL làm định danh
+     */
+    public function getOrCreateAssistantConversation(int $userId): int
+    {
+        $stmt = $this->db->prepare("SELECT id FROM ai_conversations WHERE user_id = :uid AND lesson_id IS NULL LIMIT 1");
+        $stmt->execute(['uid' => $userId]);
+        $id = $stmt->fetchColumn();
+
+        if ($id) return (int)$id;
+
+        $stmt = $this->db->prepare("INSERT INTO ai_conversations (user_id, lesson_id) VALUES (:uid, NULL)");
+        $stmt->execute(['uid' => $userId]);
+        return (int)$this->db->lastInsertId();
+    }
+
+    /**
      * Xóa lịch sử hội thoại của bài học
      */
     public function clearHistory(int $userId, int $lessonId): bool
     {
         $stmt = $this->db->prepare("DELETE FROM ai_conversations WHERE user_id = :uid AND lesson_id = :lid");
         return $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
+    }
+
+    /**
+     * Xóa toàn bộ lịch sử AI Assistant của user
+     */
+    public function clearAssistantHistory(int $userId): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM ai_conversations WHERE user_id = :uid AND lesson_id IS NULL");
+        return $stmt->execute(['uid' => $userId]);
     }
 }

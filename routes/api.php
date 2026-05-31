@@ -47,11 +47,13 @@ $router->get('/api/student/courses', 'Api\StudentController@getEnrolledCourses')
 $router->get('/api/student/stats', 'Api\StudentController@getStats');
 $router->get('/api/student/courses/:courseId/my-review', 'Api\StudentController@getMyReview');
 $router->post('/api/student/courses/:courseId/reviews', 'Api\StudentController@submitReview');
+$router->post('/api/student/courses/:courseId/reset-progress', 'Api\StudentController@resetProgress');
 
 // Lesson Routes
 $router->get('/api/courses/:id/curriculum', 'Api\LessonController@curriculum');
 $router->get('/api/lessons/:id', 'Api\LessonController@show');
 $router->post('/api/lessons/:id/complete', 'Api\LessonController@complete');
+$router->post('/api/lessons/:id/progress', 'Api\LessonController@updateProgress');
 
 // Quiz Routes
 $router->get('/api/lessons/:id/quiz', 'Api\QuizController@showByLesson');
@@ -79,7 +81,11 @@ $router->get('/api/learning-paths/:id/progress', 'Api\LearningPathController@pro
 // =============================================
 // AI & USER CHAT
 // =============================================
+// AI số 1: Gia sư AI tổng quát — Guest/Student/Teacher
 $router->post('/api/ai/chat', 'Api\AiController@chat');
+// AI số 2: AI Tutor nghiêm ngặt — chỉ Student trong trang học bài
+$router->post('/api/ai/tutor', 'Api\AiController@tutor');
+$router->delete('/api/ai/history', 'Api\AiController@clearHistory');
 $router->get('/api/chat/history', 'Api\ChatController@history');
 
 // =============================================

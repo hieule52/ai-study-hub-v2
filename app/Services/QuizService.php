@@ -14,15 +14,32 @@ class QuizService
         $this->quizRepo = new QuizRepository();
     }
 
-    public function getQuizForStudent(int $lessonId, string $userRole = 'student'): array
+    public function getQuizForStudent(int $lessonId, string $userRole = 'student', int $userId = 0): array
     {
+        $db = \App\Core\Database::connect();
+
+        // Enforce that student has completed >= 80% lesson progress before viewing/doing quiz
+        if ($userRole === 'student' && $userId > 0) {
+            $stmtProgress = $db->prepare("
+                SELECT is_completed, video_progress, text_progress 
+                FROM lesson_progress 
+                WHERE user_id = :uid AND lesson_id = :lid
+            ");
+            $stmtProgress->execute(['uid' => $userId, 'lid' => $lessonId]);
+            $prog = $stmtProgress->fetch(\PDO::FETCH_ASSOC);
+            
+            $isCompleted = $prog && ((int)$prog['is_completed'] === 1 || (int)$prog['video_progress'] >= 80 || (int)$prog['text_progress'] >= 80);
+            if (!$isCompleted) {
+                throw new Exception("Bạn cần hoàn thành ít nhất 80% nội dung bài học trước khi làm bài kiểm tra.");
+            }
+        }
+
         $quiz = $this->quizRepo->findQuizByLesson($lessonId);
         if (!$quiz) {
             throw new Exception("Không có bài tập cho lesson này.");
         }
 
         // Fetch course status
-        $db = \App\Core\Database::connect();
         $stmtStatus = $db->prepare("
             SELECT c.status, c.id as course_id 
             FROM courses c
@@ -162,11 +179,33 @@ class QuizService
         // Lưu vào schema
         $this->quizRepo->saveQuizResult($userId, $quizId, $score);
 
+        // Kiểm tra passing_score và đánh dấu hoàn thành lesson tương ứng nếu đạt
+        $passingScore = 80;
+        try {
+            $db2   = \App\Core\Database::connect();
+            $stmtQ = $db2->prepare("SELECT lesson_id, COALESCE(passing_score, 80) as passing_score FROM quizzes WHERE id = ?");
+            $stmtQ->execute([$quizId]);
+            $quizRow = $stmtQ->fetch(\PDO::FETCH_ASSOC);
+            $passingScore = $quizRow ? (int)$quizRow['passing_score'] : 80;
+
+            // Nếu đạt → đánh dấu lesson hoàn thành và trigger course check
+            if ($score >= $passingScore && $quizRow && $quizRow['lesson_id']) {
+                $lessonService = new LessonService();
+                $lessonService->markLessonCompleted($userId, (int)$quizRow['lesson_id']);
+            }
+        } catch (\Exception $e) {
+            // Non-critical
+        }
+
+        $passed = $score >= $passingScore;
+
         return [
-            'score' => $score,
-            'correct_count' => $correctCount,
+            'score'           => $score,
+            'correct_count'   => $correctCount,
             'total_questions' => $totalQuestions,
-            'details' => $details
+            'passed'          => $passed,
+            'passing_score'   => $passingScore,
+            'details'         => $details,
         ];
     }
 

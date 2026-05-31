@@ -244,9 +244,9 @@ require __DIR__ . '/../layouts/header.php';
                     if (isEnrolled) {
                         btn = `<button onclick="window.location.href='/student/learning/${c.id}'" class="btn btn-outline" style="width:100%;border-radius:100px;font-size:0.82rem;color:var(--success);border-color:rgba(110,231,183,0.3);" data-i18n="std_owned">Đã sở hữu ✅</button>`;
                     } else if (isPremium) {
-                        btn = `<button onclick="window.location.href='/student/payment/${c.id}?price=${c.price}'" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.82rem;" data-i18n="std_btn_buy">💳 Mua khóa học</button>`;
+                        btn = `<button onclick="window.location.href='/student/payment/${c.id}?price=${c.price}'" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.82rem;" data-i18n="std_btn_buy">🎓 Ghi danh khóa học</button>`;
                     } else {
-                        btn = `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.82rem;" data-i18n="std_btn_free">Đăng ký Miễn Phí</button>`;
+                        btn = `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width:100%;border-radius:100px;font-size:0.82rem;" data-i18n="std_btn_free">🚀 Tham gia ngay</button>`;
                     }
                     const priceHtml = c.price>0
                         ? `<span style="font-weight:700;">${new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(c.price)}</span>`

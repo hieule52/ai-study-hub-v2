@@ -91,8 +91,7 @@ header('Content-Type: text/html; charset=utf-8');
                         <li><a href="/" class="nav-link" data-i18n="nav_home">Trang chủ</a></li>
                         <li><a href="/courses" class="nav-link" data-i18n="nav_courses">Khóa học</a></li>
                         <li><a href="/about" class="nav-link" data-i18n="nav_about">Giới thiệu</a></li>
-                        <li><a href="javascript:void(0)" class="nav-link" data-i18n="nav_student_ai"
-                                onclick="App.checkAuthAndGo('/student/ai-chat', 'Vui lòng đăng nhập để sử dụng Gia sư AI')">Gia sư AI</a></li>
+                        <li><a href="/ai-chat" class="nav-link" data-i18n="nav_student_ai">Gia sư AI</a></li>
                         <li><a href="javascript:void(0)" class="nav-link" data-i18n="nav_student_certificates"
                                 onclick="App.checkAuthAndGo('/student/certificates', 'Vui lòng đăng nhập để xem chứng chỉ')">Chứng chỉ</a></li>
                         <?php endif; ?>

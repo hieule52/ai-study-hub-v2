@@ -86,7 +86,7 @@ require __DIR__ . '/layouts/header.php';
                     giải thích các đoạn code phức tạp và hỗ trợ học thuật cá nhân hóa 24/7.
                 </p>
                 <div class="mt-8">
-                    <a href="javascript:void(0)" onclick="App.checkAuthAndGo('/student/ai-chat')" class="btn btn-outline"
+                    <a href="/ai-chat" class="btn btn-outline"
                         style="border-radius: 100px; padding: 0.9rem 2.5rem; font-weight: 500; border-color: rgba(255,255,255,0.12);"
                         data-i18n="nav_student_ai">Gia sư AI</a>
                 </div>
@@ -361,7 +361,7 @@ require __DIR__ . '/layouts/header.php';
                         btn = `<button onclick="window.enrollAndLearn(${c.id})" class="btn btn-outline" style="width:100%; border-radius:100px; font-weight:500; font-size: 0.85rem;" data-i18n="std_btn_continue">Tiếp tục học</button>`;
                     } else if (isPremium) {
                         const link = !isGuest ? `/student/payment/${c.id}` : '/login';
-                        btn = `<button onclick="window.location.href='${link}'" class="btn btn-primary" style="width:100%; border-radius:100px; font-weight:600; font-size: 0.85rem;" data-i18n="home_btn_buy">Mua khóa học</button>`;
+                        btn = `<button onclick="window.location.href='${link}'" class="btn btn-primary" style="width:100%; border-radius:100px; font-weight:600; font-size: 0.85rem;" data-i18n="cd_btn_buy">🎓 Ghi danh khóa học</button>`;
                     } else {
                         btn = !isGuest
                             ? `<button id="btn-enroll-${c.id}" onclick="window.enrollAndLearn(${c.id})" class="btn btn-primary" style="width:100%; border-radius:100px; font-weight:600; font-size: 0.85rem;" data-i18n="std_btn_free">Ghi danh miễn phí</button>`

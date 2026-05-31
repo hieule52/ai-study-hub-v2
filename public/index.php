@@ -102,14 +102,17 @@ $staticRoutes = [
     '/profile'              => 'profile.php',
     '/certificate/verify'   => 'certificate/verify.php',
     // Student
+    '/ai-chat'              => 'ai-chat.php',
+    '/guest/ai-chat'        => 'ai-chat.php',
     '/student/dashboard'    => 'student/dashboard.php',
     '/student/courses'      => 'student/my-courses.php',
-    '/student/ai-chat'      => 'student/ai-chat.php',
+    '/student/ai-chat'      => 'ai-chat.php',
     '/student/chat'         => 'student/chat.php',
     '/student/certificates' => 'student/certificates.php',
     // Teacher
     '/teacher/dashboard'    => 'teacher/dashboard.php',
     '/teacher/courses'      => 'teacher/courses.php',
+    '/teacher/ai-chat'      => 'ai-chat.php',
     '/teacher/create-course' => 'teacher/create-course.php',
     '/teacher/course-builder' => 'teacher/course-builder.php',
     '/teacher/students'     => 'teacher/students.php',
@@ -134,6 +137,8 @@ $dynamicRoutes = [
     '#^/course/([^/]+)$#'                   => ['file' => 'course-detail.php',          'params' => ['id']],
     // /student/learning/8
     '#^/student/learning/([0-9]+)$#'        => ['file' => 'student/learning.php',       'params' => ['course_id']],
+    // /student/course-completed/8
+    '#^/student/course-completed/([0-9]+)$#' => ['file' => 'student/course-completed.php', 'params' => ['course_id']],
     // /student/payment/8
     '#^/student/payment/([0-9]+)$#'         => ['file' => 'student/course-payment.php', 'params' => ['course_id']],
     // /teacher/course-builder/8

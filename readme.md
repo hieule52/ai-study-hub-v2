@@ -21,7 +21,6 @@
 
 Dự án là đề tài thực tập tốt nghiệp được nghiên cứu và phát triển bởi nhóm sinh viên **Khoa Công nghệ Thông tin - Trường Đại học Khoa học, Đại học Huế**:
 * **Lê Diễn Hiếu** (MSV: 22T1020610)
-* **Nguyễn Duy Tín** (MSV: 22T1020466)
 
 Hệ thống tập trung giải quyết 3 khoảng trống lớn của các LMS truyền thống:
 1. **Trải nghiệm thị giác Cinematic**: Thiết kế giao diện tối hiện đại, sử dụng hiệu ứng kính mờ (glassmorphism), vi biên mềm và các chuyển động micro-animations giúp học viên tối đa hóa khả năng tập trung, khơi dậy hứng thú học tập.

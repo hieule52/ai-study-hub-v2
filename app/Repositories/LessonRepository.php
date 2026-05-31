@@ -47,14 +47,16 @@ class LessonRepository
     }
 
     /**
-     * Tìm bài học kèm trạng thái hoàn thành của user
+     * Tìm bài học kèm trạng thái hoàn thành và tiến độ của user
      */
     public function findLessonWithProgress(int $lessonId, int $userId): ?array
     {
         $stmt = $this->db->prepare("
             SELECT l.*, 
                    CASE WHEN lp.is_completed = 1 THEN 1 ELSE 0 END as is_completed,
-                   lp.completed_at
+                   lp.completed_at,
+                   COALESCE(lp.video_progress, 0) as video_progress,
+                   COALESCE(lp.text_progress, 0) as text_progress
             FROM lessons l
             LEFT JOIN lesson_progress lp ON l.id = lp.lesson_id AND lp.user_id = :user_id
             WHERE l.id = :lesson_id AND l.deleted_at IS NULL
@@ -63,6 +65,34 @@ class LessonRepository
         $stmt->execute(['lesson_id' => $lessonId, 'user_id' => $userId]);
         $data = $stmt->fetch(\PDO::FETCH_ASSOC);
         return $data ?: null;
+    }
+
+    /**
+     * Lấy toàn bộ tiến độ bài học của user trong một khóa học (tránh N+1)
+     * Trả về mảng [lesson_id => ['is_completed', 'video_progress', 'text_progress']]
+     */
+    public function findProgressByCourse(int $userId, int $courseId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT lp.lesson_id,
+                   COALESCE(lp.is_completed, 0)     as is_completed,
+                   COALESCE(lp.video_progress, 0)   as video_progress,
+                   COALESCE(lp.text_progress, 0)    as text_progress,
+                   lp.completed_at
+            FROM lesson_progress lp
+            JOIN lessons l      ON lp.lesson_id = l.id
+            JOIN chapters c     ON l.chapter_id = c.id
+            WHERE lp.user_id = :uid
+              AND c.course_id = :cid
+              AND l.deleted_at IS NULL
+        ");
+        $stmt->execute(['uid' => $userId, 'cid' => $courseId]);
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(int)$row['lesson_id']] = $row;
+        }
+        return $map;
     }
 
     public function findLessonById(int $id): ?array
@@ -74,18 +104,141 @@ class LessonRepository
     }
 
     /**
-     * Đánh dấu hoàn thành bài học
-     * Dùng INSERT IGNORE (hoặc ON DUPLICATE KEY UPDATE) thay vì SELECT rồi INSERT
-     * Requires UNIQUE KEY (user_id, lesson_id) — xem migration_v3.sql
+     * Đánh dấu hoàn thành bài học (legacy — vẫn giữ để tương thích)
      */
     public function markProgress(int $userId, int $lessonId): bool
     {
         $stmt = $this->db->prepare("
-            INSERT IGNORE INTO lesson_progress (user_id, lesson_id, is_completed, completed_at)
-            VALUES (:uid, :lid, 1, CURRENT_TIMESTAMP)
+            INSERT INTO lesson_progress (user_id, lesson_id, is_completed, completed_at, video_progress, text_progress)
+            VALUES (:uid, :lid, 1, CURRENT_TIMESTAMP, 100, 100)
+            ON DUPLICATE KEY UPDATE
+                is_completed = 1,
+                completed_at = COALESCE(completed_at, CURRENT_TIMESTAMP),
+                video_progress = GREATEST(video_progress, 100),
+                text_progress  = GREATEST(text_progress, 100)
         ");
         $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
-        return true; // INSERT IGNORE không throw exception nếu đã tồn tại
+        return true;
+    }
+
+    /**
+     * Cập nhật các cột tiến độ video/text trong DB
+     */
+    public function updateLessonProgressValues(int $userId, int $lessonId, int $videoProgress, int $textProgress): void
+    {
+        $stmt = $this->db->prepare("
+            INSERT INTO lesson_progress
+                (user_id, lesson_id, video_progress, text_progress, is_completed)
+            VALUES
+                (:uid, :lid, :vp, :tp, 0)
+            ON DUPLICATE KEY UPDATE
+                video_progress = GREATEST(video_progress, :vp2),
+                text_progress  = GREATEST(text_progress,  :tp2)
+        ");
+        $stmt->execute([
+            'uid' => $userId,
+            'lid' => $lessonId,
+            'vp'  => $videoProgress,
+            'tp'  => $textProgress,
+            'vp2' => $videoProgress,
+            'tp2' => $textProgress,
+        ]);
+    }
+
+    /**
+     * Đặt trạng thái hoàn thành bài học
+     */
+    public function setLessonCompleted(int $userId, int $lessonId, bool $isCompleted): void
+    {
+        $completed = $isCompleted ? 1 : 0;
+        $stmt = $this->db->prepare("
+            UPDATE lesson_progress
+            SET is_completed = :completed,
+                completed_at = CASE WHEN :completed2 = 1 THEN COALESCE(completed_at, CURRENT_TIMESTAMP) ELSE NULL END
+            WHERE user_id = :uid AND lesson_id = :lid
+        ");
+        $stmt->execute([
+            'completed'  => $completed,
+            'completed2' => $completed,
+            'uid'        => $userId,
+            'lid'        => $lessonId,
+        ]);
+    }
+
+    /**
+     * Đánh giá xem bài học đã hoàn thành theo công thức LMS hay chưa:
+     * Video >= 80% (nếu có) AND Text >= 80% (nếu có) AND Quiz Passed (nếu có)
+     */
+    public function evaluateLessonCompletion(int $userId, int $lessonId, int $currentVideoProgress = 0, int $currentTextProgress = 0): bool
+    {
+        // 1. Lấy thông tin bài học
+        $stmt = $this->db->prepare("SELECT content_type, content, video_url, video_path FROM lessons WHERE id = :lid LIMIT 1");
+        $stmt->execute(['lid' => $lessonId]);
+        $lesson = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$lesson) return false;
+
+        // Lấy tiến độ đã lưu hiện tại trong DB
+        $stmtProg = $this->db->prepare("SELECT video_progress, text_progress FROM lesson_progress WHERE user_id = :uid AND lesson_id = :lid LIMIT 1");
+        $stmtProg->execute(['uid' => $userId, 'lid' => $lessonId]);
+        $prog = $stmtProg->fetch(PDO::FETCH_ASSOC);
+
+        $savedVideo = $prog ? (int)$prog['video_progress'] : 0;
+        $savedText  = $prog ? (int)$prog['text_progress'] : 0;
+
+        $videoProgress = max($savedVideo, $currentVideoProgress);
+        $textProgress  = max($savedText, $currentTextProgress);
+
+        // Quy tắc 1: Nếu bài học có video, tiến độ xem video phải đạt tối thiểu 80%
+        $hasVideo = ($lesson['content_type'] === 'video' || !empty($lesson['video_url']) || !empty($lesson['video_path']));
+        if ($hasVideo && $videoProgress < 80) {
+            return false;
+        }
+
+        // Quy tắc 2: Nếu bài học có tài liệu đọc (text), tiến độ cuộn đọc phải đạt tối thiểu 80%
+        $hasText = ($lesson['content_type'] === 'text' || (!empty($lesson['content']) && strlen(trim(strip_tags($lesson['content']))) > 50));
+        if ($hasText && $textProgress < 80) {
+            return false;
+        }
+
+        // Quy tắc 3: Nếu bài học có Quiz, học viên bắt buộc phải thi đỗ (score >= passing_score)
+        $stmtQuiz = $this->db->prepare("SELECT id, COALESCE(passing_score, 80) as passing_score FROM quizzes WHERE lesson_id = :lid AND deleted_at IS NULL LIMIT 1");
+        $stmtQuiz->execute(['lid' => $lessonId]);
+        $quiz = $stmtQuiz->fetch(PDO::FETCH_ASSOC);
+        if ($quiz) {
+            $stmtScore = $this->db->prepare("SELECT MAX(score) FROM quiz_results WHERE user_id = :uid AND quiz_id = :qid");
+            $stmtScore->execute(['uid' => $userId, 'qid' => $quiz['id']]);
+            $maxScore = $stmtScore->fetchColumn();
+            if ($maxScore === null || (int)$maxScore < (int)$quiz['passing_score']) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Cập nhật tiến độ video/text của bài học.
+     * Tự động đánh dấu completed theo công thức LMS đầy đủ.
+     */
+    public function updateLessonProgress(int $userId, int $lessonId, int $videoProgress, int $textProgress): array
+    {
+        // 1. Lưu các tiến độ số vào DB
+        $this->updateLessonProgressValues($userId, $lessonId, $videoProgress, $textProgress);
+
+        // 2. Đánh giá độ hoàn thành theo công thức tích hợp
+        $isCompleted = $this->evaluateLessonCompletion($userId, $lessonId, $videoProgress, $textProgress);
+
+        // 3. Cập nhật cờ is_completed
+        $this->setLessonCompleted($userId, $lessonId, $isCompleted);
+
+        // 4. Lấy trạng thái mới nhất từ DB
+        $stmt2 = $this->db->prepare("
+            SELECT is_completed, video_progress, text_progress, completed_at
+            FROM lesson_progress WHERE user_id = :uid AND lesson_id = :lid LIMIT 1
+        ");
+        $stmt2->execute(['uid' => $userId, 'lid' => $lessonId]);
+        $row = $stmt2->fetch(\PDO::FETCH_ASSOC);
+        return $row ?: ['is_completed' => ($isCompleted ? 1 : 0), 'video_progress' => $videoProgress, 'text_progress' => $textProgress];
     }
 
     public function create(array $data): ?array

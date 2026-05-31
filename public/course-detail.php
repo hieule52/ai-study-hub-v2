@@ -188,15 +188,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             btnHtml = `<button onclick="window.location.href='/student/learning/${course.id}'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">▶ Tiếp tục học</button>`;
         } else if (isPremium) {
             if (window.api.getToken()) {
-                btnHtml = `<button onclick="window.location.href='/student/payment/${course.id}?price=${course.price}'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">💳 Mua khóa học</button>`;
+                btnHtml = `<button onclick="window.location.href='/student/payment/${course.id}?price=${course.price}'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">🎓 Ghi danh khóa học</button>`;
             } else {
-                btnHtml = `<button onclick="window.location.href='/login'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">Đăng nhập để Mua</button>`;
+                btnHtml = `<button onclick="window.location.href='/login'" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">🔒 Đăng nhập để Đăng ký</button>`;
             }
         } else {
             if (window.api.getToken()) {
-                btnHtml = `<button onclick="enrollAndLearn(${course.id})" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">🚀 Đăng ký miễn phí</button>`;
+                btnHtml = `<button onclick="enrollAndLearn(${course.id})" class="btn btn-primary" style="width:100%;padding:0.9rem;border-radius:100px;">🚀 Tham gia ngay</button>`;
             } else {
-                btnHtml = `<button onclick="window.location.href='/login'" class="btn btn-outline" style="width:100%;padding:0.9rem;border-radius:100px;">Đăng nhập để Học</button>`;
+                btnHtml = `<button onclick="window.location.href='/login'" class="btn btn-outline" style="width:100%;padding:0.9rem;border-radius:100px;">🔒 Đăng nhập để Học</button>`;
             }
         }
         document.getElementById('cd_actions').innerHTML = btnHtml;

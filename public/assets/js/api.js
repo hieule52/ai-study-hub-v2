@@ -89,7 +89,11 @@ class ApiClient {
             }
             
             const errMsg = data.message || text || 'Something went wrong with the server.';
-            throw new Error(window.I18n ? window.I18n.get(errMsg) : errMsg);
+            const error = new Error(window.I18n ? window.I18n.get(errMsg) : errMsg);
+            // Attach full response payload so callers can inspect e.g. redirect_lesson_id on 403
+            error.responseData = data;
+            error.httpStatus   = response.status;
+            throw error;
         }
 
         return data;

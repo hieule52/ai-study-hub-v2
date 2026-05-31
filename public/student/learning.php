@@ -26,10 +26,10 @@ require __DIR__ . '/../layouts/header.php';
             </div>
 
             <!-- Video Player -->
-            <div class="video-wrapper" id="video_wrapper">
+            <div class="video-wrapper" id="video_wrapper" style="display:none;">
                 <div style="text-align: center;">
                     <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🎬</div>
-                    <h2 class="text-secondary" id="video_placeholder" data-i18n="lrn_video_placeholder">Trình phát Video sẽ mô phỏng ở đây.</h2>
+                    <h2 class="text-secondary" id="video_placeholder" data-i18n="lrn_video_placeholder">Chọn một bài học để bắt đầu xem video</h2>
                 </div>
             </div>
 
@@ -178,14 +178,19 @@ require __DIR__ . '/../layouts/header.php';
         let currentQuizId = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            if (!courseId) {
-                App.showToast('Không tìm thấy ID khóa học ở URL', 'error');
+            if (!courseId || courseId === '0' || courseId === 'null') {
+                App.showToast('Không tìm thấy ID khóa học ở URL. Đang chuyển hướng...', 'error');
+                setTimeout(() => window.location.replace('/student/courses'), 1500);
                 return;
             }
             await loadCurriculum();
         });
 
         async function loadCurriculum() {
+            const sidebar = document.getElementById('curriculumList');
+            // Reset sidebar ngay lập tức
+            sidebar.innerHTML = '<div class="p-4 text-center" style="opacity:0.5;font-size:0.85rem;">⏳ Đang tải...</div>';
+
             try {
                 // Fetch course info
                 const courseRes = await window.api.get(`/courses/${courseId}`);
@@ -194,7 +199,6 @@ require __DIR__ . '/../layouts/header.php';
                 // Cấu trúc giáo trình
                 const res = await window.api.get(`/courses/${courseId}/curriculum`);
                 const chapters = res.data;
-                const sidebar = document.getElementById('curriculumList');
                 sidebar.innerHTML = '';
 
                 let totalLessons = 0;
@@ -215,31 +219,68 @@ require __DIR__ . '/../layouts/header.php';
                         chap.lessons.forEach(lesson => {
                             totalLessons++;
                             const lesDiv = document.createElement('div');
-                            lesDiv.className = 'lesson-item';
+                            lesDiv.className = 'lesson-item' + (lesson.is_locked ? ' locked' : '') + (lesson.is_completed ? ' completed' : '');
                             lesDiv.id = `nav-lesson-${lesson.id}`;
-                             const icon = lesson.content_type === 'quiz' ? '📝' : '🎬';
-                             lesDiv.innerHTML = `<span>${icon}</span> <span style="flex: 1">${lesson.title}</span>`;
-                             lesDiv.onclick = () => {
-                                 loadLesson(lesson.id);
-                                 const cSidebar = document.querySelector('.curriculum-sidebar');
-                                 const cOverlay = document.querySelector('.sidebar-overlay');
-                                 if (cSidebar && window.innerWidth <= 992) {
-                                     cSidebar.classList.remove('open');
-                                     if (cOverlay) {
-                                         cOverlay.classList.remove('active');
-                                         cOverlay.onclick = toggleSidebar;
-                                     }
-                                 }
-                             };
-                             sidebar.appendChild(lesDiv);
+
+                            // Icon: lock > completed check > content type
+                            let icon;
+                            if (lesson.is_locked) {
+                                icon = '<i class="fas fa-lock" style="color:rgba(255,255,255,0.25);font-size:0.8rem;"></i>';
+                            } else if (lesson.is_completed) {
+                                icon = '<i class="fas fa-check-circle" style="color:var(--success);"></i>';
+                            } else {
+                                icon = lesson.content_type === 'quiz' ? '📝' : '🎬';
+                            }
+
+                            // Progress bar for in-progress lessons (>0% but not completed)
+                            const prog = lesson.content_type === 'video' ? (lesson.video_progress||0) : (lesson.text_progress||0);
+                            const progressBar = (!lesson.is_completed && prog > 0)
+                                ? `<div style="height:2px;background:rgba(255,255,255,0.08);border-radius:1px;margin-top:4px;"><div style="height:2px;width:${prog}%;background:var(--primary);border-radius:1px;transition:width 0.4s;"></div></div>`
+                                : '';
+
+                            lesDiv.innerHTML = `
+                                <span class="lesson-icon">${icon}</span>
+                                <div style="flex:1;min-width:0;">
+                                    <span class="lesson-name" style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${lesson.is_locked?'color:rgba(255,255,255,0.3);':''}"
+                                    >${lesson.title}</span>
+                                    ${progressBar}
+                                </div>
+                                ${lesson.is_locked ? '<span style="font-size:0.65rem;color:rgba(255,255,255,0.2);white-space:nowrap;">🔒 Chưa mở</span>' : ''}
+                            `;
+
+                            if (lesson.is_locked) {
+                                lesDiv.style.cursor = 'not-allowed';
+                                lesDiv.onclick = () => {
+                                    App.showToast('Hãy hoàn thành bài học trước để mở khoá bài này.', 'warning');
+                                };
+                            } else {
+                                lesDiv.onclick = () => {
+                                    loadLesson(lesson.id);
+                                    const cSidebar = document.querySelector('.curriculum-sidebar');
+                                    const cOverlay = document.querySelector('.sidebar-overlay');
+                                    if (cSidebar && window.innerWidth <= 992) {
+                                        cSidebar.classList.remove('open');
+                                        if (cOverlay) {
+                                            cOverlay.classList.remove('active');
+                                            cOverlay.onclick = typeof toggleSidebar !== 'undefined' ? toggleSidebar : null;
+                                        }
+                                    }
+                                };
+                            }
+                            sidebar.appendChild(lesDiv);
                         });
                     }
                 });
 
-                document.getElementById('curriculum-progress').innerHTML = `<span data-i18n="lrn_total">Tổng số: </span>${totalLessons}<span data-i18n="lrn_lessons"> bài học</span>`;
+                // Count completed
+                const completedCount = document.querySelectorAll('.lesson-item.completed').length;
+                const progressPct = totalLessons > 0 ? Math.round(completedCount / totalLessons * 100) : 0;
+                document.getElementById('curriculum-progress').innerHTML =
+                    `<span style="color:var(--success);">${progressPct}%</span>
+                     <span style="color:rgba(255,255,255,0.4);font-size:0.75rem;"> — ${completedCount}/${totalLessons} bài học</span>`;
                 if (window.I18n) window.I18n.render();
 
-                // Check progress and existing review to show review button
+                // Check progress and existing review to show review button / redirect
                 try {
                     const enrolledRes = await window.api.get('/student/courses');
                     const myCourse = enrolledRes.data.find(c => c.id == courseId);
@@ -252,19 +293,86 @@ require __DIR__ . '/../layouts/header.php';
                         btnReview.style.display = 'block';
 
                         if (myReview && myReview.rating) {
-                            // Already reviewed
-                            btnReview.innerHTML = `${'⭐'.repeat(myReview.rating)} <span data-i18n="lrn_reviewed">Đã đánh giá</span>`;
-                            btnReview.dataset.reviewed = "true";
-                            
-                            // Pre-fill modal for potential editing (optional)
-                            setRating(myReview.rating);
-                            document.getElementById('reviewComment').value = myReview.comment || '';
+                            // Redirect to course completed page immediately if completed and reviewed
+                            window.location.replace(`/student/course-completed/${courseId}`);
+                            return;
+                        } else {
+                            // If completed but not reviewed, show the evaluation popup modal immediately
+                            showReviewModal();
                         }
                     }
                 } catch(e) { console.log(e); }
 
+                // Auto-load first allowed lesson on initial load if not set
+                if (!currentLessonId) {
+                    let activeLessonId = null;
+                    let firstUnlocked = null;
+                    let firstIncompleteUnlocked = null;
+                    chapters.forEach(chap => {
+                        if (chap.lessons && chap.lessons.length > 0) {
+                            chap.lessons.forEach(lesson => {
+                                if (!lesson.is_locked) {
+                                    if (!firstUnlocked) firstUnlocked = lesson.id;
+                                    if (!lesson.is_completed && !firstIncompleteUnlocked) {
+                                        firstIncompleteUnlocked = lesson.id;
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    activeLessonId = firstIncompleteUnlocked || firstUnlocked;
+                    if (activeLessonId) {
+                        loadLesson(activeLessonId);
+                    } else {
+                        // Không có bài học nào có thể học — hiển thị thông báo
+                        const allLocked = chapters.every(ch => (ch.lessons||[]).every(l => l.is_locked));
+                        if (allLocked && chapters.length > 0) {
+                            document.getElementById('lesson_content').innerHTML = `
+                                <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;margin-top:3rem;opacity:0.7;">
+                                    <div style="font-size:3rem;">🔒</div>
+                                    <h3 style="color:rgba(255,255,255,0.8);">Bạn chưa đăng ký khóa học này</h3>
+                                    <p style="color:rgba(255,255,255,0.5);text-align:center;max-width:400px;">Vui lòng đăng ký hoặc mua khóa học để bắt đầu học.</p>
+                                    <a href="/course/${courseId}" class="btn btn-primary" style="border-radius:100px;padding:0.8rem 2rem;margin-top:0.5rem;">Xem chi tiết khóa học</a>
+                                </div>`;
+                        } else {
+                            document.getElementById('lesson_content').innerHTML = `
+                                <div style="display:flex;align-items:center;gap:1rem;margin-top:2rem;opacity:0.7;">
+                                    <span>👉</span> <span>Chọn một bài học ở danh mục bên phải để bắt đầu.</span>
+                                </div>`;
+                        }
+                    }
+                }
+
             } catch (err) {
-                App.showToast(err.message, 'error');
+                // 403 = chưa đăng ký hoặc bài bị khoá
+                if (err.httpStatus === 403) {
+                    if (err.responseData && err.responseData.redirect_lesson_id) {
+                        const redirectId = err.responseData.redirect_lesson_id;
+                        App.showToast('🔒 ' + (err.responseData.message || 'Bài học này chưa được mở khoá. Đang chuyển hướng...'), 'warning');
+                        setTimeout(() => loadLesson(redirectId), 800);
+                    } else {
+                        // Chưa enrolled
+                        document.getElementById('curriculumList').innerHTML = `<div class="p-4 text-center" style="color:rgba(255,255,255,0.5);font-size:0.85rem;">🔒 Bạn chưa đăng ký khóa học này.</div>`;
+                        document.getElementById('lesson_content').innerHTML = `
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:1.5rem;margin-top:4rem;text-align:center;">
+                                <div style="font-size:4rem;">🔒</div>
+                                <h2 style="color:#fff;font-weight:700;">Bạn chưa có quyền truy cập</h2>
+                                <p style="color:rgba(255,255,255,0.5);max-width:420px;line-height:1.7;">Vui lòng đăng ký hoặc mua khóa học này để bắt đầu học.</p>
+                                <a href="/course/${courseId}" class="btn btn-primary" style="border-radius:100px;padding:0.85rem 2.5rem;font-weight:700;font-size:1rem;">📖 Xem trang giới thiệu khóa học</a>
+                            </div>`;
+                    }
+                } else if (err.httpStatus === 404) {
+                    sidebar.innerHTML = `<div class="p-4 text-center" style="color:rgba(255,255,255,0.4);font-size:0.85rem;">😕 Không tìm thấy khóa học</div>`;
+                    document.getElementById('lesson_content').innerHTML = `
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:1.5rem;margin-top:4rem;text-align:center;">
+                            <div style="font-size:4rem;">😕</div>
+                            <h2 style="color:#fff;">Không tìm thấy khóa học</h2>
+                            <a href="/student/courses" class="btn btn-outline" style="border-radius:100px;padding:0.75rem 2rem;">← Quay lại khóa học của tôi</a>
+                        </div>`;
+                } else {
+                    sidebar.innerHTML = `<div class="p-4 text-center" style="color:rgba(255,255,255,0.4);font-size:0.85rem;">⚠️ ${err.message || 'Lỗi tải giáo trình'}</div>`;
+                    App.showToast(err.message || 'Lỗi tải giáo trình', 'error');
+                }
             }
         }
 
@@ -292,7 +400,7 @@ require __DIR__ . '/../layouts/header.php';
                 const lesson = res.data;
 
                 document.getElementById('lesson_title').innerText = lesson.title;
-                
+
                 // Show objectives if any
                 const objContainer = document.getElementById('objectives_container');
                 if (lesson.objectives) {
@@ -305,145 +413,103 @@ require __DIR__ . '/../layouts/header.php';
                                 <div class="objectives-title">${objTitle}</div>
                                 <div class="objectives-items">${tags}</div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 } else {
                     objContainer.innerHTML = '';
                 }
 
-                // Render HTML Content (from Quill)
+                // Render HTML Content
+                const lessonContentEl = document.getElementById('lesson_content');
                 if (lesson.content) {
-                    document.getElementById('lesson_content').innerHTML = `
-                    <div class="ql-snow">
-                        <div class="ql-editor lesson-content-wrapper">
-                            ${lesson.content}
-                        </div>
-                    </div>`;
-                    // Highlight code blocks
+                    lessonContentEl.innerHTML = `
+                        <div class="ql-snow">
+                            <div class="ql-editor lesson-content-wrapper">${lesson.content}</div>
+                        </div>`;
                     setTimeout(() => {
-                        document.querySelectorAll('pre').forEach((block) => {
-                            hljs.highlightElement(block);
-                        });
+                        document.querySelectorAll('pre').forEach(b => hljs.highlightElement(b));
                     }, 100);
+                    // Start text scroll progress tracking
+                    if (!lesson.is_completed) startTextProgressTracking(lesson.text_progress || 0);
                 } else {
-                    document.getElementById('lesson_content').innerHTML = '<div class="text-muted" data-i18n="lrn_no_desc">Giảng viên chưa cập nhật mô tả chi tiết bài học này.</div>';
+                    lessonContentEl.innerHTML = '<div class="text-muted" data-i18n="lrn_no_desc">Giảng viên chưa cập nhật mô tả chi tiết bài học này.</div>';
                 }
 
-                // Completion status
+                // Completion status button
                 const btnMark = document.getElementById('btn_mark_complete');
                 if (lesson.is_completed) {
                     btnMark.style.display = 'block';
-                    btnMark.innerHTML = window.I18n ? window.I18n.get('lrn_btn_completed') : '✅ Đã hoàn thành bài học';
-                    btnMark.classList.replace('btn-primary', 'btn-outline');
+                    btnMark.innerHTML = '✅ Đã hoàn thành bài học';
+                    btnMark.className = 'btn btn-outline';
                     btnMark.style.color = 'var(--success)';
-                    btnMark.style.borderColor = 'var(--success)';
+                    btnMark.style.borderColor = 'rgba(110,231,183,0.3)';
                     btnMark.disabled = true;
+                } else if (lesson.content_type !== 'quiz') {
+                    btnMark.style.display = 'block';
+                    btnMark.innerHTML = '✅ Đánh dấu Đã Học';
+                    btnMark.className = 'btn btn-primary';
+                    btnMark.style.color = '';
+                    btnMark.style.borderColor = '';
+                    btnMark.disabled = false;
                 } else {
-                    if (lesson.content_type === 'quiz') {
-                        btnMark.style.display = 'none'; // Require quiz submission
-                    } else {
-                        btnMark.style.display = 'block';
-                        btnMark.innerHTML = window.I18n ? window.I18n.get('lrn_mark_complete') : '✅ Đánh dấu Đã Học';
-                        btnMark.classList.add('btn-primary');
-                        btnMark.classList.remove('btn-outline');
-                        btnMark.style.color = '';
-                        btnMark.style.borderColor = '';
-                        btnMark.disabled = false;
-                    }
+                    btnMark.style.display = 'none';
                 }
 
-                // === VIDEO DISPLAY LOGIC ===
+                // === VIDEO DISPLAY & PROGRESS TRACKING ===
                 const videoWrapper = document.getElementById('video_wrapper');
-                
+                clearVideoProgressInterval();
+
                 if (lesson.content_type === 'video') {
                     videoWrapper.style.display = 'flex';
+                    let videoEl = null;
+
                     if (lesson.video_filename) {
-                        // Secured video: lấy signed token rồi stream
                         try {
-                            const loadingVideoMsg = window.I18n ? window.I18n.get('lrn_loading_secure_video') : 'Đang tải video bảo mật...';
-                            videoWrapper.innerHTML = `
-                                <div style="text-align: center;">
-                                    <div style="font-size: 3rem; animation: spin 2s linear infinite;">⏳</div>
-                                    <p class="text-secondary mt-2">${loadingVideoMsg}</p>
-                                </div>`;
-
+                            videoWrapper.innerHTML = `<div style="text-align:center;"><div style="font-size:3rem;animation:spin 2s linear infinite;">⏳</div><p class="text-secondary mt-2">Đang tải video bảo mật...</p></div>`;
                             const tokenRes = await window.api.get(`/video/token/${lessonId}?course_id=${courseId}`);
-                            const streamUrl = tokenRes.data.stream_url;
-
-                            // === DOM OBFUSCATION: Không chèn <source> tag tĩnh ===
-                            // Tạo phần tử <video> qua JS và gán src trực tiếp vào đối tượng
-                            // Điều này ngăn IDM quét DOM tĩnh để tìm link video
                             videoWrapper.innerHTML = `<video id="secureVideoPlayer" controls controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture style="width:100%;height:100%;background:#000;" oncontextmenu="return false;"></video>`;
-
-                            const videoEl = document.getElementById('secureVideoPlayer');
-                            if (videoEl) {
-                                // Gán src trực tiếp qua JS (không thể quét bằng IDM DOM scanner)
-                                videoEl.src = streamUrl;
-                                videoEl.load();
-
-                                // Chặn phím tắt phổ biến dùng để lưu/tải media
-                                videoEl.addEventListener('keydown', (e) => {
-                                    if ((e.ctrlKey || e.metaKey) && ['s', 'u', 'j'].includes(e.key.toLowerCase())) {
-                                        e.preventDefault();
-                                        return false;
-                                    }
-                                });
-
-                                videoEl.addEventListener('error', () => {
-                                    const videoErrorMsg = window.I18n ? window.I18n.get('lrn_video_error_retry') : 'Video không thể phát. Vui lòng tải lại trang.';
-                                    videoWrapper.innerHTML = `
-                                        <div style="text-align:center;padding:2rem;">
-                                            <div style="font-size:3rem;opacity:0.5;">⚠️</div>
-                                            <p class="text-secondary">${videoErrorMsg}</p>
-                                        </div>`;
-                                });
-                            }
+                            videoEl = document.getElementById('secureVideoPlayer');
+                            videoEl.src = tokenRes.data.stream_url;
+                            videoEl.load();
+                            videoEl.addEventListener('keydown', e => {
+                                if ((e.ctrlKey||e.metaKey) && ['s','u','j'].includes(e.key.toLowerCase())) e.preventDefault();
+                            });
+                            videoEl.addEventListener('error', () => {
+                                videoWrapper.innerHTML = `<div style="text-align:center;padding:2rem;"><div style="font-size:3rem;opacity:0.5;">⚠️</div><p class="text-secondary">Video không thể phát. Vui lòng tải lại trang.</p></div>`;
+                            });
                         } catch(videoErr) {
-                            const loadVideoError = window.I18n ? window.I18n.get('lrn_video_error') : 'Lỗi kết nối';
-                            const enrollVideoMsg = window.I18n ? window.I18n.get('lrn_video_error_enroll') : 'Vui lòng đảm bảo bạn đã đăng ký khóa học này.';
-                            videoWrapper.innerHTML = `
-                                <div style="text-align: center;">
-                                    <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🔒</div>
-                                    <h2 class="text-secondary">${loadVideoError}</h2>
-                                    <p class="text-muted mt-2">${enrollVideoMsg}</p>
-                                </div>`;
+                            videoWrapper.innerHTML = `<div style="text-align:center;"><div style="font-size:4rem;opacity:0.5;margin-bottom:1rem;">🔒</div><h2 class="text-secondary">Lỗi kết nối</h2><p class="text-muted mt-2">Vui lòng đảm bảo bạn đã đăng ký khóa học này.</p></div>`;
                         }
                     } else if (lesson.video_url) {
-                        // External URL (YouTube, Vimeo, etc.)
                         const url = lesson.video_url;
                         let embedUrl = url;
-
-                        // YouTube logic
                         if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                            let videoId = '';
-                            if (url.includes('v=')) videoId = url.split('v=')[1].split('&')[0];
-                            else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1].split('?')[0];
-                            
-                            if (videoId) {
-                                embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`;
-                            }
-                        } 
-                        // Vimeo logic
-                        else if (url.includes('vimeo.com')) {
-                            const vimeoId = url.split('/').pop().split('?')[0];
-                            if (vimeoId) embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1`;
+                            let vid = '';
+                            if (url.includes('v=')) vid = url.split('v=')[1].split('&')[0];
+                            else if (url.includes('youtu.be/')) vid = url.split('youtu.be/')[1].split('?')[0];
+                            if (vid) embedUrl = `https://www.youtube.com/embed/${vid}?rel=0&modestbranding=1&autoplay=1`;
+                        } else if (url.includes('vimeo.com')) {
+                            const vid = url.split('/').pop().split('?')[0];
+                            if (vid) embedUrl = `https://player.vimeo.com/video/${vid}?autoplay=1`;
                         }
-
                         if (embedUrl !== url || url.includes('embed')) {
-                            videoWrapper.innerHTML = `<iframe src="${embedUrl}" width="100%" height="100%" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="box-shadow: 0 10px 40px rgba(0,0,0,0.8);"></iframe>`;
+                            videoWrapper.innerHTML = `<iframe src="${embedUrl}" width="100%" height="100%" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
                         } else {
-                            // Direct video URL
-                            videoWrapper.innerHTML = `
-                                <video controls autoplay style="width:100%;height:100%;background:#000;">
-                                    <source src="${url}" type="video/mp4">
-                                </video>`;
+                            videoWrapper.innerHTML = `<video controls autoplay style="width:100%;height:100%;background:#000;"><source src="${url}" type="video/mp4"></video>`;
+                            videoEl = videoWrapper.querySelector('video');
                         }
                     } else {
-                        videoWrapper.innerHTML = `
-                            <div style="text-align: center;">
-                                <div style="font-size: 4rem; opacity: 0.5; margin-bottom: 1rem;">🎥</div>
-                                <h2 class="text-secondary" data-i18n="lrn_video_placeholder">Trình phát Video sẽ mô phỏng ở đây.</h2>
-                            </div>`;
+                        videoWrapper.innerHTML = `<div style="text-align:center;"><div style="font-size:4rem;opacity:0.5;margin-bottom:1rem;">🎥</div><h2 class="text-secondary">Trình phát Video sẽ mô phỏng ở đây.</h2></div>`;
+                    }
+
+                    // Video progress tracking (every 10s)
+                    if (videoEl && !lesson.is_completed) {
+                        // Restore saved position
+                        if (lesson.video_progress > 0 && lesson.video_progress < 95) {
+                            videoEl.addEventListener('loadedmetadata', () => {
+                                videoEl.currentTime = Math.floor(videoEl.duration * lesson.video_progress / 100);
+                            }, { once: true });
+                        }
+                        startVideoProgressTracking(videoEl, lesson.video_progress || 0);
                     }
                 } else {
                     videoWrapper.style.display = 'none';
@@ -454,7 +520,14 @@ require __DIR__ . '/../layouts/header.php';
                 if (window.I18n) window.I18n.render();
 
             } catch (err) {
-                App.showToast(err.message, 'error');
+                // 403 = bài học bị khoá (sequential lock) — tự động snap-back về bài được phép
+                if (err.httpStatus === 403 && err.responseData && err.responseData.redirect_lesson_id) {
+                    const redirectId = err.responseData.redirect_lesson_id;
+                    App.showToast('🔒 ' + (err.responseData.message || 'Bài học này chưa được mở khoá. Đang chuyển hướng...'), 'warning');
+                    setTimeout(() => loadLesson(redirectId), 800);
+                } else {
+                    App.showToast(err.message, 'error');
+                }
             }
         }
 
@@ -506,34 +579,174 @@ require __DIR__ . '/../layouts/header.php';
                         const formData = new FormData(e.target);
                         const answers = {};
                         for (let [key, value] of formData.entries()) {
-                            const qId = key.replace('q_', '');
-                            answers[qId] = parseInt(value);
+                            answers[key.replace('q_', '')] = parseInt(value);
                         }
 
                         try {
                             const btnSubmit = e.target.querySelector('button[type="submit"]');
-                            btnSubmit.innerHTML = window.I18n ? window.I18n.get('lrn_quiz_grading') : 'Đang chấm điểm...';
+                            btnSubmit.innerHTML = 'Đang chấm điểm...';
                             btnSubmit.disabled = true;
 
                             const submitRes = await window.api.post(`/quizzes/${currentQuizId}/submit`, { answers });
-                            
-                            const successMsg = window.I18n ? window.I18n.get('lrn_quiz_success') : 'Tuyệt vời! Điểm của bạn là: ';
-                            App.showToast(`${successMsg}${submitRes.data.score}`, 'success');
-                            
-                            const resultMsg = window.I18n ? window.I18n.get('lrn_quiz_result') : 'Hoàn thành! KẾT QUẢ: ';
-                            btnSubmit.innerHTML = `${resultMsg}${submitRes.data.score}`;
-                            btnSubmit.style.background = 'var(--success)';
-                            markComplete();
+                            const d = submitRes.data;
+                            const passed = d.passed;
+                            const passingScore = d.passing_score ?? 80;
+
+                            if (passed) {
+                                App.showToast(`🎉 Xuất sắc! Điểm: ${d.score}/${d.total_questions * 10 || 100} — Đạt yêu cầu!`, 'success');
+                                btnSubmit.innerHTML = `✅ Điểm: ${d.score} — Đã đạt (>= ${passingScore})`;
+                                btnSubmit.style.background = 'var(--success)';
+                                btnSubmit.style.border = 'none';
+                                // Trigger lesson completion from server (already done in QuizService)
+                                // Just refresh sidebar
+                                setTimeout(refreshCurriculumProgress, 500);
+
+                                // Reflect mark-complete
+                                const btnMark = document.getElementById('btn_mark_complete');
+                                btnMark.style.display = 'block';
+                                btnMark.innerHTML = '✅ Đã hoàn thành bài học';
+                                btnMark.className = 'btn btn-outline';
+                                btnMark.style.color = 'var(--success)';
+                                btnMark.disabled = true;
+
+                                // Course completed?
+                                if (d.course_completed) {
+                                    setTimeout(() => {
+                                        if (d.needs_review) showReviewModal();
+                                        else if (d.certificate_issued) showCertificateToast();
+                                    }, 800);
+                                }
+                            } else {
+                                App.showToast(`❌ Điểm: ${d.score} — Chưa đạt (cần >= ${passingScore}). Hãy thử lại!`, 'error');
+                                btnSubmit.innerHTML = `❌ Điểm: ${d.score} — Thử lại`;
+                                btnSubmit.style.background = 'var(--danger)';
+                                btnSubmit.disabled = false;
+                                setTimeout(() => {
+                                    btnSubmit.style.background = '';
+                                    btnSubmit.innerHTML = 'Nộp Bài Kiểm Tra';
+                                }, 3000);
+                            }
                         } catch (err) {
                             App.showToast(err.message, 'error');
-                            const reSubmitMsg = window.I18n ? window.I18n.get('lrn_quiz_grading_reSubmit') : 'Nộp Lại';
-                            e.target.querySelector('button[type="submit"]').innerHTML = reSubmitMsg;
-                            e.target.querySelector('button[type="submit"]').disabled = false;
+                            const btn = e.target.querySelector('button[type="submit"]');
+                            btn.innerHTML = 'Nộp Lại';
+                            btn.disabled = false;
                         }
                     });
                 }
             } catch (error) {
-                // Không có quiz
+                const errMsg = error.response?.data?.message || error.message || "";
+                if (errMsg.includes("80%") || errMsg.includes("nội dung bài học")) {
+                    quizArea.innerHTML = `
+                        <div class="quiz-locked-card" style="background: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.2); border-radius: 16px; padding: 2.5rem; text-align: center; margin-top: 2rem;">
+                            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔒</div>
+                            <h4 style="color: #ef4444; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem;" data-i18n="lrn_quiz_locked">Thử thách trí tuệ bị khóa</h4>
+                            <p style="color: rgba(240, 240, 244, 0.6); font-size: 0.9rem; line-height: 1.5; max-width: 380px; margin: 0 auto;" data-i18n="lrn_quiz_locked_desc">
+                                Bạn cần hoàn thành ít nhất 80% nội dung bài học trước khi làm bài kiểm tra.
+                            </p>
+                        </div>
+                    `;
+                    if (window.I18n) window.I18n.render();
+                } else {
+                    quizArea.innerHTML = '';
+                }
+            }
+        }
+
+        // ─── Progress Tracking ──────────────────────────────────
+        let _videoPollInterval = null;
+        let _lastVideoProgress  = 0;
+        let _lastTextProgress   = 0;
+
+        function clearVideoProgressInterval() {
+            if (_videoPollInterval) { clearInterval(_videoPollInterval); _videoPollInterval = null; }
+        }
+
+        function startVideoProgressTracking(videoEl, savedProgress) {
+            _lastVideoProgress = savedProgress;
+            _videoPollInterval = setInterval(async () => {
+                if (!videoEl || videoEl.paused || !videoEl.duration) return;
+                const pct = Math.round(videoEl.currentTime / videoEl.duration * 100);
+                if (pct <= _lastVideoProgress) return; // Never decrease
+                _lastVideoProgress = pct;
+                try {
+                    const r = await window.api.post(`/lessons/${currentLessonId}/progress`, {
+                        video_progress: pct, text_progress: _lastTextProgress
+                    });
+                    if (r.data.just_completed) handleLessonJustCompleted(r.data);
+                } catch(e) { /* silent */ }
+            }, 10000); // every 10 seconds
+        }
+
+        function startTextProgressTracking(savedProgress) {
+            _lastTextProgress = savedProgress;
+            const contentEl = document.getElementById('lesson_content');
+            if (!contentEl) return;
+
+            const sendTextProgress = async () => {
+                const rect    = contentEl.getBoundingClientRect();
+                const visible = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
+                const total   = contentEl.offsetHeight;
+                if (total <= 0) return;
+                // How far the user has scrolled through the content
+                const scrolledPast = window.scrollY + window.innerHeight - (window.scrollY + rect.top);
+                const pct = Math.min(100, Math.round(Math.max(scrolledPast, 0) / total * 100));
+                if (pct <= _lastTextProgress) return;
+                _lastTextProgress = pct;
+                try {
+                    const r = await window.api.post(`/lessons/${currentLessonId}/progress`, {
+                        video_progress: _lastVideoProgress, text_progress: pct
+                    });
+                    if (r.data.just_completed) handleLessonJustCompleted(r.data);
+                } catch(e) { /* silent */ }
+            };
+
+            // Debounce scroll
+            let scrollTimer;
+            window._textScrollHandler = () => {
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(sendTextProgress, 800);
+            };
+            window.addEventListener('scroll', window._textScrollHandler);
+        }
+
+        // Called when backend confirms lesson just became completed
+        function handleLessonJustCompleted(data) {
+            clearVideoProgressInterval();
+            if (window._textScrollHandler) {
+                window.removeEventListener('scroll', window._textScrollHandler);
+            }
+
+            // Update sidebar icon
+            const navEl = document.getElementById(`nav-lesson-${currentLessonId}`);
+            if (navEl) {
+                navEl.classList.add('completed');
+                navEl.classList.remove('locked');
+                const iconEl = navEl.querySelector('.lesson-icon');
+                if (iconEl) iconEl.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success);"></i>';
+            }
+
+            // Update mark-complete button
+            const btn = document.getElementById('btn_mark_complete');
+            btn.style.display = 'block';
+            btn.innerHTML = '✅ Đã hoàn thành bài học';
+            btn.className = 'btn btn-outline';
+            btn.style.color = 'var(--success)';
+            btn.style.borderColor = 'rgba(110,231,183,0.3)';
+            btn.disabled = true;
+
+            // Unlock next lesson in sidebar
+            refreshCurriculumProgress();
+
+            // Course completed?
+            if (data.course_completed) {
+                setTimeout(() => {
+                    if (data.needs_review) {
+                        showReviewModal();
+                    } else if (data.certificate_issued) {
+                        showCertificateToast();
+                    }
+                }, 800);
             }
         }
 
@@ -541,27 +754,77 @@ require __DIR__ . '/../layouts/header.php';
             if (!currentLessonId) return;
             try {
                 const res = await window.api.post(`/lessons/${currentLessonId}/complete`, {});
-                const btn = document.getElementById('btn_mark_complete');
-                btn.style.display = 'block';
-                btn.innerHTML = window.I18n ? window.I18n.get('lrn_btn_completed') : '✅ Đã hoàn thành bài học';
-                btn.classList.replace('btn-primary', 'btn-outline');
-                btn.style.color = 'var(--success)';
-                btn.style.borderColor = 'var(--success)';
-                btn.disabled = true;
-
-                if (res && res.data && res.data.progress === 100) {
-                    const btnReview = document.getElementById('btn_review_course');
-                    if (btnReview.style.display !== 'block' || btnReview.dataset.reviewed !== "true") {
-                        btnReview.style.display = 'block';
-                        // Delay a bit for better UX
-                        setTimeout(() => {
-                            showReviewModal();
-                        }, 1000);
-                    }
-                }
+                handleLessonJustCompleted(res.data || {});
             } catch (e) {
-                console.log(e);
+                console.error(e);
+                App.showToast(e.message || 'Không thể đánh dấu hoàn thành bài học. Vui lòng kiểm tra lại điều kiện hoàn thành.', 'error');
             }
+        }
+
+        async function refreshCurriculumProgress() {
+            try {
+                const res = await window.api.get(`/courses/${courseId}/curriculum`);
+                const chapters = res.data;
+                let total = 0, completed = 0;
+                chapters.forEach(ch => (ch.lessons || []).forEach(l => {
+                    total++;
+                    if (l.is_completed) completed++;
+                    const el = document.getElementById(`nav-lesson-${l.id}`);
+                    if (!el) return;
+
+                    if (l.is_locked) {
+                        // Khóa bài học
+                        el.classList.add('locked');
+                        el.classList.remove('completed', 'playing');
+                        el.style.cursor = 'not-allowed';
+                        el.onclick = () => App.showToast('Hãy hoàn thành bài học trước để mở khóa bài này.', 'warning');
+                        const iconEl = el.querySelector('.lesson-icon');
+                        if (iconEl) iconEl.innerHTML = '<i class="fas fa-lock" style="color:rgba(255,255,255,0.25);font-size:0.8rem;"></i>';
+                        // Cập nhật text làm mờ
+                        const nameEl = el.querySelector('.lesson-name');
+                        if (nameEl) nameEl.style.color = 'rgba(255,255,255,0.3)';
+                    } else {
+                        // Mở khóa bài học
+                        el.classList.remove('locked');
+                        el.style.cursor = 'pointer';
+                        el.onclick = () => {
+                            loadLesson(l.id);
+                            // Đóng sidebar trên mobile
+                            const cSidebar = document.querySelector('.curriculum-sidebar');
+                            const cOverlay = document.querySelector('.sidebar-overlay');
+                            if (cSidebar && window.innerWidth <= 992) {
+                                cSidebar.classList.remove('open');
+                                if (cOverlay) cOverlay.classList.remove('active');
+                            }
+                        };
+                        const nameEl = el.querySelector('.lesson-name');
+                        if (nameEl) nameEl.style.color = '';
+
+                        if (l.is_completed) {
+                            el.classList.add('completed');
+                            const iconEl = el.querySelector('.lesson-icon');
+                            if (iconEl) iconEl.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success);"></i>';
+                        } else {
+                            // Biểu tượng đúng với loại bài
+                            const iconEl = el.querySelector('.lesson-icon');
+                            if (iconEl && !el.classList.contains('playing')) {
+                                iconEl.innerHTML = l.content_type === 'quiz' ? '📝' : '🎬';
+                            }
+                        }
+                    }
+                }));
+                const pct = total ? Math.round(completed/total*100) : 0;
+                document.getElementById('curriculum-progress').innerHTML =
+                    `<span style="color:var(--success);">${pct}%</span>
+                     <span style="color:rgba(255,255,255,0.4);font-size:0.75rem;"> — ${completed}/${total} bài học</span>`;
+            } catch(e) { /* silent */ }
+        }
+
+        function showCertificateToast() {
+            App.showToast('🎓 Chứng chỉ của bạn đã được cấp! Xem tại trang Chứng chỉ.', 'success');
+            const btnReview = document.getElementById('btn_review_course');
+            btnReview.innerHTML = '🎓 Đã hoàn thành';
+            btnReview.style.color = 'var(--success)';
         }
 
         function toggleAIChat() {
@@ -626,9 +889,8 @@ require __DIR__ . '/../layouts/header.php';
 
         document.getElementById('chatForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const input = document.getElementById('chatInput');
+            const input   = document.getElementById('chatInput');
             const chatBox = document.getElementById('chatBox');
-
             const message = input.value.trim();
             if (!message) return;
 
@@ -637,19 +899,18 @@ require __DIR__ . '/../layouts/header.php';
             chatBox.scrollTop = chatBox.scrollHeight;
 
             const thinkingId = 'think_' + Date.now();
-            const thinkingMsg = window.I18n ? window.I18n.get('lrn_ai_thinking') : 'AI đang phân tích bài học...';
             chatBox.innerHTML += `
                 <div class="msg bot" id="${thinkingId}">
                     <div class="flex items-center gap-2">
-                        <span style="font-size: 1.2rem; animation: spin 2s linear infinite;">🧠</span> ${thinkingMsg}
+                        <span style="font-size:1.2rem;animation:spin 2s linear infinite;">🧠</span>
+                        AI Tutor đang phân tích bài học...
                     </div>
-                </div>
-            `;
+                </div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                // Gửi kèm context bài học đang xem
-                const res = await window.api.post('/ai/chat', {
+                // ← AI Tutor endpoint (strict, lesson-scoped)
+                const res = await window.api.post('/ai/tutor', {
                     message,
                     lesson_id: currentLessonId,
                     course_id: courseId
@@ -658,14 +919,10 @@ require __DIR__ . '/../layouts/header.php';
                 const botMsgDiv = document.getElementById(thinkingId);
                 const html = formatAiResponse(res.data.ai_response);
                 botMsgDiv.innerHTML = `<div class="ai-markdown-content">${html}</div>`;
-                
-                // Highlight code blocks
-                botMsgDiv.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
+                botMsgDiv.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
             } catch (err) {
-                const errMsg = window.I18n ? window.I18n.get('lrn_ai_error') : 'Lỗi kết nối tới AI: ';
-                document.getElementById(thinkingId).innerHTML = '❌ ' + errMsg + (err.message || '');
+                document.getElementById(thinkingId).innerHTML =
+                    '❌ Lỗi kết nối tới AI Tutor: ' + (err.message || '');
                 document.getElementById(thinkingId).style.color = 'var(--danger)';
             }
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -690,27 +947,34 @@ require __DIR__ . '/../layouts/header.php';
 
         async function submitReview(e) {
             e.preventDefault();
-            const rating = document.getElementById('reviewRating').value;
+            const rating  = document.getElementById('reviewRating').value;
             const comment = document.getElementById('reviewComment').value;
-            const btn = document.getElementById('btnSubmitReview');
-            btn.disabled = true;
-            btn.innerText = window.I18n ? window.I18n.get('lrn_review_submitting') : 'Đang gửi...';
+            const btn     = document.getElementById('btnSubmitReview');
+            btn.disabled  = true;
+            btn.innerText = 'Đang gửi...';
 
             try {
-                await window.api.post(`/student/courses/${courseId}/reviews`, { rating, comment });
-                const successMsg = window.I18n ? window.I18n.get('lrn_review_toast_success') : 'Cảm ơn bạn đã đánh giá khóa học!';
-                App.showToast(successMsg, 'success');
+                const res = await window.api.post(`/student/courses/${courseId}/reviews`, { rating, comment });
                 document.getElementById('reviewModal').style.display = 'none';
-                
-                // Update button state
+
                 const btnReview = document.getElementById('btn_review_course');
-                const reviewedMsg = window.I18n ? window.I18n.get('lrn_reviewed') : 'Đã đánh giá';
-                btnReview.innerHTML = `${'⭐'.repeat(rating)} <span data-i18n="lrn_reviewed">${reviewedMsg}</span>`;
-                btnReview.dataset.reviewed = "true";
+                btnReview.innerHTML = `${'⭐'.repeat(rating)} Đã đánh giá`;
+                btnReview.dataset.reviewed = 'true';
+
+                if (res.data && res.data.cert_issued) {
+                    App.showToast('🎓 Cảm ơn bạn! Chứng chỉ của bạn đã được cấp. Đang chuyển hướng...', 'success');
+                    btnReview.innerHTML = '🎓 Đã nhận chứng chỉ';
+                    btnReview.style.color = 'var(--success)';
+                } else {
+                    App.showToast('Cảm ơn bạn đã đánh giá khóa học! Đang chuyển hướng...', 'success');
+                }
+
+                setTimeout(() => {
+                    window.location.replace(`/student/course-completed/${courseId}`);
+                }, 1500);
             } catch (err) {
                 App.showToast(err.message, 'error');
-            } finally {
-                btn.disabled = false;
+                btn.disabled  = false;
                 btn.innerText = 'Gửi Đánh Giá';
             }
         }
