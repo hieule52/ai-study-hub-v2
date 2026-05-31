@@ -178,7 +178,6 @@ docker-compose up --build
 
 3. **Khởi tạo Cơ sở dữ liệu:**
    * Import file CSDL mẫu `database/aistudyhublms.sql` vào MySQL Server của bạn.
-   * Chạy tiếp file cập nhật cấu trúc `database/migration_v4.sql` để bổ sung các bảng quản lý lịch sử so sánh dữ liệu và hàng đợi thông báo kiểm duyệt admin.
 
 4. **Khởi chạy các máy chủ:**
    * **Mở Terminal 1 - Chạy máy chủ Web:**

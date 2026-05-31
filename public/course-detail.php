@@ -159,7 +159,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const course = res.data;
 
         document.getElementById('cd_title').innerText = course.title;
-        document.getElementById('cd_desc').innerText  = course.description || 'Chưa có mô tả khóa học.';
+        const descEl = document.getElementById('cd_desc');
+        descEl.innerText  = course.description || 'Chưa có mô tả khóa học.';
+        descEl.removeAttribute('data-i18n');
 
         if (course.thumbnail) {
             document.getElementById('cd_thumbnail_icon').style.display = 'none';

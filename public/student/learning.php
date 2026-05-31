@@ -370,18 +370,25 @@ require __DIR__ . '/../layouts/header.php';
                             const tokenRes = await window.api.get(`/video/token/${lessonId}?course_id=${courseId}`);
                             const streamUrl = tokenRes.data.stream_url;
 
-                            const unsupportedVideoMsg = window.I18n ? window.I18n.get('lrn_video_unsupported') : 'Trình duyệt không hỗ trợ video.';
-                            videoWrapper.innerHTML = `
-                                <video id="secureVideoPlayer" controls controlsList="nodownload" disablePictureInPicture
-                                       style="width:100%;height:100%;background:#000;"
-                                       oncontextmenu="return false;">
-                                    <source src="${streamUrl}" type="video/mp4">
-                                    ${unsupportedVideoMsg}
-                                </video>`;
+                            // === DOM OBFUSCATION: Không chèn <source> tag tĩnh ===
+                            // Tạo phần tử <video> qua JS và gán src trực tiếp vào đối tượng
+                            // Điều này ngăn IDM quét DOM tĩnh để tìm link video
+                            videoWrapper.innerHTML = `<video id="secureVideoPlayer" controls controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture style="width:100%;height:100%;background:#000;" oncontextmenu="return false;"></video>`;
 
-                            // Thêm event listener cho video errors
                             const videoEl = document.getElementById('secureVideoPlayer');
                             if (videoEl) {
+                                // Gán src trực tiếp qua JS (không thể quét bằng IDM DOM scanner)
+                                videoEl.src = streamUrl;
+                                videoEl.load();
+
+                                // Chặn phím tắt phổ biến dùng để lưu/tải media
+                                videoEl.addEventListener('keydown', (e) => {
+                                    if ((e.ctrlKey || e.metaKey) && ['s', 'u', 'j'].includes(e.key.toLowerCase())) {
+                                        e.preventDefault();
+                                        return false;
+                                    }
+                                });
+
                                 videoEl.addEventListener('error', () => {
                                     const videoErrorMsg = window.I18n ? window.I18n.get('lrn_video_error_retry') : 'Video không thể phát. Vui lòng tải lại trang.';
                                     videoWrapper.innerHTML = `

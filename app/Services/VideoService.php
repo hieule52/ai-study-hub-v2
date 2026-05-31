@@ -212,8 +212,12 @@ class VideoService
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         $expiresAt = $row['expires_at'];
 
+        // Lấy IP và User-Agent của client hiện tại khi cấp token
+        $ipAddress = $_SERVER['REMOTE_ADDR'] ?? null;
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+
         // 5. Lưu token vào database
-        $success = $this->tokenRepo->createToken($userId, $lessonId, $rawToken, $expiresAt);
+        $success = $this->tokenRepo->createToken($userId, $lessonId, $rawToken, $expiresAt, $ipAddress, $userAgent);
         if (!$success) {
             throw new Exception("Không thể tạo token xem video.");
         }
@@ -245,7 +249,52 @@ class VideoService
             exit;
         }
 
-        // 2. Tìm file video trên disk
+        // 2. Kiểm tra tác nhân tải xuống (Downloader User-Agent Blacklist & Sec-Fetch-Dest)
+        $clientIp = $_SERVER['REMOTE_ADDR'] ?? '';
+        $clientUa = $_SERVER['HTTP_USER_AGENT'] ?? '';
+
+        // Danh sách đen các User-Agent của công cụ tải xuống phổ biến
+        $downloaderAgents = [
+            'idman', 'internet download manager', 'fdm', 'free download manager', 
+            'aria2', 'wget', 'curl', 'python', 'postman', 'insomnia', 
+            'download', 'downloader', 'youtube-dl', 'streamlink'
+        ];
+        foreach ($downloaderAgents as $agent) {
+            if (stripos($clientUa, $agent) !== false) {
+                http_response_code(403);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['error' => 'Công cụ tải xuống bị chặn trên hệ thống.']);
+                exit;
+            }
+        }
+
+        // Kiểm tra khớp User-Agent để đảm bảo chính trình duyệt của user đang yêu cầu stream
+        if (!empty($tokenData['user_agent']) && $tokenData['user_agent'] !== $clientUa) {
+            http_response_code(403);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['error' => 'Thiết bị yêu cầu không khớp với phiên làm việc.']);
+            exit;
+        }
+
+        // Kiểm tra Sec-Fetch-Dest (Ngăn chặn IDM và các cuộc gọi tải trực tiếp)
+        // Trình duyệt luôn gửi Sec-Fetch-Dest: video khi chạy thẻ <video>
+        // IDM hoặc các công cụ tải độc lập không gửi hoặc gửi 'empty' / 'document'
+        $secFetchDest = $_SERVER['HTTP_SEC_FETCH_DEST'] ?? '';
+        $isModernBrowser = (stripos($clientUa, 'Chrome') !== false || 
+                            stripos($clientUa, 'Safari') !== false || 
+                            stripos($clientUa, 'Firefox') !== false || 
+                            stripos($clientUa, 'Edge') !== false);
+                            
+        if ($isModernBrowser) {
+            if (empty($secFetchDest) || !in_array(strtolower($secFetchDest), ['video', 'audio'])) {
+                http_response_code(403);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['error' => 'Yêu cầu không hợp lệ. Trực tiếp tải video không được phép.']);
+                exit;
+            }
+        }
+
+        // 3. Tìm file video trên disk
         $lesson = $this->lessonRepo->findLessonById($tokenData['lesson_id']);
         if (!$lesson || empty($lesson['video_filename'])) {
             http_response_code(404);
@@ -261,7 +310,7 @@ class VideoService
             exit;
         }
 
-        // 3. Stream video với HTTP Range support
+        // 4. Stream video với HTTP Range support
         $this->sendVideoStream($videoPath);
     }
 

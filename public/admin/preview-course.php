@@ -488,10 +488,18 @@ require __DIR__ . '/../layouts/header.php';
                 if (lesson.video_filename) {
                     try {
                         const tokenRes = await window.api.get(`/video/token/${lessonId}?course_id=${courseId}`);
-                        videoRoot.innerHTML = `
-                            <video controls controlsList="nodownload" style="width:100%; height:100%; object-fit:cover;">
-                                <source src="${tokenRes.data.stream_url}" type="video/mp4">
-                            </video>`;
+                        const streamUrl = tokenRes.data.stream_url;
+
+                        // === DOM OBFUSCATION: Gán src qua JS thay vì chèn <source> tĩnh ===
+                        videoRoot.innerHTML = `<video id="adminPreviewPlayer" controls controlsList="nodownload nofullscreen noremoteplayback" disablePictureInPicture style="width:100%; height:100%; object-fit:cover;" oncontextmenu="return false;"></video>`;
+                        const previewVid = document.getElementById('adminPreviewPlayer');
+                        if (previewVid) {
+                            previewVid.src = streamUrl;
+                            previewVid.load();
+                            previewVid.addEventListener('error', () => {
+                                videoRoot.innerHTML = `<div style="padding:2rem; text-align:center; opacity:0.5;"><i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:1rem;"></i><br>Không thể phát video.</div>`;
+                            });
+                        }
                     } catch (e) {
                         videoRoot.innerHTML = `<div style="padding:2rem; text-align:center; opacity:0.5;"><i class="fas fa-lock" style="font-size:2rem; margin-bottom:1rem;"></i><br>${e.message}</div>`;
                     }

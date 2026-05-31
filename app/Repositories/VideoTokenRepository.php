@@ -17,24 +17,41 @@ class VideoTokenRepository
     public function __construct()
     {
         $this->db = Database::connect();
+        
+        // Tự động kiểm tra và thêm cột bảo mật vào bảng video_tokens nếu chưa tồn tại
+        try {
+            $stmt = $this->db->query("SHOW COLUMNS FROM video_tokens LIKE 'ip_address'");
+            if (!$stmt->fetch()) {
+                $this->db->exec("ALTER TABLE video_tokens ADD COLUMN ip_address VARCHAR(45) NULL");
+            }
+            
+            $stmt = $this->db->query("SHOW COLUMNS FROM video_tokens LIKE 'user_agent'");
+            if (!$stmt->fetch()) {
+                $this->db->exec("ALTER TABLE video_tokens ADD COLUMN user_agent TEXT NULL");
+            }
+        } catch (\PDOException $e) {
+            // Có thể cột đã tồn tại hoặc có lỗi truy cập, bỏ qua
+        }
     }
 
     /**
      * Tạo token mới cho user xem video bài học
      */
-    public function createToken(int $userId, int $lessonId, string $token, string $expiresAt): bool
+    public function createToken(int $userId, int $lessonId, string $token, string $expiresAt, string $ipAddress = null, string $userAgent = null): bool
     {
         // Xóa token cũ của user cho lesson này (chỉ giữ 1 token active)
         $this->revokeUserLessonTokens($userId, $lessonId);
 
-        $sql = "INSERT INTO video_tokens (token, user_id, lesson_id, expires_at) 
-                VALUES (:token, :user_id, :lesson_id, :expires_at)";
+        $sql = "INSERT INTO video_tokens (token, user_id, lesson_id, expires_at, ip_address, user_agent) 
+                VALUES (:token, :user_id, :lesson_id, :expires_at, :ip_address, :user_agent)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             'token' => $token,
             'user_id' => $userId,
             'lesson_id' => $lessonId,
-            'expires_at' => $expiresAt
+            'expires_at' => $expiresAt,
+            'ip_address' => $ipAddress,
+            'user_agent' => $userAgent
         ]);
     }
 

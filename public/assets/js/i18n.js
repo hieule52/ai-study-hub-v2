@@ -127,7 +127,7 @@ const I18n = {
             "std_progress_current": "Tiến độ hiện tại",
             "std_anon": "Học viên ẩn danh",
             "std_no_comment": "Không có nhận xét.",
-            "home_search_placeholder": "🔍 Tìm khóa học...",
+            "home_search_placeholder": "Tìm khóa học...",
 
             // Certificates
             "cert_title_card": "CHỨNG NHẬN HOÀN THÀNH",
@@ -477,7 +477,7 @@ const I18n = {
             "std_progress_current": "Current Progress",
             "std_anon": "Anonymous Student",
             "std_no_comment": "No comment provided.",
-            "home_search_placeholder": "🔍 Search courses...",
+            "home_search_placeholder": "Search courses...",
 
             // Certificates
             "cert_title_card": "CERTIFICATE OF COMPLETION",
