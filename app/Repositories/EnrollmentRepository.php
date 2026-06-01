@@ -197,6 +197,7 @@ class EnrollmentRepository
             JOIN users u ON e.user_id = u.id
             JOIN courses c ON e.course_id = c.id
             LEFT JOIN users t ON c.teacher_id = t.id
+            WHERE c.deleted_at IS NULL
             ORDER BY e.enrolled_at DESC
         ");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

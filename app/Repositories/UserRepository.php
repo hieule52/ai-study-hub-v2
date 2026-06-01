@@ -174,7 +174,7 @@ class UserRepository
 
     public function countUsers(): int
     {
-        $stmt = $this->db->query("SELECT COUNT(*) FROM users");
+        $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE deleted_at IS NULL AND role != 'admin'");
         return (int) $stmt->fetchColumn();
     }
 

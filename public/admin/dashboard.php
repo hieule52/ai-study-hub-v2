@@ -146,7 +146,7 @@ require __DIR__ . '/../layouts/header.php';
         try {
             const res = await window.api.get('/admin/stats');
             const d = res.data;
-            document.getElementById('s-revenue').innerText = (d.total_revenue ?? 0).toLocaleString('vi-VN') + ' lượt';
+            document.getElementById('s-revenue').innerText = (d.total_revenue ?? 0).toLocaleString('vi-VN') + ' đ';
             document.getElementById('s-vip').innerText = d.total_vip_users ?? 0;
             document.getElementById('s-users').innerText = d.total_users ?? 0;
             document.getElementById('s-pending').innerText = d.pending_courses ?? 0;

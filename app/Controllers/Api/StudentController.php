@@ -191,10 +191,10 @@ class StudentController
                 $stmtDelProg->execute(array_merge([$userId], $lessonIds));
             }
 
-            // 2. Reset progress_percent, completed_at, course_status trong bảng enrollments
+            // 2. Reset progress_percent trong bảng enrollments
             $stmtResetEnroll = $db->prepare("
                 UPDATE enrollments 
-                SET progress_percent = 0, completed_at = NULL, course_status = 'learning'
+                SET progress_percent = 0
                 WHERE user_id = ? AND course_id = ?
             ");
             $stmtResetEnroll->execute([$userId, $courseId]);
@@ -202,7 +202,7 @@ class StudentController
             // 3. Xóa chứng chỉ đã cấp nếu có (để học viên học lại có thể nhận lại)
             $stmtDelCert = $db->prepare("
                 DELETE FROM certificates 
-                WHERE student_id = ? AND course_id = ?
+                WHERE user_id = ? AND course_id = ?
             ");
             $stmtDelCert->execute([$userId, $courseId]);
 

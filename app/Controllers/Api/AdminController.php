@@ -42,6 +42,7 @@ class AdminController
                 SELECT SUM(c.price) 
                 FROM enrollments e 
                 JOIN courses c ON e.course_id = c.id
+                WHERE c.deleted_at IS NULL
             ")->fetchColumn();
 
             $activeCoursesCount = (int)$db->query("SELECT COUNT(*) FROM courses WHERE status = 'approved' AND deleted_at IS NULL")->fetchColumn();
@@ -317,8 +318,10 @@ class AdminController
                 $labels[] = $label;
 
                 $stmt = $db->prepare("
-                    SELECT COUNT(*) FROM enrollments
-                    WHERE DATE_FORMAT(enrolled_at, '%Y-%m') = :ym
+                    SELECT COUNT(e.id) 
+                    FROM enrollments e
+                    JOIN courses c ON e.course_id = c.id
+                    WHERE DATE_FORMAT(e.enrolled_at, '%Y-%m') = :ym AND c.deleted_at IS NULL
                 ");
                 $stmt->execute(['ym' => $month]);
                 $data[] = (int)$stmt->fetchColumn();
@@ -405,6 +408,7 @@ class AdminController
                 SELECT SUM(c.price) 
                 FROM enrollments e 
                 JOIN courses c ON e.course_id = c.id
+                WHERE c.deleted_at IS NULL
             ")->fetchColumn();
 
             $response->success("Danh sách ghi danh", [
