@@ -19,8 +19,9 @@
 
 **AI Study Hub LMS** không chỉ đơn thuần là một hệ quản trị học tập tĩnh; đây là một **Cinematic Learning Studio** cao cấp được phát triển dựa trên ngôn ngữ thiết kế **Dark Glassmorphism** hiện đại. Dự án được phát triển từ con số 0 (Scratch) với kiến trúc PHP MVC thuần túy nhằm tối ưu hiệu năng, nâng cao tính bảo mật và cung cấp khả năng can thiệp sâu vào các luồng dữ liệu học tập thông minh.
 
-Dự án là đề tài thực tập tốt nghiệp được nghiên cứu và phát triển bởi nhóm sinh viên **Khoa Công nghệ Thông tin - Trường Đại học Khoa học, Đại học Huế**:
-* **Lê Diễn Hiếu** (MSV: 22T1020610)
+Dự án là đề tài khóa luận tốt nghiệp được nghiên cứu và phát triển bởi sinh viên **Khoa Công nghệ Thông tin - Trường Đại học Khoa học, Đại học Huế**:
+* **Sinh viên thực hiện:** **Lê Diễn Hiếu** (MSV: 22T1020610)
+* **Giảng viên hướng dẫn:** **ThS. Võ Văn Thành**
 
 Hệ thống tập trung giải quyết 3 khoảng trống lớn của các LMS truyền thống:
 1. **Trải nghiệm thị giác Cinematic**: Thiết kế giao diện tối hiện đại, sử dụng hiệu ứng kính mờ (glassmorphism), vi biên mềm và các chuyển động micro-animations giúp học viên tối đa hóa khả năng tập trung, khơi dậy hứng thú học tập.
@@ -53,8 +54,9 @@ Hệ thống tập trung giải quyết 3 khoảng trống lớn của các LMS 
 * **Side-by-side Diff Viewer:** Admin nhận cảnh báo thông báo đỏ độ ưu tiên khẩn cấp và sử dụng trình so sánh trực quan (JSON Diff) để duyệt nhanh các nội dung thay đổi chỉ bằng 1 click chuột.
 
 ### 💳 5. Tự Động Ghi Danh & Thanh Toán VietQR
-* Học viên quét mã VietQR động để ghi danh khóa học. 
-* Tiền thanh toán được hệ thống backend xác thực bảo mật bằng việc gọi API lấy trực tiếp giá tiền khóa học lưu trong Database thay vì phụ thuộc thông tin giá truyền trên URL Client, ngăn chặn tuyệt đối các hành vi thay đổi giá từ phía client.
+* **Thanh toán VietQR động:** Học viên quét mã VietQR động được tạo tự động với nội dung chuyển khoản chứa thông tin giao dịch định dạng chuẩn hóa.
+* **Cơ chế đồng bộ tự động (Google Sheets & Apps Script Polling):** Thay vì sử dụng Webhook phức tạp từ Casso ở backend, hệ thống triển khai cơ chế Client-side Polling kết hợp Google Sheets & Apps Script. Lịch sử giao dịch ngân hàng thực tế được đồng bộ tự động lên Google Sheets, sau đó Apps Script sẽ lắng nghe và gọi Webhook/API tương ứng của backend để phê duyệt và kích hoạt ghi danh khóa học ngay khi xác thực thành công.
+* **Xác thực bảo mật:** Tiền thanh toán được hệ thống backend xác thực bảo mật bằng việc gọi API lấy trực tiếp giá tiền khóa học lưu trong Database thay vì phụ thuộc thông tin giá truyền trên URL Client, ngăn chặn tuyệt đối các hành vi thay đổi giá từ phía client.
 
 ---
 
@@ -70,13 +72,15 @@ graph TD
     Controllers --> Services[app/Services/]
     Services --> Repositories[app/Repositories/]
     Repositories --> DB[(MySQL Database)]
-    Services --> AI[Groq Cloud / Gemini API]
+    Services --> AI[Groq Cloud API LLaMA-3]
 ```
 
 ### Chi tiết các lớp kiến trúc:
 * **Controller Layer:** Tiếp nhận Request từ Client, xác thực phân quyền qua hệ thống Middleware trung gian (`AuthMiddleware`, `RoleMiddleware`), điều phối luồng nghiệp vụ và phản hồi JSON chuẩn hóa.
-* **Service Layer:** Tập trung toàn bộ logic nghiệp vụ cốt lõi của hệ thống (logic tạo prompt AI, logic theo dõi thay đổi dữ liệu, kiểm tra giao dịch thanh toán).
+* **Service Layer:** Tập trung toàn bộ logic nghiệp vụ cốt lõi của hệ thống (logic tạo prompt AI của `AiService`, logic theo dõi thay đổi dữ liệu của `ChangeTrackingService`, kiểm tra giao dịch thanh toán).
 * **Repository Layer:** Đảm nhận nhiệm vụ truy vấn cơ sở dữ liệu. Toàn bộ mã SQL được viết thuần túy thông qua PDO kết hợp cơ chế Binding Parameters để ngăn chặn triệt để tấn công SQL Injection.
+* **Database Layer:** Cơ sở dữ liệu MySQL 8.0 gồm **25 bảng thực tế** được thiết kế chuẩn hóa tối ưu (chuẩn 3NF), hỗ trợ đầy đủ các mối quan hệ thực thể, ràng buộc khóa ngoại chặt chẽ và đánh chỉ mục (Index) tăng hiệu năng:
+  * *Danh sách các bảng:* `users`, `courses`, `lessons`, `video_tokens`, `enrollments`, `payments`, `change_logs`, `admin_notifications`, `quizzes`, `questions`, `answers`, `conversations`, `messages`, `certificates`, `course_categories`, `course_reviews`, `audit_logs`, `learning_paths`, `lesson_progress`, `reports`, `learning_path_enrollments`, `learning_path_courses`, `quiz_results`, `ai_conversations`, `ai_messages`.
 
 ---
 
@@ -205,12 +209,36 @@ docker-compose up --build
 
 ---
 
+## 📝 Tài Liệu Khóa Luận Tốt Nghiệp (Thesis Documentation)
+
+Để hỗ trợ cho việc nghiên cứu và bảo vệ đề tài, toàn bộ hệ thống tài liệu báo cáo học thuật chi tiết của khóa luận đã được biên soạn và tổ chức lưu trữ đầy đủ tại các tệp sau (Click trực tiếp vào liên kết để truy cập):
+
+* **Phần mở đầu & Cơ sở pháp lý:**
+  * [Lời Cảm Ơn](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/loi_cam_on.md)
+  * [Lời Cam Đoan](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/loi_cam_doan.md)
+  * [Lời Mở Đầu](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/loi_mo_dau.md)
+  * [Danh Mục Thuật Ngữ & Từ Viết Tắt](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/danh_muc_thuat_ngu_viet_tat.md)
+* **Nội dung học thuật các chương chính:**
+  * [Chương 1: Tổng quan về Hệ thống quản lý học tập (LMS) & Trợ lý AI](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/chuong_1_tong_quan.md)
+  * [Chương 2: Phân tích yêu cầu & Mô hình hóa hệ thống (Use Cases, Diagrams)](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/chuong_2_phan_tich.md)
+  * [Chương 3: Thiết kế kiến trúc hệ thống & Cơ sở dữ liệu 25 bảng](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/chuong_3_thiet_ke.md)
+  * [Chương 4: Triển khai thực nghiệm, Giao diện & Đánh giá kiểm thử](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/chuong_4_trien_khai.md)
+* **Kết luận, tài liệu tham khảo & Đề cương:**
+  * [Kết Luận & Hướng Phát Triển Tương Lai](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/ket_luan_huong_phat_trien.md)
+  * [Danh Mục Tài Liệu Tham Khảo](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/tai_lieu_tham_khao.md)
+  * [Đề Cương Chi Tiết Khóa Luận](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/de_cuong_khoa_luan_hoan_chinh.md)
+* **Slide Thuyết Trình & Tóm Tắt:**
+  * [Slide Thuyết Trình Bảo Vệ (5 Phút)](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/slide_thuyet_trinh.md)
+  * [Bản Tóm Tắt Walkthrough Toàn Diện](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/walkthrough.md)
+
+---
+
 ## 🔒 Bản Quyền & Sở Hữu Trí Tuệ (Proprietary & Intellectual Property)
 
-* **Sở hữu độc quyền:** Toàn bộ mã nguồn, cấu trúc dữ liệu, tài liệu thiết kế và giao diện đồ họa của hệ thống **AI Study Hub LMS** thuộc quyền sở hữu trí tuệ độc quyền của hai tác giả thực hiện đề tài tốt nghiệp (**Lê Diễn Hiếu** & **Nguyễn Duy Tín** - Khoa Công nghệ Thông tin, Trường Đại học Khoa học, Đại học Huế).
+* **Sở hữu độc quyền:** Toàn bộ mã nguồn, cấu trúc dữ liệu, tài liệu thiết kế và giao diện đồ họa của hệ thống **AI Study Hub LMS** thuộc quyền sở hữu trí tuệ độc quyền của sinh viên thực hiện đề tài tốt nghiệp **Lê Diễn Hiếu** dưới sự hướng dẫn khoa học của **ThS. Võ Văn Thành** (Khoa Công nghệ Thông tin, Trường Đại học Khoa học, Đại học Huế).
 * **Quy định bảo mật & Phân phối:**
-  * Đây là dự án phục vụ bảo vệ đề tài tốt nghiệp chính thức, được quản lý dưới dạng **Mã nguồn đóng (Closed-Source)**.
-  * **NGHIÊM CẤM** mọi hành vi sao chép, tải về tự do, sao chép cấu trúc, chỉnh sửa, tái phân phối hoặc thương mại hóa mã nguồn dưới bất kỳ hình thức nào khi chưa có sự cho phép bằng văn bản từ các tác giả sở hữu.
+  * Đây là dự án phục vụ bảo vệ đề tài khóa luận tốt nghiệp chính thức, được quản lý dưới dạng **Mã nguồn đóng (Closed-Source)**.
+  * **NGHIÊM CẤM** mọi hành vi sao chép, tải về tự do, sao chép cấu trúc, chỉnh sửa, tái phân phối hoặc thương mại hóa mã nguồn dưới bất kỳ hình thức nào khi chưa có sự cho phép bằng văn bản từ tác giả sở hữu và giảng viên hướng dẫn.
   * Mọi hành vi vi phạm bản quyền phần mềm và học thuật sẽ bị xử lý nghiêm khắc theo Quy chế đào tạo của nhà trường và Luật Sở hữu trí tuệ hiện hành.
 
 ---
