@@ -207,7 +207,30 @@ class UserRepository
 
     public function delete(int $id): bool
     {
-        // Soft delete
+        // Hard delete all related records first
+        $tables = [
+            "DELETE FROM lesson_progress WHERE user_id = :id",
+            "DELETE FROM quiz_attempts WHERE user_id = :id",
+            "DELETE FROM enrollments WHERE user_id = :id",
+            "DELETE FROM messages WHERE sender_id = :id OR receiver_id = :id",
+            "DELETE FROM notifications WHERE user_id = :id",
+            "DELETE FROM certificates WHERE user_id = :id",
+            "DELETE FROM course_reviews WHERE user_id = :id",
+        ];
+
+        foreach ($tables as $sql) {
+            try {
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute(['id' => $id]);
+            } catch (\PDOException $e) {
+                // Skip if table doesn't exist
+                if ($e->getCode() !== '42S02') {
+                    throw $e;
+                }
+            }
+        }
+
+        // Soft delete the user
         $stmt = $this->db->prepare("UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }

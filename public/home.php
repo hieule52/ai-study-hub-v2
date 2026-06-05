@@ -208,7 +208,7 @@ require __DIR__ . '/layouts/header.php';
                                 style="font-weight: 700; color: #fff; letter-spacing: 0.02em;">Hoàn thành khóa học để
                                 nhận chứng chỉ</span>
                         </div>
-                        <a href="/login" class="btn btn-primary"
+                        <a href="/login?redirect=%2Fstudent%2Fcertificates" class="btn btn-primary"
                             style="border-radius:100px; padding: 0.8rem 2.5rem;">Đăng nhập ngay</a>
                     </div>
                 </div>
@@ -268,6 +268,10 @@ require __DIR__ . '/layouts/header.php';
         if (isGuest) {
             document.getElementById('stats-container').classList.add('guest-mask');
             document.getElementById('guest-stats-overlay').style.display = 'flex';
+            const guestCertOverlay = document.getElementById('guest-cert-overlay');
+            if (guestCertOverlay) {
+                guestCertOverlay.style.display = 'flex';
+            }
         } else {
             const user = window.api.getUser();
             let dashboardUrl = '/student/dashboard';

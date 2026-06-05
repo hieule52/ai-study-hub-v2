@@ -45,7 +45,6 @@ require __DIR__ . '/../layouts/header.php';
             </div>
 
             <div class="chat-input-area">
-                <button class="btn-ghost" style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; opacity: 0.6;">📎</button>
                 <div class="chat-input-wrap">
                     <form id="wsChatForm" style="display: flex; gap: 0.75rem;">
                         <input type="text" id="wsInput" class="chat-input" placeholder="Nhập tin nhắn..." autocomplete="off" required data-i18n="chat_input">

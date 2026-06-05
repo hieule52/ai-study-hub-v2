@@ -80,7 +80,8 @@ class CertificateController
             }
 
             // Cấp chứng chỉ (idempotent — trả về nếu đã có)
-            $cert = $this->certRepo->issue($userId, $courseId);
+            $certService = new \App\Services\CertificateService();
+            $cert = $certService->generate($userId, $courseId);
 
             // Tạo thông báo (silently fail nếu lỗi)
             try {

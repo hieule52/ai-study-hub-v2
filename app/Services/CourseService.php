@@ -99,15 +99,13 @@ class CourseService
         // Đánh dấu khóa học hoàn thành
         $this->markCourseCompleted($userId, $courseId);
 
+        // Tạo chứng chỉ ngay khi hoàn thành khóa học (Không bắt buộc phải đánh giá mới có chứng chỉ)
+        $certService = new CertificateService();
+        $cert = $certService->generate($userId, $courseId);
+        $certIssued = ($cert !== null);
+
         // Kiểm tra đã đánh giá chưa
         $hasReview = $this->hasReview($userId, $courseId);
-
-        $certIssued = false;
-        if ($hasReview) {
-            $certService = new CertificateService();
-            $cert = $certService->generate($userId, $courseId);
-            $certIssued = ($cert !== null);
-        }
 
         return [
             'progress_percent'  => 100,

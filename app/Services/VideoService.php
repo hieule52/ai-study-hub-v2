@@ -135,7 +135,11 @@ class VideoService
         // Check size (max 200MB default)
         $maxBytes = $this->maxSizeMB * 1024 * 1024;
         if ($file['size'] > $maxBytes) {
-            throw new Exception("Video vượt quá giới hạn {$this->maxSizeMB}MB.");
+            $fileSizeMB = round($file['size'] / (1024 * 1024), 1);
+            throw new Exception(
+                "Video ({$fileSizeMB}MB) vượt quá giới hạn {$this->maxSizeMB}MB cho phép. " .
+                "Gợi ý: Hãy tải video lên YouTube hoặc Google Drive, sau đó dán link vào ô \"Link YouTube / Drive\" bên dưới."
+            );
         }
 
         // Check extension

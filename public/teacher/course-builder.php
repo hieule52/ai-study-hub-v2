@@ -585,6 +585,50 @@ function toggleContentFields() {
 async function handleVideoSelect(input) {
     if (!input.files[0]) return;
     const file = input.files[0];
+
+    // Client-side size validation (500MB max)
+    const MAX_VIDEO_SIZE_MB = 500;
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
+        input.value = '';
+        const infoDisplay = document.getElementById('video-info-display');
+        infoDisplay.innerHTML = `
+            <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:14px; padding:1.5rem; margin-bottom:1.5rem;">
+                <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+                    <span style="font-size:1.5rem;">⚠️</span>
+                    <div>
+                        <div style="font-weight:700; color:#ef4444; font-size:0.95rem;">Video quá lớn (${fileSizeMB}MB)</div>
+                        <div style="font-size:0.8rem; color:rgba(255,255,255,0.5);">Giới hạn tối đa: ${MAX_VIDEO_SIZE_MB}MB</div>
+                    </div>
+                </div>
+                <div style="font-size:0.85rem; color:rgba(255,255,255,0.7); line-height:1.6; margin-bottom:1rem;">
+                    Hãy tải video lên một trong các nền tảng sau, rồi dán link vào ô <strong>"Link YouTube / Drive"</strong> bên dưới:
+                </div>
+                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                    <a href="https://studio.youtube.com" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:0.75rem; padding:0.85rem 1.15rem; background:rgba(255,0,0,0.08); border:1px solid rgba(255,0,0,0.2); border-radius:10px; text-decoration:none; color:#fff; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,0,0,0.15)'" onmouseout="this.style.background='rgba(255,0,0,0.08)'">
+                        <i class="fab fa-youtube" style="font-size:1.4rem; color:#ff0000;"></i>
+                        <div>
+                            <div style="font-weight:700; font-size:0.88rem;">YouTube Studio</div>
+                            <div style="font-size:0.72rem; opacity:0.5;">Tải lên miễn phí, không giới hạn dung lượng</div>
+                        </div>
+                        <i class="fas fa-external-link-alt" style="margin-left:auto; font-size:0.7rem; opacity:0.3;"></i>
+                    </a>
+                    <a href="https://drive.google.com" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:0.75rem; padding:0.85rem 1.15rem; background:rgba(66,133,244,0.08); border:1px solid rgba(66,133,244,0.2); border-radius:10px; text-decoration:none; color:#fff; transition:all 0.2s;" onmouseover="this.style.background='rgba(66,133,244,0.15)'" onmouseout="this.style.background='rgba(66,133,244,0.08)'">
+                        <i class="fab fa-google-drive" style="font-size:1.3rem; color:#4285f4;"></i>
+                        <div>
+                            <div style="font-weight:700; font-size:0.88rem;">Google Drive</div>
+                            <div style="font-size:0.72rem; opacity:0.5;">15GB miễn phí, chia sẻ link dễ dàng</div>
+                        </div>
+                        <i class="fas fa-external-link-alt" style="margin-left:auto; font-size:0.7rem; opacity:0.3;"></i>
+                    </a>
+                </div>
+                <div style="margin-top:1rem; font-size:0.75rem; color:rgba(255,255,255,0.35); line-height:1.5;">
+                    💡 <strong>Mẹo:</strong> Sau khi tải lên, sao chép link video và dán vào ô "Link YouTube / Vimeo / Drive" bên dưới.
+                </div>
+            </div>
+        `;
+        return;
+    }
     
     const chapterId = document.getElementById('chapter_id').value;
     if (!chapterId) {
@@ -609,15 +653,25 @@ async function handleVideoSelect(input) {
     };
     
     xhr.onload = () => {
+        document.getElementById('uploadProgress').style.display = 'none';
         if (xhr.status === 200) {
             const res = JSON.parse(xhr.responseText);
             document.getElementById('video_filename').value = res.data.path;
             App.showToast('Tải video lên thành công!', 'success');
+            document.getElementById('video-info-display').innerHTML = '';
             updateVideoPreview();
         } else {
-            App.showToast('Tải video lên thất bại.', 'error');
+            try {
+                const errRes = JSON.parse(xhr.responseText);
+                App.showToast(errRes.message || 'Tải video lên thất bại.', 'error');
+            } catch(e) {
+                App.showToast('Tải video lên thất bại.', 'error');
+            }
         }
+    };
+    xhr.onerror = () => {
         document.getElementById('uploadProgress').style.display = 'none';
+        App.showToast('Lỗi kết nối khi tải video.', 'error');
     };
     xhr.send(formData);
 }

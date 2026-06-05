@@ -46,13 +46,14 @@ class AiController
 
             $message  = trim($request->input('message') ?? '');
             $courseId = $request->input('course_id') ? (int)$request->input('course_id') : null;
+            $lang     = trim($request->input('lang') ?? 'vi');
 
             if (empty($message)) {
                 $response->error("Vui lòng nhập nội dung câu hỏi.", 400);
                 return;
             }
 
-            $result = $this->aiService->chatAssistant($userId, $message, $userRole, $courseId);
+            $result = $this->aiService->chatAssistant($userId, $message, $userRole, $courseId, $lang);
             $response->success("AI đã phản hồi", $result);
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
@@ -80,6 +81,7 @@ class AiController
             $message  = trim($request->input('message') ?? '');
             $lessonId = $request->input('lesson_id') ? (int)$request->input('lesson_id') : null;
             $courseId = $request->input('course_id') ? (int)$request->input('course_id') : null;
+            $lang     = trim($request->input('lang') ?? 'vi');
 
             if (empty($message)) {
                 $response->error("Vui lòng nhập nội dung câu hỏi.", 400);
@@ -106,31 +108,8 @@ class AiController
                 return;
             }
 
-            $result = $this->aiService->chatTutor($userId, $message, $lessonId, $courseId);
+            $result = $this->aiService->chatTutor($userId, $message, $lessonId, $courseId, $lang);
             $response->success("AI Tutor đã phản hồi", $result);
-        } catch (Exception $e) {
-            $response->error($e->getMessage(), 400);
-        }
-    }
-
-    /**
-     * DELETE /api/ai/history
-     * Xóa lịch sử chat AI Tutor cho bài học cụ thể
-     * Body: { lesson_id }
-     */
-    public function clearHistory(Request $request, Response $response)
-    {
-        try {
-            AuthMiddleware::handle($request, $response);
-            $lessonId = $request->input('lesson_id');
-            $userId   = $request->user->sub;
-
-            if (!$lessonId) throw new Exception("Thiếu ID bài học.");
-
-            $repo = new \App\Repositories\AiRepository();
-            $repo->clearHistory($userId, (int)$lessonId);
-
-            $response->success("Đã xóa lịch sử hội thoại.");
         } catch (Exception $e) {
             $response->error($e->getMessage(), 400);
         }

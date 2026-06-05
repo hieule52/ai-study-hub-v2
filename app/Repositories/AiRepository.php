@@ -14,21 +14,6 @@ class AiRepository
         $this->db = Database::connect();
     }
 
-    /**
-     * Lấy hoặc tạo một cuộc hội thoại cho User tại bài học cụ thể
-     */
-    public function getOrCreateConversation(int $userId, int $lessonId): int
-    {
-        $stmt = $this->db->prepare("SELECT id FROM ai_conversations WHERE user_id = :uid AND lesson_id = :lid LIMIT 1");
-        $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
-        $id = $stmt->fetchColumn();
-
-        if ($id) return (int)$id;
-
-        $stmt = $this->db->prepare("INSERT INTO ai_conversations (user_id, lesson_id) VALUES (:uid, :lid)");
-        $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
-        return (int)$this->db->lastInsertId();
-    }
 
     /**
      * Lưu tin nhắn vào hội thoại
@@ -80,14 +65,6 @@ class AiRepository
         return (int)$this->db->lastInsertId();
     }
 
-    /**
-     * Xóa lịch sử hội thoại của bài học
-     */
-    public function clearHistory(int $userId, int $lessonId): bool
-    {
-        $stmt = $this->db->prepare("DELETE FROM ai_conversations WHERE user_id = :uid AND lesson_id = :lid");
-        return $stmt->execute(['uid' => $userId, 'lid' => $lessonId]);
-    }
 
     /**
      * Xóa toàn bộ lịch sử AI Assistant của user

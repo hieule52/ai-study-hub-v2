@@ -56,6 +56,23 @@ class Chat implements MessageComponentInterface
             return;
         }
 
+        // === SECURITY: Check if user is active and not deleted ===
+        try {
+            $db = Database::connect();
+            $checkStmt = $db->prepare("SELECT id FROM users WHERE id = :id AND status = 'active' AND deleted_at IS NULL LIMIT 1");
+            $checkStmt->execute(['id' => $userId]);
+            if (!$checkStmt->fetchColumn()) {
+                $conn->send(json_encode(['error' => 'Tài khoản đã bị khóa hoặc không tồn tại.']));
+                $conn->close();
+                return;
+            }
+        } catch (\Exception $e) {
+            echo "[WS] Lỗi kiểm tra trạng thái user: " . $e->getMessage() . "\n";
+            $conn->send(json_encode(['error' => 'Lỗi xác thực tài khoản.']));
+            $conn->close();
+            return;
+        }
+
         // Lấy username và avatar từ DB
         $userInfo = $this->getUserInfoFromDb($userId);
 
@@ -217,10 +234,10 @@ class Chat implements MessageComponentInterface
             }
         }
 
-        // Fallback to DB
+        // Fallback to DB — also check status and deleted_at
         try {
             $db   = Database::connect();
-            $stmt = $db->prepare("SELECT role FROM users WHERE id = :id LIMIT 1");
+            $stmt = $db->prepare("SELECT role FROM users WHERE id = :id AND status = 'active' AND deleted_at IS NULL LIMIT 1");
             $stmt->execute(['id' => $userId]);
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $row['role'] ?? 'unknown';

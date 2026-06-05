@@ -31,6 +31,43 @@ header('Content-Type: text/html; charset=utf-8');
         }
     </style>
     <script>
+        (function() {
+            const actor = <?= json_encode($actor) ?>;
+            const dashboards = { 'admin': '/admin/dashboard', 'teacher': '/teacher/dashboard', 'student': '/student/dashboard' };
+            
+            if (actor === 'student' || actor === 'teacher' || actor === 'admin') {
+                const userStr = localStorage.getItem('auth_user');
+                const token = localStorage.getItem('jwt_token');
+                
+                if (!userStr || !token) {
+                    document.documentElement.style.display = 'none';
+                    const currentUrl = window.location.pathname + window.location.search;
+                    window.location.replace('/login?redirect=' + encodeURIComponent(currentUrl));
+                    return;
+                }
+                
+                try {
+                    const user = JSON.parse(userStr);
+                    let allowed = false;
+                    if (actor === 'student') {
+                        allowed = (user.role === 'student');
+                    } else if (actor === 'teacher') {
+                        allowed = (user.role === 'teacher' || user.role === 'admin');
+                    } else if (actor === 'admin') {
+                        allowed = (user.role === 'admin');
+                    }
+                    
+                    if (!allowed) {
+                        document.documentElement.style.display = 'none';
+                        window.location.replace(dashboards[user.role] || '/');
+                    }
+                } catch(e) {
+                    document.documentElement.style.display = 'none';
+                    window.location.replace('/login');
+                }
+            }
+        })();
+
         function toggleMobileMenu() {
             const menu = document.getElementById('navMenu');
             const hamburger = document.getElementById('navHamburger');

@@ -38,6 +38,7 @@ Hệ thống tập trung giải quyết 3 khoảng trống lớn của các LMS 
   * Ghi chú hướng dẫn chuyên sâu của Giảng viên nạp riêng cho bài học đó.
   * Tóm tắt bài học và từ khóa học thuật chính thức.
 * **Chế độ AI nghiêm ngặt (Strict AI Mode):** Hệ thống chèn chỉ thị cứng bắt buộc AI chỉ được trả lời trong phạm vi học liệu cung cấp. Nếu học viên hỏi lạc đề, AI sẽ từ chối lịch sự và định hướng tập trung lại vào bài học chính.
+* **Tương tác Stateless tối ưu dung lượng DB:** Cuộc hội thoại của học viên với AI Tutor trong bài học được thiết kế hoàn toàn Stateless (không lưu lịch sử hội thoại của AI Tutor vào cơ sở dữ liệu) nhằm tránh phình to dung lượng ổ cứng, giảm thiểu tần suất đọc/ghi DB liên tục, trong khi AI Assistant chung ở trang chủ vẫn duy trì lưu lịch sử hội thoại đầy đủ.
 
 ### 💬 2. Kênh Realtime Chat (Ratchet PHP WebSocket)
 * Thay thế hoàn toàn cơ chế Polling liên tục làm nghẽn máy chủ. Dự án dựng một dịch vụ **WebSocket Server** chạy dạng daemon process độc lập cổng `8080` bằng thư viện **Ratchet PHP**.
@@ -47,6 +48,7 @@ Hệ thống tập trung giải quyết 3 khoảng trống lớn của các LMS 
 * Toàn bộ tệp video bài giảng gốc được cô lập trong thư mục bảo mật ngoài vùng Apache (`storage/private/videos`), chặn truy cập trực tiếp bằng URL.
 * Khi học viên xem bài học, hệ thống sinh ra một **Token ngắn hạn (hiệu lực 5 giây)** dùng một lần, mã hóa thông qua `AES-256`.
 * Lớp điều khiển `VideoStreamController.php` giải mã token, xác thực quyền truy cập của học viên đối với khóa học đó, sau đó tiến hành truyền file video dưới dạng nhị phân theo từng phân đoạn nhỏ (**Chunk stream**) dựa trên HTTP Header `Content-Range`, vô hiệu hóa các công cụ bắt link tải lậu như IDM hoặc Cốc Cốc.
+* **Giới hạn tải lên video & Gợi ý lưu trữ đám mây:** Để tránh quá tải băng thông máy chủ và tràn ổ đĩa, hệ thống áp dụng giới hạn kích thước tệp video tải lên trực tiếp tối đa **500MB**. Khi giảng viên chọn tệp lớn hơn giới hạn này, Client-side validation sẽ chặn việc upload ngay lập tức và hiển thị một thông báo hướng dẫn giảng viên tải video lên YouTube Studio hoặc Google Drive, đồng thời cung cấp các nút truy cập nhanh và hướng dẫn nhúng URL video tương ứng để liên kết vào bài học.
 
 ### 📝 4. Cơ Chế Tự Động Kiểm Duyệt (Change Tracking & Re-Approval Engine)
 * Lớp dịch vụ `ChangeTrackingService.php` tự động ghi nhận và theo dõi các thay đổi cấu trúc dữ liệu cốt lõi (chương học, nội dung bài giảng, transcript, đáp án quiz).
@@ -214,22 +216,22 @@ docker-compose up --build
 Để hỗ trợ cho việc nghiên cứu và bảo vệ đề tài, toàn bộ hệ thống tài liệu báo cáo học thuật chi tiết của khóa luận đã được biên soạn và tổ chức lưu trữ đầy đủ tại các tệp sau (Click trực tiếp vào liên kết để truy cập):
 
 * **Phần mở đầu & Cơ sở pháp lý:**
-  * [Lời Cảm Ơn](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/loi_cam_on.md)
-  * [Lời Cam Đoan](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/loi_cam_doan.md)
-  * [Lời Mở Đầu](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/loi_mo_dau.md)
-  * [Danh Mục Thuật Ngữ & Từ Viết Tắt](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/danh_muc_thuat_ngu_viet_tat.md)
+  * [Lời Cảm Ơn](Docs/Thesis/loi_cam_on.md)
+  * [Lời Cam Đoan](Docs/Thesis/loi_cam_doan.md)
+  * [Lời Mở Đầu](Docs/Thesis/loi_mo_dau.md)
+  * [Danh Mục Thuật Ngữ & Từ Viết Tắt](Docs/Thesis/danh_muc_thuat_ngu_viet_tat.md)
 * **Nội dung học thuật các chương chính:**
-  * [Chương 1: Tổng quan về Hệ thống quản lý học tập (LMS) & Trợ lý AI](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/chuong_1_tong_quan.md)
-  * [Chương 2: Phân tích yêu cầu & Mô hình hóa hệ thống (Use Cases, Diagrams)](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/chuong_2_phan_tich.md)
-  * [Chương 3: Thiết kế kiến trúc hệ thống & Cơ sở dữ liệu 25 bảng](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/chuong_3_thiet_ke.md)
-  * [Chương 4: Triển khai thực nghiệm, Giao diện & Đánh giá kiểm thử](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/chuong_4_trien_khai.md)
+  * [Chương 1: Tổng quan về Hệ thống quản lý học tập (LMS) & Trợ lý AI](Docs/Thesis/chuong_1_tong_quan.md)
+  * [Chương 2: Phân tích yêu cầu & Mô hình hóa hệ thống (Use Cases, Diagrams)](Docs/Thesis/chuong_2_phan_tich.md)
+  * [Chương 3: Thiết kế kiến trúc hệ thống & Cơ sở dữ liệu 25 bảng](Docs/Thesis/chuong_3_thiet_ke.md)
+  * [Chương 4: Triển khai thực nghiệm, Giao diện & Đánh giá kiểm thử](Docs/Thesis/chuong_4_trien_khai.md)
 * **Kết luận, tài liệu tham khảo & Đề cương:**
-  * [Kết Luận & Hướng Phát Triển Tương Lai](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/ket_luan_huong_phat_trien.md)
-  * [Danh Mục Tài Liệu Tham Khảo](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/tai_lieu_tham_khao.md)
-  * [Đề Cương Chi Tiết Khóa Luận](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/de_cuong_khoa_luan_hoan_chinh.md)
+  * [Kết Luận & Hướng Phát Triển Tương Lai](Docs/Thesis/ket_luan_huong_phat_trien.md)
+  * [Danh Mục Tài Liệu Tham Khảo](Docs/Thesis/tai_lieu_tham_khao.md)
+  * [Đề Cương Chi Tiết Khóa Luận](Docs/Thesis/de_cuong_khoa_luan_hoan_chinh.md)
 * **Slide Thuyết Trình & Tóm Tắt:**
-  * [Slide Thuyết Trình Bảo Vệ (5 Phút)](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/slide_thuyet_trinh.md)
-  * [Bản Tóm Tắt Walkthrough Toàn Diện](file:///C:/Users/PC/.gemini/antigravity-ide/brain/c7586a21-f333-4f81-8804-e80f7ec8cec8/walkthrough.md)
+  * [Slide Thuyết Trình Bảo Vệ (5 Phút)](Docs/Thesis/slide_thuyet_trinh.md)
+  * [Bản Tóm Tắt Walkthrough Toàn Diện](Docs/Thesis/walkthrough.md)
 
 ---
 

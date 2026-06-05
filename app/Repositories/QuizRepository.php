@@ -16,7 +16,7 @@ class QuizRepository
 
     public function findQuizByLesson(int $lessonId): ?array
     {
-        $stmt = $this->db->prepare("SELECT * FROM quizzes WHERE lesson_id = :lesson_id LIMIT 1");
+        $stmt = $this->db->prepare("SELECT * FROM quizzes WHERE lesson_id = :lesson_id AND deleted_at IS NULL LIMIT 1");
         $stmt->execute(['lesson_id' => $lessonId]);
         $data = $stmt->fetch();
         return $data ? (array)$data : null;

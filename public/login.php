@@ -92,12 +92,18 @@ require __DIR__ . '/layouts/header.php';
                 App.showToast(I18n.get('toast_login_success'), 'success');
                 
                 setTimeout(() => {
-                    const roles = { 
-                        'admin': '/admin/dashboard', 
-                        'teacher': '/teacher/dashboard', 
-                        'student': '/student/dashboard' 
-                    };
-                    window.location.href = roles[res.data.user.role] || '/';
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirectUrl = urlParams.get('redirect');
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    } else {
+                        const roles = { 
+                            'admin': '/admin/dashboard', 
+                            'teacher': '/teacher/dashboard', 
+                            'student': '/student/dashboard' 
+                        };
+                        window.location.href = roles[res.data.user.role] || '/';
+                    }
                 }, 1000);
             } else {
                 throw new Error("Login succeeded but no session token received.");

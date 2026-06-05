@@ -102,6 +102,7 @@ class EnrollmentRepository
     public function findStudentsByTeacher(int $teacherId): array
     {
         // Join enrollments with users and courses, filtering by teacher_id
+        // Exclude locked (banned) and soft-deleted students
         $stmt = $this->db->prepare("
             SELECT u.id as user_id, u.username, u.email, u.avatar, u.last_seen,
                    c.id as course_id, c.title as course_title, 
@@ -110,6 +111,8 @@ class EnrollmentRepository
             JOIN users u ON e.user_id = u.id
             JOIN courses c ON e.course_id = c.id
             WHERE c.teacher_id = :teacher_id
+              AND u.status = 'active'
+              AND u.deleted_at IS NULL
             ORDER BY e.enrolled_at DESC
         ");
         $stmt->execute(['teacher_id' => $teacherId]);

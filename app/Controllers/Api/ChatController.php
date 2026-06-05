@@ -23,6 +23,14 @@ class ChatController
             }
 
             $db = Database::connect();
+
+            // Check if the other user is active and not deleted
+            $checkStmt = $db->prepare("SELECT id FROM users WHERE id = :id AND status = 'active' AND deleted_at IS NULL LIMIT 1");
+            $checkStmt->execute(['id' => $otherId]);
+            if (!$checkStmt->fetchColumn()) {
+                throw new Exception("Người dùng không tồn tại hoặc đã bị khóa.");
+            }
+
             $stmt = $db->prepare("
                 SELECT m.*, u.username as sender_name, u.avatar as sender_avatar 
                 FROM messages m

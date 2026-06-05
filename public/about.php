@@ -67,7 +67,7 @@ require __DIR__ . '/layouts/header.php';
     <div class="container">
         <h2 class="editorial-title" data-i18n="about_cta_title">Sẵn sàng để bứt phá?</h2>
         <p class="editorial-text mx-auto mt-4 mb-8" data-i18n="about_cta_text">Trở thành một phần của cộng đồng học tập thông minh nhất.</p>
-        <a href="/register" class="btn btn-primary" data-i18n="about_cta_btn" style="border-radius: 100px; padding: 1rem 3.5rem; font-weight: 600;">Đăng ký ngay</a>
+        <a href="/register" class="btn btn-primary" id="about-cta-btn" data-i18n="about_cta_btn" style="border-radius: 100px; padding: 1rem 3.5rem; font-weight: 600;">Đăng ký ngay</a>
     </div>
 </section>
 
@@ -76,6 +76,27 @@ require __DIR__ . '/layouts/header.php';
         entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = window.api.getToken();
+        const user = window.api.getUser();
+        if (token && user) {
+            const btn = document.getElementById('about-cta-btn');
+            if (btn) {
+                if (user.role === 'teacher') {
+                    btn.href = '/teacher/dashboard';
+                    btn.textContent = (window.I18n && window.I18n.locale === 'en') ? 'Dashboard' : 'Bảng điều khiển';
+                } else if (user.role === 'admin') {
+                    btn.href = '/admin/dashboard';
+                    btn.textContent = (window.I18n && window.I18n.locale === 'en') ? 'Dashboard' : 'Bảng điều khiển';
+                } else {
+                    btn.href = '/student/courses';
+                    btn.textContent = (window.I18n && window.I18n.locale === 'en') ? 'Learn Now' : 'Học ngay';
+                }
+                btn.removeAttribute('data-i18n');
+            }
+        }
+    });
 </script>
 
 <?php require __DIR__ . '/layouts/footer.php'; ?>

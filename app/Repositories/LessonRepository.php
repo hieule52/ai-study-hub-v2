@@ -188,15 +188,13 @@ class LessonRepository
         $videoProgress = max($savedVideo, $currentVideoProgress);
         $textProgress  = max($savedText, $currentTextProgress);
 
-        // Quy tắc 1: Nếu bài học có video, tiến độ xem video phải đạt tối thiểu 80%
-        $hasVideo = ($lesson['content_type'] === 'video' || !empty($lesson['video_url']) || !empty($lesson['video_path']));
-        if ($hasVideo && $videoProgress < 80) {
+        // Quy tắc 1: Nếu bài học là video, tiến độ xem video phải đạt tối thiểu 80%
+        if ($lesson['content_type'] === 'video' && $videoProgress < 80) {
             return false;
         }
 
-        // Quy tắc 2: Nếu bài học có tài liệu đọc (text), tiến độ cuộn đọc phải đạt tối thiểu 80%
-        $hasText = ($lesson['content_type'] === 'text' || (!empty($lesson['content']) && strlen(trim(strip_tags($lesson['content']))) > 50));
-        if ($hasText && $textProgress < 80) {
+        // Quy tắc 2: Nếu bài học là tài liệu đọc (text), tiến độ cuộn đọc phải đạt tối thiểu 80%
+        if ($lesson['content_type'] === 'text' && $textProgress < 80) {
             return false;
         }
 

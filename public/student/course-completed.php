@@ -276,7 +276,18 @@ require __DIR__ . '/../layouts/header.php';
             const course = courseRes.data;
             const review = reviewRes.data;
             const certificates = certsRes.data || [];
-            const myCert = certificates.find(c => c.course_id == courseId);
+            let myCert = certificates.find(c => c.course_id == courseId);
+
+            if (!myCert) {
+                try {
+                    await window.api.post(`/certificates/claim/${courseId}`);
+                    const retryRes = await window.api.get('/certificates/my');
+                    const updatedCerts = retryRes.data || [];
+                    myCert = updatedCerts.find(c => c.course_id == courseId);
+                } catch (claimErr) {
+                    console.error('Auto-claim certificate failed:', claimErr);
+                }
+            }
 
             document.getElementById('courseCompletedTitle').innerText = 'Chúc Mừng Bạn Đã Hoàn Thành!';
             document.getElementById('courseSubtitle').innerHTML = `Bạn đã nỗ lực xuất sắc và hoàn thành 100% các bài học thuộc khóa học <strong>"${course.title}"</strong>.`;
@@ -366,6 +377,7 @@ require __DIR__ . '/../layouts/header.php';
         try {
             App.showToast('Đang thiết lập lại tiến độ...', 'info');
             const res = await window.api.post(`/student/courses/${courseId}/reset-progress`);
+            localStorage.removeItem(`skip_review_${courseId}`);
             App.showToast(res.message || 'Thiết lập lại tiến độ thành công!', 'success');
             setTimeout(() => {
                 window.location.replace(`/student/learning/${courseId}`);

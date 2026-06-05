@@ -87,7 +87,9 @@ class CourseRepository
     {
         $stmt = $this->db->prepare("
             SELECT c.*, 
-                   (SELECT COUNT(*) FROM enrollments e WHERE e.course_id = c.id) as total_students 
+                   (SELECT COUNT(*) FROM enrollments e 
+                    JOIN users u ON e.user_id = u.id 
+                    WHERE e.course_id = c.id AND u.status = 'active' AND u.deleted_at IS NULL) as total_students 
             FROM courses c 
             WHERE c.teacher_id = :teacher_id AND c.deleted_at IS NULL
             ORDER BY c.id DESC
@@ -101,7 +103,10 @@ class CourseRepository
         $stmt = $this->db->prepare("
             SELECT 
                 COUNT(c.id) as total_courses,
-                COALESCE((SELECT COUNT(e.id) FROM enrollments e JOIN courses c2 ON e.course_id = c2.id WHERE c2.teacher_id = :t1), 0) as total_students
+                COALESCE((SELECT COUNT(e.id) FROM enrollments e 
+                          JOIN courses c2 ON e.course_id = c2.id 
+                          JOIN users u ON e.user_id = u.id 
+                          WHERE c2.teacher_id = :t1 AND u.status = 'active' AND u.deleted_at IS NULL), 0) as total_students
             FROM courses c
             WHERE c.teacher_id = :t2 AND c.deleted_at IS NULL
         ");
@@ -206,9 +211,159 @@ class CourseRepository
 
     public function delete(int $id): bool
     {
-        $stmt = $this->db->prepare("UPDATE courses SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id");
-        return $stmt->execute(['id' => $id]);
+        // Fetch thumbnail first
+        $stmt = $this->db->prepare("SELECT thumbnail FROM courses WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        $thumbnail = $stmt->fetchColumn();
+        if ($thumbnail === false) {
+            // Course does not exist
+            return false;
+        }
+
+        $this->db->beginTransaction();
+        try {
+            // Get all chapters
+            $stmt = $this->db->prepare("SELECT id FROM chapters WHERE course_id = :course_id");
+            $stmt->execute(['course_id' => $id]);
+            $chapterIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            if (!empty($chapterIds)) {
+                // Find all lessons
+                $placeholders = implode(',', array_fill(0, count($chapterIds), '?'));
+                $stmt = $this->db->prepare("SELECT id FROM lessons WHERE chapter_id IN ($placeholders)");
+                $stmt->execute($chapterIds);
+                $lessonIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+                if (!empty($lessonIds)) {
+                    // Find all quizzes
+                    $placeholdersL = implode(',', array_fill(0, count($lessonIds), '?'));
+                    $stmt = $this->db->prepare("SELECT id FROM quizzes WHERE lesson_id IN ($placeholdersL)");
+                    $stmt->execute($lessonIds);
+                    $quizIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+                    if (!empty($quizIds)) {
+                        $placeholdersQ = implode(',', array_fill(0, count($quizIds), '?'));
+
+                        // Find all questions
+                        $stmt = $this->db->prepare("SELECT id FROM questions WHERE quiz_id IN ($placeholdersQ)");
+                        $stmt->execute($quizIds);
+                        $questionIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+                        if (!empty($questionIds)) {
+                            $placeholdersQs = implode(',', array_fill(0, count($questionIds), '?'));
+                            
+                            // Delete answers
+                            $stmt = $this->db->prepare("DELETE FROM answers WHERE question_id IN ($placeholdersQs)");
+                            $stmt->execute($questionIds);
+                        }
+
+                        // Delete questions
+                        $stmt = $this->db->prepare("DELETE FROM questions WHERE quiz_id IN ($placeholdersQ)");
+                        $stmt->execute($quizIds);
+
+                        // Delete quiz_results
+                        $stmt = $this->db->prepare("DELETE FROM quiz_results WHERE quiz_id IN ($placeholdersQ)");
+                        $stmt->execute($quizIds);
+
+                        // Delete quizzes
+                        $stmt = $this->db->prepare("DELETE FROM quizzes WHERE lesson_id IN ($placeholdersL)");
+                        $stmt->execute($lessonIds);
+                    }
+
+                    // Delete lesson_progress
+                    $stmt = $this->db->prepare("DELETE FROM lesson_progress WHERE lesson_id IN ($placeholdersL)");
+                    $stmt->execute($lessonIds);
+
+                    // Delete lessons
+                    $stmt = $this->db->prepare("DELETE FROM lessons WHERE chapter_id IN ($placeholders)");
+                    $stmt->execute($chapterIds);
+                }
+
+                // Delete chapters
+                $stmt = $this->db->prepare("DELETE FROM chapters WHERE course_id = :course_id");
+                $stmt->execute(['course_id' => $id]);
+            }
+
+            // Delete enrollments
+            $stmt = $this->db->prepare("DELETE FROM enrollments WHERE course_id = :course_id");
+            $stmt->execute(['course_id' => $id]);
+
+            // Delete course_reviews
+            $stmt = $this->db->prepare("DELETE FROM course_reviews WHERE course_id = :course_id");
+            $stmt->execute(['course_id' => $id]);
+
+            // Delete reports
+            $stmt = $this->db->prepare("DELETE FROM reports WHERE course_id = :course_id");
+            $stmt->execute(['course_id' => $id]);
+
+            // Delete certificates
+            $stmt = $this->db->prepare("DELETE FROM certificates WHERE course_id = :course_id");
+            $stmt->execute(['course_id' => $id]);
+
+            // Delete learning_path_courses
+            $stmt = $this->db->prepare("DELETE FROM learning_path_courses WHERE course_id = :course_id");
+            $stmt->execute(['course_id' => $id]);
+
+            // Delete admin_notifications
+            $stmt = $this->db->prepare("DELETE FROM admin_notifications WHERE course_id = :course_id");
+            $stmt->execute(['course_id' => $id]);
+
+            // Delete course_change_logs
+            $stmt = $this->db->prepare("DELETE FROM course_change_logs WHERE course_id = :course_id");
+            $stmt->execute(['course_id' => $id]);
+
+            // Finally delete from courses
+            $stmt = $this->db->prepare("DELETE FROM courses WHERE id = :id");
+            $stmt->execute(['id' => $id]);
+
+            $this->db->commit();
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+
+        // Disk cleanup (safely outside of transaction)
+        if (!empty($thumbnail)) {
+            $basePath = realpath(__DIR__ . '/../../') ?: __DIR__ . '/../..';
+            $thumbnailPath = $basePath . '/public' . $thumbnail;
+            if (file_exists($thumbnailPath)) {
+                @unlink($thumbnailPath);
+            }
+        }
+
+        try {
+            $videoService = new \App\Services\VideoService();
+            $videoStoragePath = $videoService->getStoragePath();
+            $courseVideoDir = $videoStoragePath . DIRECTORY_SEPARATOR . $id;
+            if (is_dir($courseVideoDir)) {
+                self::deleteDirectoryRecursive($courseVideoDir);
+            }
+        } catch (\Exception $e) {
+            // Ignore video service init exceptions or file locks
+        }
+
+        return true;
     }
+
+    private static function deleteDirectoryRecursive(string $dir): bool
+    {
+        if (!file_exists($dir)) {
+            return true;
+        }
+        if (!is_dir($dir)) {
+            return unlink($dir);
+        }
+        foreach (scandir($dir) as $item) {
+            if ($item == '.' || $item == '..') {
+                continue;
+            }
+            if (!self::deleteDirectoryRecursive($dir . DIRECTORY_SEPARATOR . $item)) {
+                return false;
+            }
+        }
+        return rmdir($dir);
+    }
+
 
     public function getPendingCourses(): array
     {

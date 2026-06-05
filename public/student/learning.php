@@ -82,13 +82,13 @@ require __DIR__ . '/../layouts/header.php';
                 <div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;">🧠</div>
                 <div>
                     <div style="font-size:0.85rem;font-weight:600;line-height:1;">AI Tutor</div>
+                    <div id="ai_tutor_lesson_title" style="font-size:0.65rem;color:rgba(255,255,255,0.5);line-height:1.2;margin:2px 0;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Đang tải bài học...</div>
                     <div style="font-size:0.68rem;color:rgba(240,240,244,0.45);display:flex;align-items:center;gap:0.3rem;margin-top:2px;">
                         <div class="ai-online-dot"></div> <span data-i18n="lrn_ai_ready">Sẵn sàng hỗ trợ</span>
                     </div>
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap:0.5rem;">
-                <button class="btn-clear-ai" onclick="clearAIChat()" title="Xóa hội thoại"><i class="fas fa-trash-alt"></i></button>
                 <span class="badge" style="font-size:0.62rem;">Contextual AI</span>
             </div>
         </div>
@@ -131,7 +131,7 @@ require __DIR__ . '/../layouts/header.php';
                 </div>
 
                 <div style="display: flex; gap: 1rem;">
-                    <button type="button" class="btn btn-ghost" style="flex: 1; border-radius: 12px;" onclick="document.getElementById('reviewModal').style.display='none'" data-i18n="lrn_review_skip">Bỏ qua</button>
+                    <button type="button" class="btn btn-ghost" style="flex: 1; border-radius: 12px;" onclick="skipReview()" data-i18n="lrn_review_skip">Bỏ qua</button>
                     <button type="submit" class="btn btn-primary" id="btnSubmitReview" style="flex: 2; border-radius: 12px; font-weight: 600; padding: 0.8rem;" data-i18n="lrn_review_submit">Gửi Đánh Giá</button>
                 </div>
             </form>
@@ -292,8 +292,10 @@ require __DIR__ . '/../layouts/header.php';
                         const btnReview = document.getElementById('btn_review_course');
                         btnReview.style.display = 'block';
 
-                        if (myReview && myReview.rating) {
-                            // Redirect to course completed page immediately if completed and reviewed
+                        const hasSkipped = localStorage.getItem(`skip_review_${courseId}`) === 'true';
+
+                        if ((myReview && myReview.rating) || hasSkipped) {
+                            // Redirect to course completed page immediately if completed and reviewed (or skipped)
                             window.location.replace(`/student/course-completed/${courseId}`);
                             return;
                         } else {
@@ -377,8 +379,16 @@ require __DIR__ . '/../layouts/header.php';
         }
 
         async function loadLesson(lessonId) {
+            // Force sync progress of previous lesson before switching
+            if (currentLessonId) {
+                try {
+                    await syncCurrentProgress();
+                } catch(e) { console.error('Error syncing before loadLesson:', e); }
+            }
+
             currentLessonId = lessonId;
             currentQuizId = null;
+            window._confirmReadChecked = false;
 
             // Update UI State
             document.querySelectorAll('.lesson-item').forEach(el => {
@@ -400,6 +410,11 @@ require __DIR__ . '/../layouts/header.php';
                 const lesson = res.data;
 
                 document.getElementById('lesson_title').innerText = lesson.title;
+                const aiTutorLessonTitle = document.getElementById('ai_tutor_lesson_title');
+                if (aiTutorLessonTitle) {
+                    aiTutorLessonTitle.innerText = `Đang học: ${lesson.title}`;
+                    aiTutorLessonTitle.title = lesson.title;
+                }
 
                 // Show objectives if any
                 const objContainer = document.getElementById('objectives_container');
@@ -421,10 +436,25 @@ require __DIR__ . '/../layouts/header.php';
                 // Render HTML Content
                 const lessonContentEl = document.getElementById('lesson_content');
                 if (lesson.content) {
+                    const checkboxHtml = (!lesson.is_completed && lesson.content_type === 'text') ? `
+                        <div class="reading-confirmation-wrapper" style="margin-top: 2.5rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 16px; display: flex; flex-direction: column; gap: 15px; align-items: flex-start; backdrop-filter: blur(10px);">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="chk_confirm_read" style="width: 20px; height: 20px; cursor: pointer;" onchange="handleReadConfirmChange(this)">
+                                <label for="chk_confirm_read" style="color: rgba(255,255,255,0.8); font-size: 0.95rem; cursor: pointer; user-select: none; font-weight: 500;">
+                                    Tôi xác nhận đã đọc và hiểu rõ nội dung tài liệu này.
+                                </label>
+                            </div>
+                            <button class="btn btn-primary" id="btn_mark_complete_bottom" style="border-radius: 100px; padding: 0.6rem 1.8rem; font-size: 0.85rem; opacity: 0.5;" disabled onclick="markComplete()">
+                                ✅ Đánh dấu Đã Học
+                            </button>
+                        </div>
+                    ` : '';
+
                     lessonContentEl.innerHTML = `
                         <div class="ql-snow">
                             <div class="ql-editor lesson-content-wrapper">${lesson.content}</div>
-                        </div>`;
+                        </div>
+                        ${checkboxHtml}`;
                     setTimeout(() => {
                         document.querySelectorAll('pre').forEach(b => hljs.highlightElement(b));
                     }, 100);
@@ -435,23 +465,30 @@ require __DIR__ . '/../layouts/header.php';
                 }
 
                 // Completion status button
-                const btnMark = document.getElementById('btn_mark_complete');
                 if (lesson.is_completed) {
-                    btnMark.style.display = 'block';
-                    btnMark.innerHTML = '✅ Đã hoàn thành bài học';
-                    btnMark.className = 'btn btn-outline';
-                    btnMark.style.color = 'var(--success)';
-                    btnMark.style.borderColor = 'rgba(110,231,183,0.3)';
-                    btnMark.disabled = true;
+                    updateMarkCompleteButtons({
+                        display: 'block',
+                        innerHTML: '✅ Đã hoàn thành bài học',
+                        className: 'btn btn-outline',
+                        color: 'var(--success)',
+                        borderColor: 'rgba(110,231,183,0.3)',
+                        disabled: true,
+                        opacity: '1'
+                    });
                 } else if (lesson.content_type !== 'quiz') {
-                    btnMark.style.display = 'block';
-                    btnMark.innerHTML = '✅ Đánh dấu Đã Học';
-                    btnMark.className = 'btn btn-primary';
-                    btnMark.style.color = '';
-                    btnMark.style.borderColor = '';
-                    btnMark.disabled = false;
+                    updateMarkCompleteButtons({
+                        display: 'block',
+                        innerHTML: '✅ Đánh dấu Đã Học',
+                        className: 'btn btn-primary',
+                        color: '',
+                        borderColor: '',
+                        disabled: lesson.content_type === 'text',
+                        opacity: lesson.content_type === 'text' ? '0.5' : '1'
+                    });
                 } else {
-                    btnMark.style.display = 'none';
+                    updateMarkCompleteButtons({
+                        display: 'none'
+                    });
                 }
 
                 // === VIDEO DISPLAY & PROGRESS TRACKING ===
@@ -517,6 +554,7 @@ require __DIR__ . '/../layouts/header.php';
                 }
 
                 loadQuizData(lessonId);
+                await loadAIChatHistory(lessonId, lesson.title);
                 if (window.I18n) window.I18n.render();
 
             } catch (err) {
@@ -602,12 +640,15 @@ require __DIR__ . '/../layouts/header.php';
                                 setTimeout(refreshCurriculumProgress, 500);
 
                                 // Reflect mark-complete
-                                const btnMark = document.getElementById('btn_mark_complete');
-                                btnMark.style.display = 'block';
-                                btnMark.innerHTML = '✅ Đã hoàn thành bài học';
-                                btnMark.className = 'btn btn-outline';
-                                btnMark.style.color = 'var(--success)';
-                                btnMark.disabled = true;
+                                updateMarkCompleteButtons({
+                                    display: 'block',
+                                    innerHTML: '✅ Đã hoàn thành bài học',
+                                    className: 'btn btn-outline',
+                                    color: 'var(--success)',
+                                    borderColor: 'rgba(110,231,183,0.3)',
+                                    disabled: true,
+                                    opacity: '1'
+                                });
 
                                 // Course completed?
                                 if (d.course_completed) {
@@ -655,27 +696,154 @@ require __DIR__ . '/../layouts/header.php';
 
         // ─── Progress Tracking ──────────────────────────────────
         let _videoPollInterval = null;
-        let _lastVideoProgress  = 0;
-        let _lastTextProgress   = 0;
+        let _videoTimer        = null;
+        let _textTimer         = null;
+        let _lastVideoProgress = 0;
+        let _lastTextProgress  = 0;
+        let _videoWatchedTime  = 0;
+        let _textReadTime      = 0;
+        window._confirmReadChecked = false;
+
+        function updateMarkCompleteButtons(state) {
+            const buttons = [
+                document.getElementById('btn_mark_complete'),
+                document.getElementById('btn_mark_complete_bottom')
+            ];
+            buttons.forEach(btn => {
+                if (!btn) return;
+                if (state.display !== undefined) {
+                    if (typeof state.display === 'boolean') {
+                        btn.style.display = state.display ? 'block' : 'none';
+                    } else {
+                        btn.style.display = state.display;
+                    }
+                }
+                if (state.innerHTML !== undefined) btn.innerHTML = state.innerHTML;
+                if (state.className !== undefined) btn.className = state.className;
+                if (state.color !== undefined) btn.style.color = state.color;
+                if (state.borderColor !== undefined) btn.style.borderColor = state.borderColor;
+                if (state.disabled !== undefined) btn.disabled = state.disabled;
+                if (state.opacity !== undefined) btn.style.opacity = state.opacity;
+            });
+        }
 
         function clearVideoProgressInterval() {
             if (_videoPollInterval) { clearInterval(_videoPollInterval); _videoPollInterval = null; }
+            if (_videoTimer) { clearInterval(_videoTimer); _videoTimer = null; }
+            if (_textTimer) { clearInterval(_textTimer); _textTimer = null; }
+            if (window._textScrollHandler) {
+                window.removeEventListener('scroll', window._textScrollHandler);
+                window._textScrollHandler = null;
+            }
+        }
+
+        async function syncCurrentProgress() {
+            if (!currentLessonId) return;
+            
+            const videoEl = document.getElementById('secureVideoPlayer') || document.querySelector('#video_wrapper video');
+            let videoProgress = _lastVideoProgress;
+            if (videoEl && videoEl.duration) {
+                videoProgress = Math.min(100, Math.round(_videoWatchedTime / videoEl.duration * 100));
+            }
+
+            let textProgress = _lastTextProgress;
+            if (window._confirmReadChecked) {
+                textProgress = 100;
+            } else {
+                const contentEl = document.getElementById('lesson_content');
+                if (contentEl && _textTimer) {
+                    const text = contentEl.innerText || "";
+                    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+                    const wordCount = words.length;
+                    const requiredTime = Math.max(5, Math.min(20, Math.round(wordCount / 10)));
+                    
+                    const timePct = Math.min(100, Math.round(_textReadTime / requiredTime * 100));
+                    
+                    const rect = contentEl.getBoundingClientRect();
+                    const total = contentEl.offsetHeight;
+                    let scrollPct = 0;
+                    if (total > 0) {
+                        const scrolledPast = window.scrollY + window.innerHeight - (window.scrollY + rect.top);
+                        scrollPct = Math.min(100, Math.round(Math.max(scrolledPast, 0) / total * 100));
+                    }
+                    textProgress = Math.min(timePct, scrollPct);
+                }
+            }
+
+            if (videoProgress > _lastVideoProgress || textProgress > _lastTextProgress) {
+                _lastVideoProgress = videoProgress;
+                _lastTextProgress = textProgress;
+                try {
+                    await window.api.post(`/lessons/${currentLessonId}/progress`, {
+                        video_progress: videoProgress,
+                        text_progress: textProgress
+                    });
+                } catch(e) { console.error('Failed to sync progress:', e); }
+            }
         }
 
         function startVideoProgressTracking(videoEl, savedProgress) {
             _lastVideoProgress = savedProgress;
-            _videoPollInterval = setInterval(async () => {
-                if (!videoEl || videoEl.paused || !videoEl.duration) return;
-                const pct = Math.round(videoEl.currentTime / videoEl.duration * 100);
-                if (pct <= _lastVideoProgress) return; // Never decrease
-                _lastVideoProgress = pct;
-                try {
-                    const r = await window.api.post(`/lessons/${currentLessonId}/progress`, {
-                        video_progress: pct, text_progress: _lastTextProgress
-                    });
-                    if (r.data.just_completed) handleLessonJustCompleted(r.data);
-                } catch(e) { /* silent */ }
-            }, 10000); // every 10 seconds
+            
+            const initWatchedTime = () => {
+                if (videoEl.duration) {
+                    _videoWatchedTime = (savedProgress / 100) * videoEl.duration;
+                }
+            };
+            
+            if (videoEl.readyState >= 1) {
+                initWatchedTime();
+            } else {
+                videoEl.addEventListener('loadedmetadata', initWatchedTime, { once: true });
+            }
+
+            clearVideoProgressInterval();
+
+            // Track play time every second and poll progress to server every 10s
+            let lastPollTime = Date.now();
+            _videoTimer = setInterval(async () => {
+                if (!videoEl || !videoEl.duration) return;
+                
+                // Only increment if playing, not seeking, and page is visible
+                if (!videoEl.paused && !videoEl.seeking && !document.hidden) {
+                    _videoWatchedTime += 1;
+                }
+                
+                // Poll progress to server every 10 seconds if progress has increased
+                const now = Date.now();
+                if (now - lastPollTime >= 10000) {
+                    lastPollTime = now;
+                    const pct = Math.min(100, Math.round(_videoWatchedTime / videoEl.duration * 100));
+                    if (pct > _lastVideoProgress) {
+                        _lastVideoProgress = pct;
+                        try {
+                            const r = await window.api.post(`/lessons/${currentLessonId}/progress`, {
+                                video_progress: pct, text_progress: _lastTextProgress
+                            });
+                            if (r.data.just_completed) handleLessonJustCompleted(r.data);
+                        } catch(e) { /* silent */ }
+                    }
+                }
+            }, 1000);
+
+            // Sync progress immediately on pause
+            videoEl.addEventListener('pause', async () => {
+                await syncCurrentProgress();
+            });
+
+            // Send 100% on ended only if actually watched >= 80% of video
+            videoEl.addEventListener('ended', async () => {
+                const pct = Math.min(100, Math.round(_videoWatchedTime / videoEl.duration * 100));
+                if (pct >= 80) {
+                    _lastVideoProgress = 100;
+                    try {
+                        const r = await window.api.post(`/lessons/${currentLessonId}/progress`, {
+                            video_progress: 100, text_progress: _lastTextProgress
+                        });
+                        if (r.data.just_completed) handleLessonJustCompleted(r.data);
+                    } catch(e) { /* silent */ }
+                }
+            });
         }
 
         function startTextProgressTracking(savedProgress) {
@@ -683,14 +851,26 @@ require __DIR__ . '/../layouts/header.php';
             const contentEl = document.getElementById('lesson_content');
             if (!contentEl) return;
 
-            const sendTextProgress = async () => {
-                const rect    = contentEl.getBoundingClientRect();
-                const visible = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
-                const total   = contentEl.offsetHeight;
-                if (total <= 0) return;
-                // How far the user has scrolled through the content
+            // Estimate required reading time (assuming 3 words per second, min 15s, max 120s)
+            const text = contentEl.innerText || "";
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+            const wordCount = words.length;
+            const requiredTime = Math.max(5, Math.min(20, Math.round(wordCount / 10)));
+
+            // Initialize read time from saved progress
+            _textReadTime = (savedProgress / 100) * requiredTime;
+
+            clearVideoProgressInterval();
+
+            const calculateScrollPct = () => {
+                const rect = contentEl.getBoundingClientRect();
+                const total = contentEl.offsetHeight;
+                if (total <= 0) return 0;
                 const scrolledPast = window.scrollY + window.innerHeight - (window.scrollY + rect.top);
-                const pct = Math.min(100, Math.round(Math.max(scrolledPast, 0) / total * 100));
+                return Math.min(100, Math.round(Math.max(scrolledPast, 0) / total * 100));
+            };
+
+            const sendProgress = async (pct) => {
                 if (pct <= _lastTextProgress) return;
                 _lastTextProgress = pct;
                 try {
@@ -701,11 +881,30 @@ require __DIR__ . '/../layouts/header.php';
                 } catch(e) { /* silent */ }
             };
 
-            // Debounce scroll
-            let scrollTimer;
+            // Every second, increment read time and compute progress (requires scroll + time)
+            _textTimer = setInterval(() => {
+                if (document.hidden) return;
+                _textReadTime += 1;
+                
+                const timePct = Math.min(100, Math.round(_textReadTime / requiredTime * 100));
+                const scrollPct = calculateScrollPct();
+                const combinedPct = Math.min(timePct, scrollPct);
+                
+                if (combinedPct > _lastTextProgress) {
+                    if (combinedPct - _lastTextProgress >= 5 || combinedPct === 100 || (_textReadTime % 10 === 0)) {
+                        sendProgress(combinedPct);
+                    }
+                }
+            }, 1000);
+
+            // Scroll listener update
             window._textScrollHandler = () => {
-                clearTimeout(scrollTimer);
-                scrollTimer = setTimeout(sendTextProgress, 800);
+                const scrollPct = calculateScrollPct();
+                const timePct = Math.min(100, Math.round(_textReadTime / requiredTime * 100));
+                const combinedPct = Math.min(timePct, scrollPct);
+                if (combinedPct > _lastTextProgress) {
+                    sendProgress(combinedPct);
+                }
             };
             window.addEventListener('scroll', window._textScrollHandler);
         }
@@ -727,13 +926,15 @@ require __DIR__ . '/../layouts/header.php';
             }
 
             // Update mark-complete button
-            const btn = document.getElementById('btn_mark_complete');
-            btn.style.display = 'block';
-            btn.innerHTML = '✅ Đã hoàn thành bài học';
-            btn.className = 'btn btn-outline';
-            btn.style.color = 'var(--success)';
-            btn.style.borderColor = 'rgba(110,231,183,0.3)';
-            btn.disabled = true;
+            updateMarkCompleteButtons({
+                display: 'block',
+                innerHTML: '✅ Đã hoàn thành bài học',
+                className: 'btn btn-outline',
+                color: 'var(--success)',
+                borderColor: 'rgba(110,231,183,0.3)',
+                disabled: true,
+                opacity: '1'
+            });
 
             // Unlock next lesson in sidebar
             refreshCurriculumProgress();
@@ -752,14 +953,52 @@ require __DIR__ . '/../layouts/header.php';
 
         async function markComplete() {
             if (!currentLessonId) return;
+            updateMarkCompleteButtons({ disabled: true });
             try {
+                // Force sync progress immediately before trying to mark complete
+                await syncCurrentProgress();
                 const res = await window.api.post(`/lessons/${currentLessonId}/complete`, {});
                 handleLessonJustCompleted(res.data || {});
             } catch (e) {
                 console.error(e);
                 App.showToast(e.message || 'Không thể đánh dấu hoàn thành bài học. Vui lòng kiểm tra lại điều kiện hoàn thành.', 'error');
+                const chkConfirm = document.getElementById('chk_confirm_read');
+                const isChecked = chkConfirm && chkConfirm.checked;
+                updateMarkCompleteButtons({
+                    disabled: !isChecked,
+                    opacity: isChecked ? '1' : '0.5'
+                });
             }
         }
+
+        async function handleReadConfirmChange(checkboxEl) {
+            if (checkboxEl.checked) {
+                window._confirmReadChecked = true;
+                clearVideoProgressInterval();
+                updateMarkCompleteButtons({
+                    disabled: false,
+                    opacity: '1'
+                });
+                App.showToast('📖 Đã xác nhận đọc xong tài liệu. Hãy nhấn "Đánh dấu Đã Học" để hoàn thành.', 'success');
+            } else {
+                window._confirmReadChecked = false;
+                startTextProgressTracking(0);
+                updateMarkCompleteButtons({
+                    disabled: true,
+                    opacity: '0.5'
+                });
+            }
+        }
+
+        // Auto sync on page hide/unload or visibility change
+        window.addEventListener('beforeunload', () => {
+            syncCurrentProgress();
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                syncCurrentProgress();
+            }
+        });
 
         async function refreshCurriculumProgress() {
             try {
@@ -866,26 +1105,40 @@ require __DIR__ . '/../layouts/header.php';
             return text.replace(/\n/g, '<br>');
         }
 
-        async function clearAIChat() {
-            const confirmMsg = window.I18n ? window.I18n.get('lrn_ai_clear_confirm') : 'Bạn có chắc chắn muốn xóa toàn bộ lịch sử hội thoại của bài học này?';
-            const confirmed = await App.confirm({
-                title: 'Xóa lịch sử chat',
-                message: confirmMsg,
-                type: 'danger',
-                confirmText: 'Xóa ngay',
-                cancelText: 'Hủy bỏ'
-            });
-            if (!confirmed) return;
+        async function loadAIChatHistory(lessonId, lessonTitle) {
+            const chatBox = document.getElementById('chatBox');
+            if (!chatBox) return;
+
+            let welcomeMsg = '';
+            const lang = localStorage.getItem('lang') || 'vi';
+            if (lang === 'en') {
+                welcomeMsg = `👋 Hello! I am your AI Tutor for the lesson "${lessonTitle}". Ask me anything about this lesson!`;
+            } else {
+                welcomeMsg = `👋 Chào bạn! Tôi là AI Tutor của bạn cho bài học "${lessonTitle}". Hỏi tôi bất cứ điều gì về nội dung bài học này nhé!`;
+            }
+            chatBox.innerHTML = `<div class="msg bot">${welcomeMsg}</div>`;
+
             try {
-                await window.api.delete('/ai/history', { lesson_id: currentLessonId });
-                document.getElementById('chatBox').innerHTML = `<div class="msg bot" data-i18n="lrn_ai_welcome">👋 Chào bạn! Tôi là AI Tutor của bạn. Hỏi tôi bất cứ điều gì về nội dung bài học này nhé!</div>`;
-                if (window.I18n) window.I18n.render();
-                const clearToast = window.I18n ? window.I18n.get('lrn_ai_clear_toast') : 'Đã xóa lịch sử chat';
-                App.showToast(clearToast, 'success');
-            } catch (e) {
-                App.showToast(e.message, 'error');
+                const res = await window.api.get(`/ai/history?lesson_id=${lessonId}`);
+                if (res.data && res.data.history && res.data.history.length > 0) {
+                    res.data.history.forEach(msg => {
+                        if (msg.role === 'user') {
+                            chatBox.innerHTML += `<div class="msg user">${escapeHtml(msg.content)}</div>`;
+                        } else if (msg.role === 'assistant') {
+                            const html = formatAiResponse(msg.content);
+                            chatBox.innerHTML += `<div class="msg bot"><div class="ai-markdown-content">${html}</div></div>`;
+                        }
+                    });
+                    
+                    chatBox.querySelectorAll('pre code').forEach(b => hljs.highlightElement(b));
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            } catch (err) {
+                console.error("Lỗi khi tải lịch sử AI Tutor:", err);
             }
         }
+
+
 
         document.getElementById('chatForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -913,7 +1166,8 @@ require __DIR__ . '/../layouts/header.php';
                 const res = await window.api.post('/ai/tutor', {
                     message,
                     lesson_id: currentLessonId,
-                    course_id: courseId
+                    course_id: courseId,
+                    lang: localStorage.getItem('lang') || 'vi'
                 });
 
                 const botMsgDiv = document.getElementById(thinkingId);
@@ -977,6 +1231,12 @@ require __DIR__ . '/../layouts/header.php';
                 btn.disabled  = false;
                 btn.innerText = 'Gửi Đánh Giá';
             }
+        }
+
+        function skipReview() {
+            localStorage.setItem(`skip_review_${courseId}`, 'true');
+            document.getElementById('reviewModal').style.display = 'none';
+            window.location.replace(`/student/course-completed/${courseId}`);
         }
     </script>
 <?php

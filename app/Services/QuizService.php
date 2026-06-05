@@ -20,17 +20,23 @@ class QuizService
 
         // Enforce that student has completed >= 80% lesson progress before viewing/doing quiz
         if ($userRole === 'student' && $userId > 0) {
-            $stmtProgress = $db->prepare("
-                SELECT is_completed, video_progress, text_progress 
-                FROM lesson_progress 
-                WHERE user_id = :uid AND lesson_id = :lid
-            ");
-            $stmtProgress->execute(['uid' => $userId, 'lid' => $lessonId]);
-            $prog = $stmtProgress->fetch(\PDO::FETCH_ASSOC);
+            $stmtLesson = $db->prepare("SELECT content_type FROM lessons WHERE id = ?");
+            $stmtLesson->execute([$lessonId]);
+            $contentType = $stmtLesson->fetchColumn();
             
-            $isCompleted = $prog && ((int)$prog['is_completed'] === 1 || (int)$prog['video_progress'] >= 80 || (int)$prog['text_progress'] >= 80);
-            if (!$isCompleted) {
-                throw new Exception("Bạn cần hoàn thành ít nhất 80% nội dung bài học trước khi làm bài kiểm tra.");
+            if ($contentType !== 'quiz') {
+                $stmtProgress = $db->prepare("
+                    SELECT is_completed, video_progress, text_progress 
+                    FROM lesson_progress 
+                    WHERE user_id = :uid AND lesson_id = :lid
+                ");
+                $stmtProgress->execute(['uid' => $userId, 'lid' => $lessonId]);
+                $prog = $stmtProgress->fetch(\PDO::FETCH_ASSOC);
+                
+                $isCompleted = $prog && ((int)$prog['is_completed'] === 1 || (int)$prog['video_progress'] >= 80 || (int)$prog['text_progress'] >= 80);
+                if (!$isCompleted) {
+                    throw new Exception("Bạn cần hoàn thành ít nhất 80% nội dung bài học trước khi làm bài kiểm tra.");
+                }
             }
         }
 
@@ -181,6 +187,7 @@ class QuizService
 
         // Kiểm tra passing_score và đánh dấu hoàn thành lesson tương ứng nếu đạt
         $passingScore = 80;
+        $completionData = [];
         try {
             $db2   = \App\Core\Database::connect();
             $stmtQ = $db2->prepare("SELECT lesson_id, COALESCE(passing_score, 80) as passing_score FROM quizzes WHERE id = ?");
@@ -191,7 +198,7 @@ class QuizService
             // Nếu đạt → đánh dấu lesson hoàn thành và trigger course check
             if ($score >= $passingScore && $quizRow && $quizRow['lesson_id']) {
                 $lessonService = new LessonService();
-                $lessonService->markLessonCompleted($userId, (int)$quizRow['lesson_id']);
+                $completionData = $lessonService->markLessonCompleted($userId, (int)$quizRow['lesson_id']);
             }
         } catch (\Exception $e) {
             // Non-critical
@@ -199,14 +206,14 @@ class QuizService
 
         $passed = $score >= $passingScore;
 
-        return [
+        return array_merge([
             'score'           => $score,
             'correct_count'   => $correctCount,
             'total_questions' => $totalQuestions,
             'passed'          => $passed,
             'passing_score'   => $passingScore,
             'details'         => $details,
-        ];
+        ], $completionData);
     }
 
     /**

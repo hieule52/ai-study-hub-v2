@@ -4,6 +4,15 @@ $actor = 'student';
 $extraHead = '
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="/assets/css/pages/ai-chat.css?v=' . time() . '">
+    <style>
+        .external-disclaimer {
+            font-size: 0.8rem;
+            color: #f59e0b;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(245, 158, 11, 0.2);
+        }
+    </style>
 ';
 require __DIR__ . '/../layouts/header.php';
 ?>
@@ -42,20 +51,10 @@ require __DIR__ . '/../layouts/header.php';
                 <button class="btn-prompt" onclick="usePrompt(window.I18n ? window.I18n.get('aichat_prompt3') : 'Create practice exercises')" data-i18n="aichat_prompt3">Tạo bài tập thực hành</button>
             </div>
 
-            <!-- Image Preview Container -->
-            <div id="imagePreviewContainer" style="display: none; position: relative; width: 100px; height: 100px; margin-bottom: 1rem; border-radius: 12px; overflow: hidden; border: 2px solid var(--secondary); box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);">
-                <img id="imagePreview" src="" style="width: 100%; height: 100%; object-fit: cover;">
-                <button onclick="removeImage()" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;">&times;</button>
-            </div>
-
             <!-- Chat Form -->
             <form id="chatForm">
-                <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp" style="display: none;">
                 <div class="input-wrapper">
-                    <button type="button" onclick="document.getElementById('imageInput').click()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.4rem; padding: 0 0.75rem; transition: all 0.3s;" onmouseover="this.style.color='var(--secondary)'; this.style.transform='scale(1.1)'" onmouseout="this.style.color='var(--text-muted)'; this.style.transform='scale(1)'">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                    </button>
-                    <input type="text" id="chatInput" placeholder="Nhập câu hỏi hoặc đính kèm ảnh..." autocomplete="off" required data-i18n="aichat_input_placeholder">
+                    <input type="text" id="chatInput" placeholder="Nhập câu hỏi của bạn..." autocomplete="off" required data-i18n="aichat_input_placeholder">
                     <button type="submit" class="btn-send">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                     </button>
@@ -84,50 +83,15 @@ require __DIR__ . '/../layouts/header.php';
             document.getElementById('chatForm').dispatchEvent(new Event('submit'));
         }
 
-        let currentBase64Image = null;
-
-        document.getElementById('imageInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Kiểm tra dung lượng (Max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                const errMsg = window.I18n ? window.I18n.get('aichat_file_too_large') : "File ảnh quá lớn! Vui lòng chọn ảnh dưới 5MB.";
-                alert(errMsg);
-                this.value = '';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                currentBase64Image = event.target.result;
-                document.getElementById('imagePreview').src = currentBase64Image;
-                document.getElementById('imagePreviewContainer').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        });
-
-        function removeImage() {
-            currentBase64Image = null;
-            document.getElementById('imageInput').value = '';
-            document.getElementById('imagePreviewContainer').style.display = 'none';
-        }
-
         document.getElementById('chatForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input = document.getElementById('chatInput');
             const chatBox = document.getElementById('chatBox');
             const message = input.value.trim();
-            if (!message && !currentBase64Image) return;
+            if (!message) return;
 
-            // Handle rendering image + text in user bubble
-            let userContentHtml = '';
-            if (currentBase64Image) {
-                userContentHtml += `<img src="${currentBase64Image}" style="max-width: 200px; border-radius: 8px; margin-bottom: 8px; display: block;">`;
-            }
-            if (message) {
-                userContentHtml += `<span>${message}</span>`;
-            }
+            // Handle rendering text in user bubble
+            let userContentHtml = `<span>${message}</span>`;
 
             // Render Tin nhắn của User
             chatBox.innerHTML += `
@@ -145,21 +109,18 @@ require __DIR__ . '/../layouts/header.php';
             }
 
             // Capture payload
-            const payload = { message: message };
-            if (currentBase64Image) {
-                payload.base64_image = currentBase64Image;
-            }
+            const payload = { 
+                message: message,
+                lang: localStorage.getItem('lang') || 'vi'
+            };
 
             // Clear Input
             input.value = '';
-            removeImage();
             chatBox.scrollTop = chatBox.scrollHeight;
 
             // Render Bubble AI đang suy nghĩ
             const thinkingId = 'think_' + Date.now();
-            const analyzingMsg = payload.base64_image ? 
-                (window.I18n ? window.I18n.get('aichat_analyzing_img') : 'Đang phân tích câu hỏi và hình ảnh...') : 
-                (window.I18n ? window.I18n.get('aichat_analyzing') : 'Đang phân tích câu hỏi...');
+            const analyzingMsg = window.I18n ? window.I18n.get('aichat_analyzing') : 'Đang phân tích câu hỏi...';
             
             chatBox.innerHTML += `
                 <div class="msg-container ai" id="container_${thinkingId}">
@@ -179,8 +140,27 @@ require __DIR__ . '/../layouts/header.php';
                 // Thay thế bong bóng suy nghĩ bằng kết quả
                 const targetBubble = document.getElementById(thinkingId);
                 targetBubble.classList.remove('thinking-bubble');
+                
+                const data = res.data;
+                let htmlResponse = '';
+
                 // Sử dụng thư viện marked để render markdown code block sinh ra bởi AI
-                targetBubble.innerHTML = window.marked && window.marked.parse ? marked.parse(res.data.ai_response) : res.data.ai_response.replace(/\n/g, '<br>');
+                const parsedMarkdown = window.marked && window.marked.parse ? marked.parse(data.ai_response) : data.ai_response.replace(/\n/g, '<br>');
+                htmlResponse += parsedMarkdown;
+
+                // Show external knowledge warning disclaimer at the end of the bubble if applicable
+                if (data.is_external || data.from_external) {
+                    const warningMsg = data.disclaimer || (localStorage.getItem('lang') === 'en'
+                        ? '⚠️ This content is generated from external sources outside the AI Study Hub LMS. Please verify the information.'
+                        : '⚠️ Nội dung này được tạo từ nguồn kiến thức bên ngoài hệ thống AI Study Hub LMS. Vui lòng kiểm chứng lại thông tin trước khi áp dụng.');
+                    htmlResponse += `
+                        <div class="external-disclaimer">
+                            ${warningMsg}
+                        </div>
+                    `;
+                }
+
+                targetBubble.innerHTML = htmlResponse;
                 
                 // Add CSS inline fix for code blocks rendering from marked
                 const codes = targetBubble.querySelectorAll('pre');

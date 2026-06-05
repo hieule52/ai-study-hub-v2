@@ -85,7 +85,6 @@ $router->get('/api/learning-paths/:id/progress', 'Api\LearningPathController@pro
 $router->post('/api/ai/chat', 'Api\AiController@chat');
 // AI số 2: AI Tutor nghiêm ngặt — chỉ Student trong trang học bài
 $router->post('/api/ai/tutor', 'Api\AiController@tutor');
-$router->delete('/api/ai/history', 'Api\AiController@clearHistory');
 $router->get('/api/chat/history', 'Api\ChatController@history');
 
 // =============================================

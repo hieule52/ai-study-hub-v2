@@ -130,6 +130,34 @@ require __DIR__ . '/../layouts/header.php';
     to { opacity:1; transform:translateY(0) scale(1); }
 }
 select option { background: #0d1525; color: #fff; }
+.admin-btn-warning {
+    background: rgba(245,158,11,0.12) !important;
+    color: #f59e0b !important;
+    border: 1px solid rgba(245,158,11,0.25) !important;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+.admin-btn-warning:hover {
+    background: rgba(245,158,11,0.25) !important;
+    transform: translateY(-1px);
+}
+.admin-btn-success {
+    background: rgba(16,185,129,0.12) !important;
+    color: #10b981 !important;
+    border: 1px solid rgba(16,185,129,0.25) !important;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+.admin-btn-success:hover {
+    background: rgba(16,185,129,0.25) !important;
+    transform: translateY(-1px);
+}
 </style>
 
 <script>
@@ -173,6 +201,12 @@ function renderUsers(users) {
         const statusClass = u.status === 'active' ? 'badge-active' : 'badge-draft';
         const statusLabel = u.status === 'active' ? 'Hoạt động' : 'Bị khóa';
 
+        // Lock/Unlock button
+        const isActive = u.status === 'active';
+        const lockBtnClass = isActive ? 'admin-btn-warning' : 'admin-btn-success';
+        const lockIcon = isActive ? 'fa-lock' : 'fa-lock-open';
+        const lockTitle = isActive ? 'Khóa' : 'Mở khóa';
+
         return `
             <tr id="u-row-${u.id}">
                 <td style="opacity:0.4; font-size:0.8rem;">#${u.id}</td>
@@ -187,11 +221,13 @@ function renderUsers(users) {
                 </td>
                 <td>
                     <span class="admin-badge ${roleClass}">${u.role}</span>
-                    ${u.is_vip == 1 ? '<span class="admin-badge" style="margin-left:4px;background:rgba(245,158,11,0.12);color:#f59e0b;border-color:rgba(245,158,11,0.2);">VIP</span>' : ''}
                 </td>
                 <td><span class="admin-badge ${statusClass}">${statusLabel}</span></td>
                 <td>
                     <div style="display:flex; gap:0.5rem;">
+                        <button onclick="toggleUserStatus(${u.id}, '${u.status}')" class="admin-btn ${lockBtnClass}" title="${lockTitle}">
+                            <i class="fas ${lockIcon}"></i>
+                        </button>
                         <button onclick='openEditModal(${JSON.stringify(u).replace(/'/g, "&#39;")})' class="admin-btn admin-btn-ghost">
                             <i class="fas fa-edit"></i> Sửa
                         </button>
@@ -263,6 +299,31 @@ async function deleteUser(id) {
         App.showToast('Đã xóa người dùng thành công.', 'success');
         loadUsers();
     } catch(e) { App.showToast(e.message, 'error'); }
+}
+
+async function toggleUserStatus(id, currentStatus) {
+    const newStatus = currentStatus === 'active' ? 'banned' : 'active';
+    const actionLabel = newStatus === 'banned' ? 'Khóa tài khoản' : 'Mở khóa tài khoản';
+    const msg = newStatus === 'banned'
+        ? 'Tài khoản sẽ bị khóa và không thể truy cập hệ thống. Bạn có chắc chắn?'
+        : 'Tài khoản sẽ được mở khóa và có thể truy cập lại hệ thống. Bạn có chắc chắn?';
+
+    const confirmed = await App.confirm({
+        title: actionLabel,
+        message: msg,
+        type: newStatus === 'banned' ? 'warning' : 'info',
+        confirmText: actionLabel,
+        cancelText: 'Hủy bỏ'
+    });
+    if (!confirmed) return;
+
+    try {
+        await window.api.put(`/admin/users/${id}/status`, { status: newStatus });
+        App.showToast(`Đã ${newStatus === 'banned' ? 'khóa' : 'mở khóa'} tài khoản thành công!`, 'success');
+        loadUsers();
+    } catch(e) {
+        App.showToast(e.message, 'error');
+    }
 }
 </script>
 

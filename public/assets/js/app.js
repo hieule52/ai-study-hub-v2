@@ -281,7 +281,11 @@ const App = {
 
     requireAuth(allowedRoles = []) {
         const user = window.api.getUser();
-        if (!user) { window.location.href = '/login'; return; }
+        if (!user) {
+            const currentUrl = window.location.pathname + window.location.search;
+            window.location.href = '/login?redirect=' + encodeURIComponent(currentUrl);
+            return;
+        }
         if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
             const dashboards = { 'admin': '/admin/dashboard', 'teacher': '/teacher/dashboard', 'student': '/student/dashboard' };
             window.location.replace(dashboards[user.role] || '/');
@@ -419,7 +423,7 @@ const App = {
         } else {
             this.showToast(message, 'info');
             setTimeout(() => {
-                window.location.href = '/login';
+                window.location.href = '/login?redirect=' + encodeURIComponent(targetUrl);
             }, 1200);
         }
     },
