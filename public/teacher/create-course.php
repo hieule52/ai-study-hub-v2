@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Tạo Khóa Học - AI Study Hub';
+$pageTitle = 'Create Course - AI Study Hub';
 $actor = 'teacher';
 $noSidebar = true;
 $extraHead = '<link rel="stylesheet" href="/assets/css/teacher/dashboard.css?v=' . time() . '">';
@@ -8,29 +8,7 @@ require __DIR__ . '/../layouts/header.php';
 
 <div class="teacher-layout">
     <!-- Sidebar -->
-    <aside class="teacher-sidebar">
-        <a href="/teacher/dashboard" class="sidebar-nav-item">
-            <i class="fas fa-th-large"></i>
-            <span data-i18n="tc_dash_title">Bảng điều khiển</span>
-        </a>
-        <a href="/teacher/dashboard#courses-section" class="sidebar-nav-item">
-            <i class="fas fa-book"></i>
-            <span data-i18n="tc_dash_list_title">Khóa học của tôi</span>
-        </a>
-        <a href="/teacher/students" class="sidebar-nav-item">
-            <i class="fas fa-user-graduate"></i>
-            <span data-i18n="nav_teacher_students">Học viên</span>
-        </a>
-        <a href="/teacher/chat" class="sidebar-nav-item">
-            <i class="fas fa-comments"></i>
-            <span data-i18n="nav_teacher_chat">Tin nhắn</span>
-        </a>
-        <div style="margin-top: auto; padding: 1rem;">
-            <button onclick="App.logout()" class="btn btn-outline-danger w-full" style="border-radius: var(--radius-md);">
-                Đăng xuất
-            </button>
-        </div>
-    </aside>
+    <?php require __DIR__ . '/../layouts/teacher_sidebar.php'; ?>
 
     <main class="teacher-content">
         <header class="dash-header">

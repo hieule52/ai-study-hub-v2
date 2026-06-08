@@ -1,5 +1,5 @@
 <?php
-$pageTitle = 'Admin Dashboard — AI Study Hub';
+$pageTitle = 'Admin Dashboard - AI Study Hub';
 $actor = 'admin';
 $noSidebar = true;
 $extraHead = '

@@ -1,6 +1,7 @@
 <?php
 $pageTitle = 'Khóa học của tôi - AI Study Hub';
 $actor = 'student';
+$footerMode = 'mini';
 $extraHead = '
     <link rel="stylesheet" href="/assets/css/student/courses.css?v=' . time() . '">
 ';

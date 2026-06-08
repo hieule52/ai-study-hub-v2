@@ -1,6 +1,7 @@
 <?php
-$pageTitle = 'Góc Học Tập - AI Study Hub';
+$pageTitle = 'Student Dashboard - AI Study Hub';
 $actor = 'student';
+$footerMode = 'mini';
 $extraHead = '
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/assets/css/student/dashboard.css?v=' . time() . '">

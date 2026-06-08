@@ -1,7 +1,8 @@
 <?php
-$pageTitle = 'Xây Dựng Khóa Học - AI Study Hub';
+$pageTitle = 'Course Builder - AI Study Hub';
 $actor = 'teacher';
 $noSidebar = true;
+$footerMode = 'none';
 $extraHead = '
     <link rel="stylesheet" href="/assets/css/teacher/dashboard.css?v=' . time() . '">
     <link rel="stylesheet" href="/assets/css/teacher/builder.css?v=' . time() . '">
@@ -13,35 +14,32 @@ require __DIR__ . '/../layouts/header.php';
 
 <div class="teacher-layout">
     <!-- Sidebar (Teacher Navigation) -->
-    <aside class="teacher-sidebar">
-        <a href="/teacher/dashboard" class="sidebar-nav-item">
-            <i class="fas fa-th-large"></i>
-            <span data-i18n="tc_dash_title">Bảng điều khiển</span>
-        </a>
-        <a href="/teacher/dashboard#courses-section" class="sidebar-nav-item active">
-            <i class="fas fa-book"></i>
-            <span data-i18n="tc_dash_list_title">Khóa học của tôi</span>
-        </a>
-        <a href="/teacher/students" class="sidebar-nav-item">
-            <i class="fas fa-user-graduate"></i>
-            <span data-i18n="nav_teacher_students">Học viên</span>
-        </a>
-        <a href="/teacher/chat" class="sidebar-nav-item">
-            <i class="fas fa-comments"></i>
-            <span data-i18n="nav_teacher_chat">Tin nhắn</span>
-        </a>
-        <div style="margin-top: auto; padding: 1rem;">
-            <button onclick="App.logout()" class="btn btn-outline-danger w-full" style="border-radius: var(--radius-md);">
-                Đăng xuất
-            </button>
-        </div>
-    </aside>
+    <?php require __DIR__ . '/../layouts/teacher_sidebar.php'; ?>
 
     <div class="builder-layout">
-        <!-- Builder Sidebar (Curriculum) -->
+        <!-- ═══════════════════════════════════════
+             BUILDER SIDEBAR (Curriculum)
+             ═══════════════════════════════════════ -->
         <aside class="builder-sidebar">
             <div class="builder-sidebar-header">
                 <h3 id="course-title-display">Đang tải...</h3>
+
+                <!-- Stats Strip -->
+                <div class="sidebar-stats" id="sidebar-stats">
+                    <span class="sidebar-stat-badge">
+                        <span class="stat-icon">📚</span>
+                        <span class="stat-count" id="stat-chapters">0</span> Chương
+                    </span>
+                    <span class="sidebar-stat-badge">
+                        <span class="stat-icon">📝</span>
+                        <span class="stat-count" id="stat-lessons">0</span> Bài học
+                    </span>
+                    <span class="sidebar-stat-badge">
+                        <span class="stat-icon">❓</span>
+                        <span class="stat-count" id="stat-quizzes">0</span> Quiz
+                    </span>
+                </div>
+
                 <button class="btn btn-primary w-full" onclick="createNewChapter()" style="border-radius: 100px;">
                     + Thêm chương mới
                 </button>
@@ -51,14 +49,36 @@ require __DIR__ . '/../layouts/header.php';
             </div>
         </aside>
 
-        <!-- Main Editor -->
+        <!-- ═══════════════════════════════════════
+             MAIN EDITOR (Tabbed)
+             ═══════════════════════════════════════ -->
         <main class="builder-content">
             <div id="editor-panel" style="display:none;">
                 <div class="editor-card">
-                    <header class="editor-title">
-                        <span id="editor-icon">📝</span>
-                        <span id="editor-title-text">Thêm bài học</span>
-                    </header>
+                    <!-- Card Header -->
+                    <div class="editor-card-header">
+                        <span class="header-icon" id="editor-icon">📝</span>
+                        <span class="header-text" id="editor-title-text">Thêm bài học</span>
+                    </div>
+
+                    <!-- Tab Navigation -->
+                    <div class="lesson-tabs" id="lesson-tabs">
+                        <button class="lesson-tab active" data-tab="tab-info" onclick="switchTab('tab-info', this)">
+                            <span class="tab-icon">📋</span> Thông tin
+                        </button>
+                        <button class="lesson-tab" data-tab="tab-content" onclick="switchTab('tab-content', this)">
+                            <span class="tab-icon">📄</span> Nội dung
+                        </button>
+                        <button class="lesson-tab" data-tab="tab-ai" onclick="switchTab('tab-ai', this)" id="tab-btn-ai">
+                            <span class="tab-icon">🤖</span> AI Tutor
+                        </button>
+                        <button class="lesson-tab" data-tab="tab-quiz" onclick="switchTab('tab-quiz', this)" id="tab-btn-quiz">
+                            <span class="tab-icon">❓</span> Quiz
+                        </button>
+                        <button class="lesson-tab" data-tab="tab-preview" onclick="switchTab('tab-preview', this)">
+                            <span class="tab-icon">👁️</span> Xem trước
+                        </button>
+                    </div>
 
                     <form id="lesson-form">
                         <input type="hidden" id="edit_mode" value="create">
@@ -66,200 +86,220 @@ require __DIR__ . '/../layouts/header.php';
                         <input type="hidden" id="chapter_id">
                         <input type="hidden" id="video_filename">
 
-                        <div class="form-group">
-                            <label class="form-label">Tên bài học <span style="color:var(--danger)">*</span></label>
-                            <input type="text" id="lesson_title" class="form-control" required placeholder="VD: Giới thiệu về Neural Networks">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="form-group">
-                                <label class="form-label">Loại nội dung</label>
-                                <select id="content_type" class="form-control" onchange="toggleContentFields()">
-                                    <option value="video">🎬 Video Bài Giảng</option>
-                                    <option value="text">📄 Tài Liệu Đọc</option>
-                                    <option value="quiz">❓ Bài Kiểm Tra</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Thứ tự hiển thị</label>
-                                <input type="number" id="order_index" class="form-control" value="0">
-                            </div>
-                        </div>
-
-                        <!-- Video Section -->
-                        <div id="video-upload-section">
-                            <label class="form-label">Video bài giảng</label>
-                            <div id="video-info-display"></div>
-                            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('videoFileInput').click()">
-                                <div class="upload-icon"><i class="fas fa-video"></i></div>
-                                <div style="font-weight:700; color:var(--text-primary); margin-bottom:0.5rem;">Click để tải lên video</div>
-                                <div style="font-size: 0.8rem; opacity: 0.5;">MP4, WebM — Tối đa 500MB</div>
-                            </div>
-                            
-                            <div style="margin: 1.5rem 0; display: flex; align-items: center; gap: 1rem;">
-                                <div style="height: 1px; flex: 1; background: rgba(255,255,255,0.1);"></div>
-                                <span style="font-size: 0.75rem; opacity: 0.4; text-transform: uppercase; letter-spacing: 0.1em;">Hoặc dùng link ngoài</span>
-                                <div style="height: 1px; flex: 1; background: rgba(255,255,255,0.1);"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Link YouTube / Vimeo / Drive</label>
-                                <div style="position:relative;">
-                                    <span style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); opacity:0.4;"><i class="fab fa-youtube"></i></span>
-                                    <input type="text" id="video_url" class="form-control" style="padding-left:2.75rem;" placeholder="https://www.youtube.com/watch?v=...">
-                                </div>
-                                <p style="font-size:0.75rem; opacity:0.4; margin-top:0.5rem;">💡 Nếu nhập link, video tải lên sẽ bị bỏ qua.</p>
-                            </div>
-                            <div id="uploadProgress" style="display:none; margin-bottom: 1.5rem;">
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.5rem;">
-                                    <span>Đang tải lên...</span>
-                                    <span id="uploadPct">0%</span>
-                                </div>
-                                <div style="height:4px; background:var(--glass-border); border-radius:10px; overflow:hidden;">
-                                    <div id="uploadProgressBar" style="height:100%; width:0; background:var(--primary);"></div>
-                                </div>
-                            </div>
-                            <input type="file" id="videoFileInput" accept="video/*" style="display:none;" onchange="handleVideoSelect(this)">
-                        </div>
-
-                        <!-- Text Editor -->
-                        <div class="form-group" id="content-group">
-                            <label class="form-label">Nội dung chi tiết bài viết</label>
-                            <div id="lesson_quill_editor"></div>
-                        </div>
-
-                        <!-- Quiz Builder -->
-                        <div id="quiz-builder-section" style="display:none;">
-                            <div class="form-group">
-                                <label class="form-label">Tiêu đề bài kiểm tra</label>
-                                <input type="text" id="quiz_title" class="form-control" placeholder="VD: Câu hỏi ôn tập chương 1">
-                            </div>
-                            
-                            <!-- 🧠 AI Quiz Helper Fields -->
-                            <div style="background:rgba(99, 102, 241, 0.05); padding:1.25rem; border-radius:12px; margin-bottom:1.5rem; border:1px solid rgba(99, 102, 241, 0.15);">
-                                <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; color:var(--primary); font-weight:700; font-size:0.85rem;">
-                                    <span>🧠</span> AI Quiz Assistance
-                                </div>
+                        <div class="lesson-tab-panels">
+                            <!-- ══════════════════════════════════
+                                 TAB 1 — Thông tin bài học
+                                 ══════════════════════════════════ -->
+                            <div class="lesson-tab-panel active" id="tab-info">
                                 <div class="form-group">
-                                    <label class="form-label">Giải thích tổng quát (Explanations)</label>
-                                    <textarea id="quiz_explanations" class="form-control" rows="2" placeholder="AI sẽ dùng nội dung này để giải thích kết quả cho học viên..."></textarea>
+                                    <label class="form-label">Tên bài học <span style="color:var(--danger)">*</span></label>
+                                    <input type="text" id="lesson_title" class="form-control" required placeholder="VD: Giới thiệu về Neural Networks">
                                 </div>
+
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="form-group">
-                                        <label class="form-label">Gợi ý chung (Hints)</label>
-                                        <input type="text" id="quiz_hints" class="form-control" placeholder="Gợi ý khi học viên bí bài...">
+                                        <label class="form-label">Loại nội dung</label>
+                                        <select id="content_type" class="form-control" onchange="toggleContentFields()">
+                                            <option value="video">🎬 Video Bài Giảng</option>
+                                            <option value="text">📄 Tài Liệu Đọc</option>
+                                            <option value="quiz">❓ Bài Kiểm Tra</option>
+                                        </select>
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label">AI Tags</label>
-                                        <input type="text" id="quiz_ai_tags" class="form-control" placeholder="VD: critical thinking, logic">
+                                        <label class="form-label">Thứ tự hiển thị</label>
+                                        <input type="number" id="order_index" class="form-control" value="0">
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="quiz-questions-container"></div>
-                            <button type="button" class="btn btn-outline w-full" onclick="addQuestion()" style="margin-top: 1rem; border-style: dashed;">
-                                + Thêm câu hỏi
-                            </button>
-                            <button type="button" class="btn btn-primary w-full" style="margin-top: 1rem;" onclick="saveQuiz()">
-                                Lưu bài kiểm tra
-                            </button>
-                        </div>
+                            <!-- ══════════════════════════════════
+                                 TAB 2 — Nội dung
+                                 ══════════════════════════════════ -->
+                            <div class="lesson-tab-panel" id="tab-content">
+                                <!-- Video Section -->
+                                <div id="video-upload-section">
+                                    <label class="form-label">Video bài giảng</label>
+                                    <div id="video-info-display"></div>
+                                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('videoFileInput').click()">
+                                        <div class="upload-icon"><i class="fas fa-video"></i></div>
+                                        <div style="font-weight:700; color:var(--text-primary); margin-bottom:0.5rem;">Click để tải lên video</div>
+                                        <div style="font-size: 0.8rem; opacity: 0.5;">MP4 (H.264), WebM, MOV (H.264) — Tối đa 300MB (Khuyến nghị < 200MB)</div>
+                                    </div>
 
-                        <!-- 🤖 AI Learning Context (Collapsible) -->
-                        <div class="ai-context-section" id="ai-lesson-context-group" style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
-                            <div style="cursor:pointer; display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;" onclick="document.getElementById('ai-lesson-fields').classList.toggle('hidden')">
-                                <div style="display:flex; align-items:center; gap:0.5rem;">
-                                    <span style="font-size:1.2rem;">🧠</span>
-                                    <span style="font-weight:700; color:var(--primary); font-size:0.9rem;">AI Learning Context (Mở rộng)</span>
+                                    <div style="margin: 1.5rem 0; display: flex; align-items: center; gap: 1rem;">
+                                        <div style="height: 1px; flex: 1; background: rgba(255,255,255,0.1);"></div>
+                                        <span style="font-size: 0.75rem; opacity: 0.4; text-transform: uppercase; letter-spacing: 0.1em;">Hoặc dùng link ngoài</span>
+                                        <div style="height: 1px; flex: 1; background: rgba(255,255,255,0.1);"></div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Link YouTube / Vimeo / Drive</label>
+                                        <div style="position:relative;">
+                                            <span style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); opacity:0.4;"><i class="fab fa-youtube"></i></span>
+                                            <input type="text" id="video_url" class="form-control" style="padding-left:2.75rem;" placeholder="https://www.youtube.com/watch?v=...">
+                                        </div>
+                                        <p style="font-size:0.75rem; opacity:0.4; margin-top:0.5rem;">💡 Nếu nhập link, video tải lên sẽ bị bỏ qua.</p>
+                                    </div>
+                                    <div id="uploadProgress" style="display:none; margin-bottom: 1.5rem;">
+                                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.5rem;">
+                                            <span>Đang tải lên...</span>
+                                            <span id="uploadPct">0%</span>
+                                        </div>
+                                        <div style="height:4px; background:var(--glass-border); border-radius:10px; overflow:hidden;">
+                                            <div id="uploadProgressBar" style="height:100%; width:0; background:var(--primary);"></div>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/quicktime" style="display:none;" onchange="handleVideoSelect(this)">
                                 </div>
-                                <i class="fas fa-chevron-down" style="font-size:0.8rem; opacity:0.5;"></i>
+
+                                <!-- Text Editor -->
+                                <div class="form-group" id="content-group">
+                                    <label class="form-label">Nội dung chi tiết bài viết</label>
+                                    <div id="lesson_quill_editor"></div>
+                                </div>
                             </div>
-                            <div id="ai-lesson-fields" class="hidden" style="display:flex; flex-direction:column; gap:1.25rem; background:rgba(255,255,255,0.02); padding:1.25rem; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
 
-                                <!-- ── AI Feature Toggles ── -->
-                                <div style="background:rgba(99, 102, 241, 0.06); padding:1.25rem; border-radius:12px; border:1px solid rgba(99, 102, 241, 0.12);">
-                                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; color:var(--primary); font-weight:700; font-size:0.85rem;">
-                                        <span>⚙️</span> Tùy chọn AI tự động
+                            <!-- ══════════════════════════════════
+                                 TAB 3 — AI Tutor
+                                 ══════════════════════════════════ -->
+                            <div class="lesson-tab-panel" id="tab-ai">
+
+                                <!-- Section 1: Cấu hình AI Tutor -->
+                                <div class="ai-section-card">
+                                    <div class="ai-section-title">
+                                        <span class="section-icon">⚙️</span> Cấu hình AI Tutor
                                     </div>
-                                    <div style="display:flex; flex-direction:column; gap:0.85rem;">
-                                        <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; font-size:0.85rem; color:rgba(255,255,255,0.8);">
-                                            <input type="checkbox" id="enable_auto_summary" checked style="accent-color: var(--primary); width:16px; height:16px;">
-                                            Tự động tóm tắt bài học (AI Summary)
+                                    <div class="ai-toggle-list">
+                                        <label class="ai-toggle-item">
+                                            <input type="checkbox" id="enable_auto_summary" checked>
+                                            Tự động tóm tắt bài học
                                         </label>
-                                        <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; font-size:0.85rem; color:rgba(255,255,255,0.8);">
-                                            <input type="checkbox" id="enable_auto_keywords" checked style="accent-color: var(--primary); width:16px; height:16px;">
-                                            Tự động gợi ý từ khóa (AI Keywords)
+                                        <label class="ai-toggle-item">
+                                            <input type="checkbox" id="enable_auto_keywords" checked>
+                                            Tự động gợi ý từ khóa
                                         </label>
-                                        <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; font-size:0.85rem; color:rgba(255,255,255,0.8);">
-                                            <input type="checkbox" id="enable_auto_context" checked style="accent-color: var(--primary); width:16px; height:16px;">
-                                            Tự động thiết lập ngữ cảnh (AI Context)
+                                        <label class="ai-toggle-item">
+                                            <input type="checkbox" id="enable_auto_context" checked>
+                                            Tự động thiết lập ngữ cảnh
                                         </label>
                                     </div>
                                 </div>
 
-                                <!-- ── Strict AI Mode ── -->
-                                <div style="background:rgba(239, 68, 68, 0.06); padding:1.25rem; border-radius:12px; border:1px solid rgba(239, 68, 68, 0.15);">
-                                    <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer;">
-                                        <input type="checkbox" id="strict_ai_mode" style="accent-color: #ef4444; width:18px; height:18px;">
+                                <!-- Section 2: Chế độ AI -->
+                                <div class="ai-section-card strict-mode">
+                                    <div class="ai-section-title">
+                                        <span class="section-icon">🔒</span> Chế độ AI
+                                    </div>
+                                    <label class="strict-mode-label">
+                                        <input type="checkbox" id="strict_ai_mode">
                                         <div>
-                                            <div style="font-weight:700; color:#fff; font-size:0.9rem; display:flex; align-items:center; gap:0.4rem;">
-                                                🔒 Chế độ AI Nghiêm ngặt (Strict Mode)
-                                            </div>
-                                            <div style="font-size:0.75rem; opacity:0.5; margin-top:4px; line-height:1.5;">
+                                            <div style="font-weight:700; color:#fff; font-size:0.9rem;">Chế độ AI Nghiêm ngặt (Strict Mode)</div>
+                                            <div class="strict-mode-desc">
                                                 Khi bật, AI Tutor sẽ CHỈ trả lời dựa trên nội dung bài học do giảng viên cung cấp. Mọi câu hỏi ngoài phạm vi sẽ bị từ chối. Khuyến khích dùng cho bài học có yêu cầu chính xác cao.
                                             </div>
                                         </div>
                                     </label>
                                 </div>
 
-                                <!-- ── Teacher Notes ── -->
-                                <div class="form-group">
-                                    <label class="form-label" style="display:flex; align-items:center; gap:0.4rem;">
-                                        📝 Ghi chú của Giảng viên (Teacher Notes)
-                                    </label>
-                                    <textarea id="teacher_notes" class="form-control" rows="3" placeholder="Viết ghi chú hướng dẫn cho AI Tutor. Nội dung này sẽ được ưu tiên cao nhất khi AI trả lời học viên.&#10;VD: Nhấn mạnh vào phần tối ưu hóa thuật toán, không giải thích sâu về cấu trúc dữ liệu."></textarea>
-                                    <p style="font-size:0.72rem; opacity:0.4; margin-top:0.5rem;">💡 AI Tutor sẽ ưu tiên nội dung ghi chú này cao nhất khi trả lời câu hỏi học viên.</p>
+                                <!-- Section 3: Hướng dẫn AI -->
+                                <div class="ai-section-card">
+                                    <div class="ai-section-title">
+                                        <span class="section-icon">📝</span> Hướng dẫn AI
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:0;">
+                                        <textarea id="teacher_notes" class="form-control" rows="3" placeholder="Viết ghi chú hướng dẫn cho AI Tutor. Nội dung này sẽ được ưu tiên cao nhất khi AI trả lời học viên.&#10;VD: Nhấn mạnh vào phần tối ưu hóa thuật toán, không giải thích sâu về cấu trúc dữ liệu."></textarea>
+                                        <p style="font-size:0.72rem; opacity:0.4; margin-top:0.5rem;">💡 AI Tutor sẽ ưu tiên nội dung ghi chú này cao nhất khi trả lời câu hỏi học viên.</p>
+                                    </div>
                                 </div>
 
-                                <!-- ── Transcript Status Badge ── -->
-                                <div id="transcript-status-section" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
-                                    <div style="font-size:0.82rem; font-weight:600; color:rgba(255,255,255,0.6);">Trạng thái bản dịch:</div>
-                                    <div id="transcript-status-badge" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.35rem 0.85rem; border-radius:100px; font-size:0.75rem; font-weight:700; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.1);">
-                                        📝 Chưa có
+                                <!-- Section 4: Nguồn dữ liệu AI -->
+                                <div class="ai-section-card data-sources">
+                                    <div class="ai-section-title">
+                                        <span class="section-icon">📊</span> Nguồn dữ liệu AI
                                     </div>
-                                    <button type="button" id="verifyTranscriptBtn" onclick="verifyTranscript()" style="display:none; padding:0.4rem 1rem; border-radius:100px; border:1px solid rgba(16,185,129,0.3); background:rgba(16,185,129,0.08); color:#10b981; font-size:0.75rem; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.15)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">
-                                        ✅ Xác minh bản dịch
-                                    </button>
-                                </div>
 
-                                <div class="form-group">
-                                    <label class="form-label">Tóm tắt bài học (AI Summary)</label>
-                                    <textarea id="ai_summary" class="form-control" rows="2" placeholder="Tóm tắt ngắn gọn nội dung bài học..."></textarea>
-                                </div>
-                                <div class="form-group" id="video-transcript-group">
-                                    <label class="form-label">Bản dịch Video / Script (Video Transcript)</label>
-                                    <textarea id="video_transcript" class="form-control" rows="4" placeholder="Nhập nội dung hội thoại trong video nếu có..."></textarea>
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="form-group">
-                                        <label class="form-label">Ngữ cảnh bổ sung (Lesson Context)</label>
-                                        <input type="text" id="lesson_context" class="form-control" placeholder="VD: Nhấn mạnh vào phần tính toán...">
+                                    <!-- Transcript Status Badge -->
+                                    <div id="transcript-status-section" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1.25rem;">
+                                        <div style="font-size:0.82rem; font-weight:600; color:rgba(255,255,255,0.6);">Trạng thái bản dịch:</div>
+                                        <div id="transcript-status-badge" style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.35rem 0.85rem; border-radius:100px; font-size:0.75rem; font-weight:700; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.1);">
+                                            📝 Chưa có
+                                        </div>
+                                        <button type="button" id="verifyTranscriptBtn" onclick="verifyTranscript()" style="display:none; padding:0.4rem 1rem; border-radius:100px; border:1px solid rgba(16,185,129,0.3); background:rgba(16,185,129,0.08); color:#10b981; font-size:0.75rem; font-weight:700; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='rgba(16,185,129,0.15)'" onmouseout="this.style.background='rgba(16,185,129,0.08)'">
+                                            ✅ Xác minh bản dịch
+                                        </button>
                                     </div>
+
                                     <div class="form-group">
-                                        <label class="form-label">Chủ đề chính (Key Topics)</label>
-                                        <input type="text" id="key_topics" class="form-control" placeholder="VD: logic, loops, syntax">
+                                        <label class="form-label">Tóm tắt nội dung</label>
+                                        <textarea id="ai_summary" class="form-control" rows="2" placeholder="Tóm tắt ngắn gọn nội dung bài học..."></textarea>
+                                    </div>
+
+                                    <div class="form-group" id="video-transcript-group">
+                                        <label class="form-label">Nội dung lời nói video</label>
+                                        <textarea id="video_transcript" class="form-control" rows="4" placeholder="Nhập nội dung hội thoại trong video nếu có..."></textarea>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Ngữ cảnh hỗ trợ AI</label>
+                                            <input type="text" id="lesson_context" class="form-control" placeholder="VD: Nhấn mạnh vào phần tính toán...">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Từ khóa chính</label>
+                                            <input type="text" id="key_topics" class="form-control" placeholder="VD: logic, loops, syntax">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
+                            <!-- ══════════════════════════════════
+                                 TAB 4 — Quiz
+                                 ══════════════════════════════════ -->
+                            <div class="lesson-tab-panel" id="tab-quiz">
+                                <div class="form-group">
+                                    <label class="form-label">Tiêu đề bài kiểm tra</label>
+                                    <input type="text" id="quiz_title" class="form-control" placeholder="VD: Câu hỏi ôn tập chương 1">
+                                </div>
 
+                                <!-- AI Quiz Helper Fields -->
+                                <div class="ai-section-card" style="margin-bottom:1.5rem;">
+                                    <div class="ai-section-title">
+                                        <span class="section-icon">🧠</span> AI Quiz Assistance
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Giải thích tổng quát (Explanations)</label>
+                                        <textarea id="quiz_explanations" class="form-control" rows="2" placeholder="AI sẽ dùng nội dung này để giải thích kết quả cho học viên..."></textarea>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Gợi ý chung (Hints)</label>
+                                            <input type="text" id="quiz_hints" class="form-control" placeholder="Gợi ý khi học viên bí bài...">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">AI Tags</label>
+                                            <input type="text" id="quiz_ai_tags" class="form-control" placeholder="VD: critical thinking, logic">
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <div style="margin-top: 2.5rem; display: flex; gap: 1rem; border-top: 1px solid var(--glass-border); padding-top: 2rem;">
-                            <button type="submit" class="btn btn-primary" id="saveBtn" style="padding: 1rem 2.5rem;">Lưu bài học</button>
-                            <button type="button" class="btn btn-outline-danger" id="deleteLessonBtn" style="display: none; padding: 1rem 2rem; border-radius: var(--radius-md);" onclick="deleteCurrentLesson()">Xóa bài học</button>
-                            <button type="button" class="btn btn-ghost" style="margin-left: auto;" onclick="hideEditor()">Hủy</button>
-                        </div>
+                                <div id="quiz-questions-container"></div>
+                                <button type="button" class="btn btn-outline w-full" onclick="addQuestion()" style="margin-top: 1rem; border-style: dashed;">
+                                    + Thêm câu hỏi
+                                </button>
+                            </div>
+
+                            <!-- ══════════════════════════════════
+                                 TAB 5 — Xem trước
+                                 ══════════════════════════════════ -->
+                            <div class="lesson-tab-panel" id="tab-preview">
+                                <div class="preview-panel" id="preview-panel-content">
+                                    <div class="preview-empty">
+                                        <div class="preview-empty-icon">👁️</div>
+                                        <p>Nhập nội dung bài học ở các tab trước để xem trước tại đây.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!-- /lesson-tab-panels -->
                     </form>
                 </div>
             </div>
@@ -272,6 +312,26 @@ require __DIR__ . '/../layouts/header.php';
             </div>
         </main>
     </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     STICKY ACTION BAR
+     ═══════════════════════════════════════ -->
+<div class="sticky-action-bar" id="sticky-action-bar">
+    <div class="bar-left">
+        <button type="button" class="btn-bar bar-danger" id="bar-deleteLessonBtn" style="display:none;" onclick="deleteCurrentLesson()">
+            <i class="fas fa-trash-alt"></i> Xóa bài học
+        </button>
+    </div>
+    <button type="button" class="btn-bar bar-ghost" onclick="saveDraft()">
+        <i class="fas fa-save"></i> Lưu nháp
+    </button>
+    <button type="button" class="btn-bar bar-outline" onclick="switchTab('tab-preview', document.querySelector('[data-tab=tab-preview]'))">
+        <i class="fas fa-eye"></i> Xem trước
+    </button>
+    <button type="button" class="btn-bar bar-primary" id="bar-saveBtn" onclick="triggerSave()">
+        <i class="fas fa-check"></i> Lưu bài học
+    </button>
 </div>
 
 <!-- ── Chapter Modal ── -->
@@ -319,9 +379,87 @@ let courseId = <?= json_encode($_GET['course_id'] ?? null) ?> ?? new URLSearchPa
 let currentCurriculum = [];
 let quill;
 
+// ════════════════════════════════════════════════════
+// TAB SWITCHING
+// ════════════════════════════════════════════════════
+function switchTab(tabId, btn) {
+    // Deactivate all
+    document.querySelectorAll('.lesson-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.lesson-tab-panel').forEach(p => p.classList.remove('active'));
+    // Activate target
+    if (btn) btn.classList.add('active');
+    const panel = document.getElementById(tabId);
+    if (panel) panel.classList.add('active');
+
+    // If switching to preview, build preview content
+    if (tabId === 'tab-preview') buildPreview();
+}
+
+function buildPreview() {
+    const container = document.getElementById('preview-panel-content');
+    const title = document.getElementById('lesson_title').value;
+    const type = document.getElementById('content_type').value;
+    let html = '';
+
+    if (!title && !quill.getText().trim()) {
+        container.innerHTML = '<div class="preview-empty"><div class="preview-empty-icon">👁️</div><p>Nhập nội dung bài học ở các tab trước để xem trước tại đây.</p></div>';
+        return;
+    }
+
+    html += `<div class="preview-section">
+        <div class="preview-section-title">Tiêu đề bài học</div>
+        <div class="preview-content-box" style="font-size:1.1rem; font-weight:700;">${escapeHtml(title || '(Chưa đặt tên)')}</div>
+    </div>`;
+
+    html += `<div class="preview-section">
+        <div class="preview-section-title">Loại nội dung</div>
+        <div class="preview-content-box">${type === 'video' ? '🎬 Video Bài Giảng' : (type === 'quiz' ? '❓ Bài Kiểm Tra' : '📄 Tài Liệu Đọc')}</div>
+    </div>`;
+
+    if (type !== 'quiz') {
+        const content = quill.root.innerHTML;
+        if (content && content !== '<p><br></p>') {
+            html += `<div class="preview-section">
+                <div class="preview-section-title">Nội dung</div>
+                <div class="preview-content-box">${content}</div>
+            </div>`;
+        }
+    }
+
+    const videoUrl = document.getElementById('video_url').value.trim();
+    if (videoUrl) {
+        let embedUrl = videoUrl;
+        if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+            const pattern = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i;
+            const matches = videoUrl.match(pattern);
+            if (matches && matches[1]) embedUrl = `https://www.youtube.com/embed/${matches[1]}`;
+        }
+        html += `<div class="preview-section">
+            <div class="preview-section-title">Video</div>
+            <div style="border-radius:12px; overflow:hidden; position:relative; padding-top:56.25%; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.08);">
+                <iframe src="${embedUrl}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe>
+            </div>
+        </div>`;
+    }
+
+    const summary = document.getElementById('ai_summary').value;
+    if (summary) {
+        html += `<div class="preview-section">
+            <div class="preview-section-title">Tóm tắt nội dung</div>
+            <div class="preview-content-box">${escapeHtml(summary)}</div>
+        </div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+
+// ════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
     App.requireAuth(['teacher', 'admin']);
-    
+
     quill = new Quill('#lesson_quill_editor', {
         theme: 'snow',
         modules: {
@@ -369,6 +507,7 @@ function renderCurriculum() {
     const container = document.getElementById('curriculum-container');
     if (currentCurriculum.length === 0) {
         container.innerHTML = '<p class="text-center opacity-30 p-10">Chưa có nội dung.</p>';
+        updateSidebarStats();
         return;
     }
 
@@ -393,9 +532,31 @@ function renderCurriculum() {
             <div class="add-lesson-btn" onclick="openEditor(${ch.id})">+ Thêm bài học</div>
         </div>
     `).join('');
+
+    updateSidebarStats();
 }
 
-// ── Chapter Modal Logic ──
+// ════════════════════════════════════════════════════
+// SIDEBAR STATS
+// ════════════════════════════════════════════════════
+function updateSidebarStats() {
+    let chapters = currentCurriculum.length;
+    let lessons = 0;
+    let quizzes = 0;
+    currentCurriculum.forEach(ch => {
+        (ch.lessons || []).forEach(l => {
+            lessons++;
+            if (l.content_type === 'quiz') quizzes++;
+        });
+    });
+    document.getElementById('stat-chapters').textContent = chapters;
+    document.getElementById('stat-lessons').textContent = lessons;
+    document.getElementById('stat-quizzes').textContent = quizzes;
+}
+
+// ════════════════════════════════════════════════════
+// CHAPTER MODAL
+// ════════════════════════════════════════════════════
 let _chapterModalMode = 'create';
 let _chapterModalEditId = null;
 
@@ -457,6 +618,9 @@ function editChapter(id, oldTitle) {
     openChapterModal('edit', id, oldTitle);
 }
 
+// ════════════════════════════════════════════════════
+// EDITOR OPEN / CLOSE / TAB VISIBILITY
+// ════════════════════════════════════════════════════
 function openEditor(chapterId) {
     document.getElementById('empty-state').style.display = 'none';
     document.getElementById('editor-panel').style.display = 'block';
@@ -465,8 +629,11 @@ function openEditor(chapterId) {
     document.getElementById('lesson-form').reset();
     quill.root.innerHTML = '';
     document.getElementById('video-info-display').innerHTML = '';
-    const deleteBtn = document.getElementById('deleteLessonBtn');
-    if (deleteBtn) deleteBtn.style.display = 'none';
+
+    // Hide delete button in sticky bar
+    const barDelete = document.getElementById('bar-deleteLessonBtn');
+    if (barDelete) barDelete.style.display = 'none';
+
     // Reset AI config fields
     document.getElementById('enable_auto_summary').checked = true;
     document.getElementById('enable_auto_keywords').checked = true;
@@ -475,6 +642,12 @@ function openEditor(chapterId) {
     document.getElementById('teacher_notes').value = '';
     updateTranscriptBadge('empty');
     toggleContentFields();
+
+    // Reset to first tab
+    switchTab('tab-info', document.querySelector('[data-tab="tab-info"]'));
+
+    // Show sticky bar
+    document.getElementById('sticky-action-bar').style.display = 'flex';
 }
 
 async function editExistingLesson(lessonId, chapterId) {
@@ -485,24 +658,27 @@ async function editExistingLesson(lessonId, chapterId) {
         document.getElementById('editor-panel').style.display = 'block';
         document.getElementById('edit_mode').value = 'edit';
         document.getElementById('edit_lesson_id').value = lessonId;
-        const deleteBtn = document.getElementById('deleteLessonBtn');
-        if (deleteBtn) deleteBtn.style.display = 'block';
+
+        // Show delete button in sticky bar
+        const barDelete = document.getElementById('bar-deleteLessonBtn');
+        if (barDelete) barDelete.style.display = 'inline-flex';
+
         document.getElementById('chapter_id').value = chapterId;
         document.getElementById('lesson_title').value = l.title;
         document.getElementById('content_type').value = l.content_type;
         document.getElementById('order_index').value = l.order_index;
         document.getElementById('video_url').value = l.video_url || '';
         quill.root.innerHTML = l.content || '';
-        
+
         if (l.video_filename) {
             document.getElementById('video_filename').value = l.video_filename;
         }
         await updateVideoPreview();
-        
+
         toggleContentFields();
         document.querySelectorAll('.lesson-item').forEach(el => el.classList.remove('active'));
         document.getElementById(`lesson-nav-${lessonId}`)?.classList.add('active');
-        
+
         if (l.content_type === 'quiz') loadQuiz(lessonId);
 
         // AI Fields
@@ -519,14 +695,92 @@ async function editExistingLesson(lessonId, chapterId) {
         document.getElementById('teacher_notes').value = l.teacher_notes || '';
         updateTranscriptBadge(l.transcript_status || 'empty');
 
+        // Reset to first tab
+        switchTab('tab-info', document.querySelector('[data-tab="tab-info"]'));
+
+        // Show sticky bar
+        document.getElementById('sticky-action-bar').style.display = 'flex';
+
     } catch(e) { App.showToast(e.message, 'error'); }
 }
 
 function hideEditor() {
     document.getElementById('editor-panel').style.display = 'none';
     document.getElementById('empty-state').style.display = 'flex';
+    document.getElementById('sticky-action-bar').style.display = 'none';
 }
 
+// ════════════════════════════════════════════════════
+// CONTENT TYPE TOGGLING (Tab Visibility)
+// ════════════════════════════════════════════════════
+function toggleContentFields() {
+    const type = document.getElementById('content_type').value;
+
+    // Video upload section
+    document.getElementById('video-upload-section').style.display = (type === 'video') ? 'block' : 'none';
+    // Rich text editor
+    document.getElementById('content-group').style.display = (type === 'quiz') ? 'none' : 'block';
+
+    // Tab visibility: show/hide quiz tab, show/hide AI tab
+    const tabBtnQuiz = document.getElementById('tab-btn-quiz');
+    const tabBtnAi = document.getElementById('tab-btn-ai');
+    if (tabBtnQuiz) tabBtnQuiz.style.display = (type === 'quiz') ? 'inline-flex' : 'none';
+    if (tabBtnAi) tabBtnAi.style.display = (type === 'quiz') ? 'none' : 'inline-flex';
+
+    // Sticky bar save button: for quiz, use "Lưu Quiz" label
+    const barSave = document.getElementById('bar-saveBtn');
+    if (type === 'quiz') {
+        barSave.innerHTML = '<i class="fas fa-check"></i> Lưu Quiz';
+        barSave.setAttribute('onclick', 'saveQuiz()');
+    } else {
+        barSave.innerHTML = '<i class="fas fa-check"></i> Lưu bài học';
+        barSave.setAttribute('onclick', 'triggerSave()');
+    }
+
+    // Hide/show video transcript field
+    const transGroup = document.getElementById('video-transcript-group');
+    if (transGroup) {
+        transGroup.style.display = (type === 'video') ? 'block' : 'none';
+    }
+
+    // Auto-add first question if quiz and empty
+    if (type === 'quiz' && document.getElementById('quiz-questions-container').children.length === 0) {
+        addQuestion();
+    }
+
+    // If current tab is hidden, switch to info tab
+    const activeTab = document.querySelector('.lesson-tab-panel.active');
+    if (activeTab) {
+        if (activeTab.id === 'tab-quiz' && type !== 'quiz') {
+            switchTab('tab-info', document.querySelector('[data-tab="tab-info"]'));
+        }
+        if (activeTab.id === 'tab-ai' && type === 'quiz') {
+            switchTab('tab-info', document.querySelector('[data-tab="tab-info"]'));
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════
+// STICKY BAR ACTIONS
+// ════════════════════════════════════════════════════
+function triggerSave() {
+    document.getElementById('lesson-form').requestSubmit();
+}
+
+function saveDraft() {
+    // Draft saves via same API (no separate draft endpoint)
+    const type = document.getElementById('content_type').value;
+    if (type === 'quiz') {
+        saveQuiz();
+    } else {
+        document.getElementById('lesson-form').requestSubmit();
+    }
+    // Toast will be overridden by the submit handler's success toast
+}
+
+// ════════════════════════════════════════════════════
+// DELETE
+// ════════════════════════════════════════════════════
 async function deleteLesson(lessonId) {
     const confirmed = await App.confirm({
         title: 'Xóa bài học',
@@ -541,13 +795,13 @@ async function deleteLesson(lessonId) {
     try {
         await window.api.delete(`/teacher/lessons/${lessonId}`);
         App.showToast('Đã xóa bài học thành công!', 'success');
-        
+
         const currentEditId = document.getElementById('edit_lesson_id').value;
         const currentMode = document.getElementById('edit_mode').value;
         if (currentMode === 'edit' && currentEditId == lessonId) {
             hideEditor();
         }
-        
+
         await loadCurriculum();
     } catch(e) {
         App.showToast(e.message || 'Xóa bài học thất bại.', 'error');
@@ -561,33 +815,17 @@ function deleteCurrentLesson() {
     }
 }
 
-function toggleContentFields() {
-    const type = document.getElementById('content_type').value;
-    document.getElementById('video-upload-section').style.display = (type === 'video') ? 'block' : 'none';
-    document.getElementById('content-group').style.display = (type === 'quiz') ? 'none' : 'block';
-    document.getElementById('quiz-builder-section').style.display = (type === 'quiz') ? 'block' : 'none';
-    document.getElementById('saveBtn').style.display = (type === 'quiz') ? 'none' : 'block';
-    document.getElementById('ai-lesson-context-group').style.display = (type === 'quiz') ? 'none' : 'block';
+// ════════════════════════════════════════════════════
+// VIDEO UPLOAD
+// ════════════════════════════════════════════════════
+let currentLocalVideoUrl = null;
 
-    // Ẩn/Hiện trường Bản dịch video dựa trên loại bài học
-    const transGroup = document.getElementById('video-transcript-group');
-    if (transGroup) {
-        transGroup.style.display = (type === 'video') ? 'block' : 'none';
-    }
-
-    // Auto-add first question if quiz and empty
-    if (type === 'quiz' && document.getElementById('quiz-questions-container').children.length === 0) {
-        addQuestion();
-    }
-}
-
-// Video/Quiz Logic (Briefed for length)
 async function handleVideoSelect(input) {
     if (!input.files[0]) return;
     const file = input.files[0];
 
-    // Client-side size validation (500MB max)
-    const MAX_VIDEO_SIZE_MB = 500;
+    // Client-side size validation (300MB max)
+    const MAX_VIDEO_SIZE_MB = 300;
     const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
     if (file.size > MAX_VIDEO_SIZE_MB * 1024 * 1024) {
         input.value = '';
@@ -602,8 +840,11 @@ async function handleVideoSelect(input) {
                     </div>
                 </div>
                 <div style="font-size:0.85rem; color:rgba(255,255,255,0.7); line-height:1.6; margin-bottom:1rem;">
-                    Hãy tải video lên một trong các nền tảng sau, rồi dán link vào ô <strong>"Link YouTube / Drive"</strong> bên dưới:
+                    Video vượt quá dung lượng cho phép (300MB). Vui lòng sử dụng Youtube, Vimeo hoặc Google Drive đối với video dung lượng lớn.
                 </div>
+                <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('video_url').focus(); document.getElementById('video_url').scrollIntoView({ behavior: 'smooth' });" style="background:var(--primary); border:none; padding:0.5rem 1rem; border-radius:8px; font-weight:700; font-size:0.85rem; color:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:0.5rem; margin-bottom:1rem;">
+                    <i class="fas fa-link"></i> Sử dụng Link Youtube / Vimeo / Drive
+                </button>
                 <div style="display:flex; flex-direction:column; gap:0.75rem;">
                     <a href="https://studio.youtube.com" target="_blank" rel="noopener" style="display:flex; align-items:center; gap:0.75rem; padding:0.85rem 1.15rem; background:rgba(255,0,0,0.08); border:1px solid rgba(255,0,0,0.2); border-radius:10px; text-decoration:none; color:#fff; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,0,0,0.15)'" onmouseout="this.style.background='rgba(255,0,0,0.08)'">
                         <i class="fab fa-youtube" style="font-size:1.4rem; color:#ff0000;"></i>
@@ -629,29 +870,31 @@ async function handleVideoSelect(input) {
         `;
         return;
     }
-    
+
+    currentLocalVideoUrl = URL.createObjectURL(file);
+
     const chapterId = document.getElementById('chapter_id').value;
     if (!chapterId) {
         App.showToast('Vui lòng chọn hoặc tạo chương trước khi tải video.', 'error');
         return;
     }
-    
+
     const formData = new FormData();
     formData.append('video', file);
     formData.append('course_id', courseId);
     formData.append('chapter_id', chapterId);
-    
+
     document.getElementById('uploadProgress').style.display = 'block';
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/upload/video');
     xhr.setRequestHeader('Authorization', `Bearer ${window.api.getToken()}`);
-    
+
     xhr.upload.onprogress = (e) => {
         const pct = Math.round((e.loaded / e.total) * 100);
         document.getElementById('uploadPct').innerText = pct + '%';
         document.getElementById('uploadProgressBar').style.width = pct + '%';
     };
-    
+
     xhr.onload = () => {
         document.getElementById('uploadProgress').style.display = 'none';
         if (xhr.status === 200) {
@@ -676,6 +919,9 @@ async function handleVideoSelect(input) {
     xhr.send(formData);
 }
 
+// ════════════════════════════════════════════════════
+// FORM SUBMIT (Lesson Save)
+// ════════════════════════════════════════════════════
 document.getElementById('lesson-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const mode = document.getElementById('edit_mode').value;
@@ -707,28 +953,58 @@ document.getElementById('lesson-form').addEventListener('submit', async (e) => {
     } catch(e) { App.showToast(e.message, 'error'); }
 });
 
-// Quiz functions (Simplified for brevity)
+// ════════════════════════════════════════════════════
+// QUIZ
+// ════════════════════════════════════════════════════
 let qCount = 0;
 function addQuestion(data = null) {
     qCount++;
     const container = document.getElementById('quiz-questions-container');
     const div = document.createElement('div');
-    div.className = 'quiz-question-card';
+    div.className = 'quiz-card-v2';
+    div.id = `quiz-card-${qCount}`;
+    const currentQ = qCount;
     div.innerHTML = `
-        <div class="quiz-q-header">
-            <div class="quiz-q-num">${qCount}</div>
+        <button type="button" class="quiz-card-delete" onclick="removeQuestion(this)" title="Xóa câu hỏi">&times;</button>
+        <div class="quiz-card-header">
+            <div class="quiz-card-num">${currentQ}</div>
             <input type="text" class="quiz-q-input form-control" placeholder="Câu hỏi..." value="${data?.question || ''}">
         </div>
         <div class="quiz-answers">
             ${[0,1,2,3].map(i => `
                 <div class="quiz-answer-row">
-                    <input type="radio" name="ans_${qCount}" ${data?.answers[i]?.is_correct ? 'checked' : ''} class="quiz-answer-radio">
+                    <input type="radio" name="ans_${currentQ}" ${data?.answers[i]?.is_correct ? 'checked' : ''} class="quiz-answer-radio">
                     <input type="text" class="form-control" placeholder="Đáp án ${i+1}" value="${data?.answers[i]?.answer_text || ''}">
                 </div>
             `).join('')}
         </div>
     `;
     container.appendChild(div);
+}
+
+function removeQuestion(btn) {
+    const card = btn.closest('.quiz-card-v2');
+    if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        card.style.transition = 'all 0.25s ease';
+        setTimeout(() => {
+            card.remove();
+            renumberQuestions();
+        }, 250);
+    }
+}
+
+function renumberQuestions() {
+    const cards = document.querySelectorAll('.quiz-card-v2');
+    cards.forEach((card, idx) => {
+        const num = card.querySelector('.quiz-card-num');
+        if (num) num.textContent = idx + 1;
+        // Update radio group names to avoid conflicts
+        const radios = card.querySelectorAll('.quiz-answer-radio');
+        radios.forEach(r => r.name = `ans_${idx + 1}`);
+    });
+    qCount = cards.length;
 }
 
 async function saveQuiz() {
@@ -764,7 +1040,7 @@ async function saveQuiz() {
 
     const title = document.getElementById('quiz_title').value;
     const questions = [];
-    document.querySelectorAll('.quiz-question-card').forEach(card => {
+    document.querySelectorAll('.quiz-card-v2').forEach(card => {
         const qText = card.querySelector('.quiz-q-input').value;
         const answers = [];
         card.querySelectorAll('.quiz-answer-row').forEach((row, idx) => {
@@ -795,13 +1071,16 @@ async function loadQuiz(lessonId) {
         document.getElementById('quiz_hints').value = res.data.hints || '';
         document.getElementById('quiz_ai_tags').value = res.data.ai_tags || '';
         res.data.questions.forEach(q => addQuestion(q));
-    } catch(e) { 
+    } catch(e) {
         document.getElementById('quiz-questions-container').innerHTML = '';
         qCount = 0;
-        addQuestion(); 
+        addQuestion();
     }
 }
 
+// ════════════════════════════════════════════════════
+// VIDEO PREVIEW
+// ════════════════════════════════════════════════════
 async function updateVideoPreview() {
     const videoFilename = document.getElementById('video_filename').value;
     const videoUrl = document.getElementById('video_url').value.trim();
@@ -821,7 +1100,7 @@ async function updateVideoPreview() {
                 embedUrl = `https://www.youtube.com/embed/${matches[1]}`;
             }
         } else if (videoUrl.includes('drive.google.com')) {
-            const drivePattern = /\/file\/d\/([^\/?&#]+)/i;
+            const drivePattern = /\/file\/d\/([^\/?\&#]+)/i;
             const driveMatches = videoUrl.match(drivePattern);
             if (driveMatches && driveMatches[1]) {
                 embedUrl = `https://drive.google.com/file/d/${driveMatches[1]}/preview`;
@@ -844,7 +1123,7 @@ async function updateVideoPreview() {
                 </div>
             `;
             try {
-                const tokenRes = await window.api.post(`/lessons/${lessonId}/stream-token`, { course_id: courseId });
+                const tokenRes = await window.api.get(`/video/token/${lessonId}?course_id=${courseId}`);
                 if (tokenRes.success && tokenRes.data.stream_url) {
                     infoDisplay.innerHTML = `
                         <div class="video-preview-wrapper" style="border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.4); margin-bottom:1.5rem;">
@@ -864,7 +1143,24 @@ async function updateVideoPreview() {
                 console.error("Lỗi lấy luồng xem trước:", e);
             }
         }
-        
+
+        // Preview dùng local Object URL nếu là bài học mới tạo chưa lưu hoặc có local video url
+        if (currentLocalVideoUrl) {
+            infoDisplay.innerHTML = `
+                <div class="video-preview-wrapper" style="border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.4); margin-bottom:1.5rem;">
+                    <video controls style="width:100%; display:block; outline:none; max-height:360px;">
+                        <source src="${currentLocalVideoUrl}" type="video/mp4">
+                        Trình duyệt của bạn không hỗ trợ phát video HTML5.
+                    </video>
+                    <div style="padding:1rem; background:rgba(255,255,255,0.02); display:flex; align-items:center; justify-content:space-between; font-size:0.8rem; border-top:1px solid rgba(255,255,255,0.05);">
+                        <span style="opacity:0.6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;"><i class="fas fa-file-video" style="color:var(--primary); margin-right:6px;"></i>${videoFilename.split('/').pop()}</span>
+                        <span style="color:var(--primary); font-weight:700; font-size:0.75rem;"><i class="fas fa-eye" style="margin-right:4px;"></i>Xem trước cục bộ (Bản nháp)</span>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
         // Fallback banner nếu là bài học mới tạo chưa lưu
         infoDisplay.innerHTML = `
             <div class="video-uploaded-banner" style="border-radius:12px; padding:1.25rem; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
@@ -879,6 +1175,9 @@ async function updateVideoPreview() {
     }
 }
 
+// ════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;

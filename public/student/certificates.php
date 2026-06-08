@@ -1,6 +1,7 @@
 <?php
 $pageTitle = 'Chứng Chỉ Của Tôi - AI Study Hub';
 $actor = 'student';
+$footerMode = 'mini';
 $extraHead = '
     <link rel="stylesheet" href="/assets/css/student/certificates.css?v=' . time() . '">
 ';

@@ -2,6 +2,7 @@
 $pageTitle = 'Đang Học - AI Study Hub';
 $actor = 'student';
 $noSidebar = true;
+$footerMode = 'none';
 $extraHead = '
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">

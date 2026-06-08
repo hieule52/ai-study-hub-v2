@@ -1,11 +1,25 @@
 <?php
 $currentPath = $_SERVER['REQUEST_URI'];
-$isActive = fn(string $path) => (strpos($currentPath, $path) !== false) ? 'active' : '';
+$isActive = function(string $path) use ($currentPath) {
+    if ($path === '/teacher/courses') {
+        return (strpos($currentPath, '/teacher/courses') !== false || strpos($currentPath, '/teacher/course-builder') !== false || strpos($currentPath, '/teacher/create-course') !== false) ? 'active' : '';
+    }
+    return (strpos($currentPath, $path) !== false) ? 'active' : '';
+};
 ?>
 <aside class="teacher-sidebar">
     <div class="sidebar-brand" style="padding: 1rem 1.25rem; margin-bottom: 2rem;">
-        <div style="font-weight: 800; font-size: 1.2rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-            <span style="color: var(--primary);">✦</span> AI Hub
+        <div style="font-weight: 800; font-size: 1.25rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="url(#logo-sparkle-sidebar)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                <defs>
+                    <linearGradient id="logo-sparkle-sidebar" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#fff" />
+                        <stop offset="100%" stop-color="#818cf8" />
+                    </linearGradient>
+                </defs>
+                <path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z"/>
+            </svg>
+            AI Study Hub
         </div>
     </div>
 

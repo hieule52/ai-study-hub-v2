@@ -33,11 +33,10 @@ class VideoService
         'video/mp4',
         'video/webm',
         'video/quicktime',  // .mov
-        'video/x-msvideo',  // .avi
     ];
 
     // Allowed extensions
-    private array $allowedExtensions = ['mp4', 'webm', 'mov', 'avi'];
+    private array $allowedExtensions = ['mp4', 'webm', 'mov'];
 
     public function __construct()
     {
@@ -59,7 +58,7 @@ class VideoService
         
         $this->tokenSecret = $_ENV['VIDEO_TOKEN_SECRET'] ?? 'default_video_secret_key';
         $this->tokenExpiry = (int)($_ENV['VIDEO_TOKEN_EXPIRY'] ?? 14400); // 4 giờ
-        $this->maxSizeMB = (int)($_ENV['VIDEO_MAX_SIZE_MB'] ?? 500);
+        $this->maxSizeMB = (int)($_ENV['VIDEO_MAX_SIZE_MB'] ?? 300);
     }
 
     /**
@@ -81,6 +80,11 @@ class VideoService
      */
     public function uploadVideo(array $file, int $courseId, int $chapterId): array
     {
+        $this->log("Starting video upload for course ID {$courseId}, chapter ID {$chapterId}. Original name: {$file['name']}, size: {$file['size']} bytes", 'INFO');
+        
+        // Auto cleanup orphan videos before processing new upload
+        $this->cleanupOrphanVideos();
+
         // 1. Validate file
         $this->validateVideoFile($file);
 
@@ -98,11 +102,14 @@ class VideoService
 
         // 4. Move file
         if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            $this->log("Failed to move uploaded video file to target path: {$targetPath}", 'ERROR');
             throw new Exception("Lỗi hệ thống khi lưu video.");
         }
 
         // 5. Lấy thông tin file
         $fileSize = filesize($targetPath);
+
+        $this->log("Video upload success. Target filename: {$filename}, relative path: {$courseId}/{$chapterId}/{$filename}, size: {$fileSize} bytes", 'INFO');
 
         return [
             'filename' => $filename,
@@ -132,14 +139,11 @@ class VideoService
             throw new Exception($errorMessages[$file['error']] ?? 'Lỗi upload không xác định.');
         }
 
-        // Check size (max 200MB default)
+        // Check size (max 300MB default)
         $maxBytes = $this->maxSizeMB * 1024 * 1024;
         if ($file['size'] > $maxBytes) {
-            $fileSizeMB = round($file['size'] / (1024 * 1024), 1);
-            throw new Exception(
-                "Video ({$fileSizeMB}MB) vượt quá giới hạn {$this->maxSizeMB}MB cho phép. " .
-                "Gợi ý: Hãy tải video lên YouTube hoặc Google Drive, sau đó dán link vào ô \"Link YouTube / Drive\" bên dưới."
-            );
+            $this->log("Validation failed: file size {$file['size']} exceeds max size {$maxBytes} bytes", 'WARNING');
+            throw new Exception("Video vượt quá dung lượng cho phép ({$this->maxSizeMB}MB). Vui lòng sử dụng Youtube, Vimeo hoặc Google Drive đối với video dung lượng lớn.");
         }
 
         // Check extension
@@ -229,6 +233,8 @@ class VideoService
         // 6. Cleanup expired tokens (opportunistic)
         $this->tokenRepo->deleteExpiredTokens();
 
+        $this->log("Generated stream token for user ID {$userId}, lesson ID {$lessonId}, course ID {$courseId}. Token: {$rawToken}", 'INFO');
+
         return [
             'token' => $rawToken,
             'expires_at' => $expiresAt,
@@ -265,6 +271,7 @@ class VideoService
         ];
         foreach ($downloaderAgents as $agent) {
             if (stripos($clientUa, $agent) !== false) {
+                $this->log("Blocked streaming request from downloader tool: {$clientUa}", 'WARNING');
                 http_response_code(403);
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode(['error' => 'Công cụ tải xuống bị chặn trên hệ thống.']);
@@ -272,8 +279,9 @@ class VideoService
             }
         }
 
-        // Kiểm tra khớp User-Agent để đảm bảo chính trình duyệt của user đang yêu cầu stream
-        if (!empty($tokenData['user_agent']) && $tokenData['user_agent'] !== $clientUa) {
+        // Kiểm tra khớp User-Agent để đảm bảo chính trình duyệt của user đang yêu cầu stream (Hỗ trợ Safari/iOS players)
+        if (!$this->isUserAgentCompatible($tokenData['user_agent'], $clientUa)) {
+            $this->log("Blocked streaming request due to User-Agent incompatibility. Saved UA: '{$tokenData['user_agent']}', Client UA: '{$clientUa}'", 'WARNING');
             http_response_code(403);
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['error' => 'Thiết bị yêu cầu không khớp với phiên làm việc.']);
@@ -281,21 +289,14 @@ class VideoService
         }
 
         // Kiểm tra Sec-Fetch-Dest (Ngăn chặn IDM và các cuộc gọi tải trực tiếp)
-        // Trình duyệt luôn gửi Sec-Fetch-Dest: video khi chạy thẻ <video>
-        // IDM hoặc các công cụ tải độc lập không gửi hoặc gửi 'empty' / 'document'
+        // Chỉ chặn nếu header được gửi và thiết lập không khớp với video/audio/empty
         $secFetchDest = $_SERVER['HTTP_SEC_FETCH_DEST'] ?? '';
-        $isModernBrowser = (stripos($clientUa, 'Chrome') !== false || 
-                            stripos($clientUa, 'Safari') !== false || 
-                            stripos($clientUa, 'Firefox') !== false || 
-                            stripos($clientUa, 'Edge') !== false);
-                            
-        if ($isModernBrowser) {
-            if (empty($secFetchDest) || !in_array(strtolower($secFetchDest), ['video', 'audio'])) {
-                http_response_code(403);
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode(['error' => 'Yêu cầu không hợp lệ. Trực tiếp tải video không được phép.']);
-                exit;
-            }
+        if (!empty($secFetchDest) && !in_array(strtolower($secFetchDest), ['video', 'audio', 'empty'])) {
+            $this->log("Blocked streaming request due to incompatible Sec-Fetch-Dest: '{$secFetchDest}'", 'WARNING');
+            http_response_code(403);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['error' => 'Yêu cầu không hợp lệ. Trực tiếp tải video không được phép.']);
+            exit;
         }
 
         // 3. Tìm file video trên disk
@@ -403,15 +404,19 @@ class VideoService
 
                 // Validate range
                 if ($start > $end || $start >= $fileSize) {
+                    $this->log("Invalid HTTP Range request: {$range} (File size: {$fileSize} bytes)", 'WARNING');
                     http_response_code(416); // Range Not Satisfiable
                     header("Content-Range: bytes */$fileSize");
                     exit;
                 }
 
                 $length = $end - $start + 1;
+                $this->log("Serving Range Seek Request: bytes {$start}-{$end}/{$fileSize} (Serving length: {$length} bytes)", 'INFO');
                 http_response_code(206); // Partial Content
                 header("Content-Range: bytes $start-$end/$fileSize");
             }
+        } else {
+            $this->log("Serving Full Video Stream: 0-{$end}/{$fileSize} (Size: {$fileSize} bytes)", 'INFO');
         }
 
         header("Content-Length: $length");
@@ -478,5 +483,142 @@ class VideoService
             $i++;
         }
         return round($bytes, 2) . ' ' . $units[$i];
+    }
+
+    /**
+     * So khớp mềm trình duyệt/thiết bị để đảm bảo tính tương thích (Safari/macOS/iOS, Android ExoPlayer...)
+     */
+    private function isUserAgentCompatible(?string $savedUa, string $clientUa): bool
+    {
+        if (empty($savedUa)) {
+            return true;
+        }
+        if ($savedUa === $clientUa) {
+            return true;
+        }
+        
+        // Allow standard system media players on the same platform
+        // Apple Safari/Quicktime/WebKit handles video delegation via AppleCoreMedia
+        if (preg_match('/(iPhone|iPad|Macintosh|Mac OS X)/i', $savedUa)) {
+            if (preg_match('/(AppleCoreMedia|WebKit|iPhone|iPad|Macintosh|Safari)/i', $clientUa)) {
+                return true;
+            }
+        }
+        
+        // Android MediaPlayer, ExoPlayer, stagefright
+        if (stripos($savedUa, 'Android') !== false) {
+            if (preg_match('/(stagefright|ExoPlayer|AndroidMediaPlayer|Android)/i', $clientUa)) {
+                return true;
+            }
+        }
+        
+        // Windows Media Player, Edge, Chrome
+        if (stripos($savedUa, 'Windows') !== false) {
+            if (preg_match('/(Windows|Chrome|Firefox|Edge|PlayReady)/i', $clientUa)) {
+                return true;
+            }
+        }
+        
+        // Soft fallback: check if OS platform matches
+        $platforms = ['Windows', 'Macintosh', 'iPhone', 'iPad', 'Android', 'Linux'];
+        foreach ($platforms as $platform) {
+            if (stripos($savedUa, $platform) !== false && stripos($clientUa, $platform) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Ghi log chi tiết cho tiến trình video
+     */
+    public function log(string $message, string $level = 'INFO'): void
+    {
+        try {
+            $basePath = realpath(__DIR__ . '/../../') ?: __DIR__ . '/../..';
+            $logDir = $basePath . '/storage/private/logs';
+            if (!is_dir($logDir)) {
+                mkdir($logDir, 0755, true);
+            }
+            $logFile = $logDir . '/video_upload.log';
+            $timestamp = date('Y-m-d H:i:s');
+            $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+            $ua = $_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN';
+            $logMessage = "[{$timestamp}] [{$level}] [IP: {$ip}] [UA: {$ua}] {$message}\n";
+            file_put_contents($logFile, $logMessage, FILE_APPEND);
+        } catch (\Exception $e) {
+            // Không chặn tiến trình chính nếu ghi log lỗi
+        }
+    }
+
+    /**
+     * Tự động quét và xóa các video "mồ côi" (không thuộc bài học nào và được tạo/sửa > 2 tiếng trước)
+     */
+    public function cleanupOrphanVideos(): void
+    {
+        try {
+            $db = \App\Core\Database::connect();
+            
+            // Lấy tất cả video_filename đang được sử dụng trong bảng lessons
+            $stmt = $db->query("SELECT video_filename FROM lessons WHERE video_filename IS NOT NULL AND video_filename != ''");
+            $activeFiles = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            
+            // Chuẩn hóa danh sách file active
+            $activeSet = [];
+            foreach ($activeFiles as $file) {
+                $activeSet[trim($file)] = true;
+            }
+
+            // Quét đệ quy thư mục lưu trữ video
+            if (!is_dir($this->storagePath)) {
+                return;
+            }
+
+            $directoryIterator = new \RecursiveDirectoryIterator($this->storagePath, \RecursiveDirectoryIterator::SKIP_DOTS);
+            $iterator = new \RecursiveIteratorIterator($directoryIterator, \RecursiveIteratorIterator::CHILD_FIRST);
+            
+            $now = time();
+            $deletedCount = 0;
+            $scannedCount = 0;
+            
+            foreach ($iterator as $fileInfo) {
+                if ($fileInfo->isFile()) {
+                    $scannedCount++;
+                    $filePath = $fileInfo->getRealPath();
+                    
+                    // Lấy path tương đối so với storagePath (ví dụ: "course_id/chapter_id/uuid.mp4")
+                    $relativePath = str_replace('\\', '/', substr($filePath, strlen($this->storagePath) + 1));
+                    
+                    // Nếu không nằm trong danh sách đang sử dụng và file đã được tạo > 2 tiếng (7200 giây)
+                    if (!isset($activeSet[$relativePath]) && !isset($activeSet[basename($filePath)])) {
+                        $fileAge = $now - $fileInfo->getMTime();
+                        if ($fileAge > 7200) {
+                            if (@unlink($filePath)) {
+                                $deletedCount++;
+                                $this->log("Deleted orphan video file: {$relativePath} (Age: {$fileAge}s)", 'INFO');
+                            } else {
+                                $this->log("Failed to delete orphan video file: {$relativePath}", 'WARNING');
+                            }
+                        }
+                    }
+                } elseif ($fileInfo->isDir()) {
+                    // Xóa thư mục rỗng
+                    $dirPath = $fileInfo->getRealPath();
+                    // Đảm bảo không xóa thư mục gốc storagePath
+                    if ($dirPath !== realpath($this->storagePath)) {
+                        $files = scandir($dirPath);
+                        if (count($files) === 2) { // chỉ chứa . và ..
+                            @rmdir($dirPath);
+                        }
+                    }
+                }
+            }
+            if ($deletedCount > 0) {
+                $this->log("Auto cleanup finished. Scanned files: {$scannedCount}, deleted orphans: {$deletedCount}.", 'INFO');
+            }
+        } catch (\Throwable $e) {
+            $this->log("Error during auto cleanup: " . $e->getMessage(), 'ERROR');
+        }
     }
 }
